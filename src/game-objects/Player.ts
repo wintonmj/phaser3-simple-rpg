@@ -5,7 +5,7 @@
 
 import { Orientation } from '../geometry/orientation';
 import { Character } from './Character';
-import { Arrow } from './Arrow';
+import { Arrow } from './projectiles/Arrow';
 import { Monster } from './enemies/Monster';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
@@ -240,7 +240,7 @@ export class Player extends Character {
 
   private concludeShoot = () => {
     this.isShooting = false;
-    const arrow = new Arrow(this.scene, this, this.orientation);
+    const arrow = new Arrow(this.scene, this.x, this.y, this.orientation);
     this.scene.physics.add.collider(arrow, this.scene.monsterGroup, (a: Arrow, m: Monster) => {
       m.loseHp(a);
     });
