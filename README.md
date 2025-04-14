@@ -8,23 +8,29 @@ This is just an ambition free project that I developed as an exercice with Types
 
 Some things are out-to-date and some patterns I hadn't the knowledge of would greatly improve the readability now!
 
-Also, it needs some upgrades in the dependencies (the Phaser version here is becoming old!)
-
 ## Prerequisites
 
-- Node 10
-- yarn
-- A recent browser (Chrome 67)
+- Node.js (Latest LTS version recommended)
+- npm or yarn
+- A modern browser (Chrome, Firefox, Safari, or Edge)
 - [Tiled](https://www.mapeditor.org/) for map edition
 
 ## Installation
 
 ```bash
-yarn       # install the dependencies
-yarn start # run the dev server
+npm install   # or yarn install
+npm start     # or yarn start
 ```
 
 That's it 😊
+
+## Dependencies
+
+The project uses the following key dependencies:
+- Phaser 3.70.0
+- TypeScript 5.3.3
+- Webpack 5.90.3
+- Jest 29.7.0 for testing
 
 ## Credits
 

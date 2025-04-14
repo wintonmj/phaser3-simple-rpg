@@ -1,18 +1,42 @@
+/**
+ * @fileoverview Preloader scene that loads all game assets and creates animations.
+ * This scene is responsible for loading images, spritesheets, and tilemaps before the game starts.
+ */
+
 import { MAPS } from '../constants/maps';
 import { ASSETS } from '../constants/assets';
 import { SCENES } from '../constants/scenes';
 
+/**
+ * Preloader scene that loads all game assets and creates animations.
+ * This scene is responsible for loading images, spritesheets, and tilemaps before the game starts.
+ * 
+ * @class Preloader
+ * @extends {Phaser.Scene}
+ */
 export class Preloader extends Phaser.Scene {
+  /**
+   * Preloads all game assets.
+   * Called automatically by Phaser before the create method.
+   */
   protected preload() {
     this.loadAssets();
   }
 
+  /**
+   * Creates animations and launches the first level and game manager scenes.
+   * Called automatically by Phaser after the preload method.
+   */
   protected create() {
     this.createAnimations();
     this.scene.launch(SCENES.FIRST_LEVEL);
     this.scene.launch(SCENES.GAME_MANAGER);
   }
 
+  /**
+   * Loads all game assets including tilemaps, images, and spritesheets.
+   * Uses the constants defined in MAPS and ASSETS to load the correct files.
+   */
   private loadAssets() {
     this.load.tilemapTiledJSON(MAPS.firstLevel.key, `assets/${MAPS.firstLevel.file}`);
     this.load.tilemapTiledJSON(MAPS.secondLevel.key, `assets/${MAPS.secondLevel.file}`);

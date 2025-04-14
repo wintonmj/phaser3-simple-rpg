@@ -1,5 +1,10 @@
 /// <reference path="../types/phaser-extensions.d.ts" />
 
+/**
+ * @fileoverview Abstract base scene class that provides common functionality for all game scenes.
+ * This class handles map creation, player initialization, camera setup, and basic game mechanics.
+ */
+
 import { Orientation } from '../geometry/orientation';
 import { Player } from '../game-objects/Player';
 import { Treant } from '../game-objects/Treant';
@@ -10,30 +15,59 @@ import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { ASSETS } from '../constants/assets';
 import { MONSTERS } from '../constants/monsters';
 
+/** Camera lerp factor for smooth camera movement */
 const CAMERA_LERP = 1;
+/** Default player starting position */
 const PLAYER_INITIAL_POSITION = {
   x: 50,
   y: 200,
 };
 
+/**
+ * Interface for data passed between scenes
+ * @interface InterSceneData
+ */
 interface InterSceneData {
+  /** The name of the scene the player is coming from */
   comesFrom: string;
 }
 
+/**
+ * Abstract base class for all game scenes.
+ * Provides common functionality for map creation, player initialization, and game mechanics.
+ * 
+ * @abstract
+ * @class AbstractScene
+ * @extends {Phaser.Scene}
+ */
 export abstract class AbstractScene extends Phaser.Scene {
+  /** The player character */
   public player: Player;
+  /** Keyboard input controls */
   public cursors: CursorKeys;
+  /** Array of NPCs in the scene */
   public npcs: Npc[];
+  /** Array of monsters in the scene */
   public monsters: Monster[];
+  /** The tilemap for the scene */
   public map: Phaser.Tilemaps.Tilemap;
+  /** Physics group for monsters */
   public monsterGroup: Phaser.Physics.Arcade.Group;
+  /** Map layers for different terrain types */
   public layers: {
     terrain: Phaser.Tilemaps.TilemapLayer;
     deco: Phaser.Tilemaps.TilemapLayer;
     bridge: Phaser.Tilemaps.TilemapLayer;
   };
+  /** Key for the map asset */
   public mapKey: string;
 
+  /**
+   * Creates an instance of AbstractScene.
+   * 
+   * @param {string} key - The scene key
+   * @param {string} mapKey - The key for the map asset
+   */
   constructor(key: string, mapKey: string) {
     super(key);
 

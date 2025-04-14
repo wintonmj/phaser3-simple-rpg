@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Main entry point for the Phaser 3 Simple RPG game.
+ * This file initializes the game with the appropriate configuration and scenes.
+ */
+
 import 'phaser';
 import { FirstLevel } from './scenes/FirstLevel';
 import { SecondLevel } from './scenes/SecondLevel';
@@ -5,7 +10,20 @@ import { Preloader } from './scenes/Preloader';
 import { GameManager } from './scenes/GameManager';
 import { HUD } from './scenes/HUD';
 
+/**
+ * Main game class that extends Phaser.Game.
+ * Configures and initializes the game with all necessary scenes.
+ * 
+ * @class PhaserGame
+ * @extends {Phaser.Game}
+ */
 class PhaserGame extends Phaser.Game {
+  /**
+   * Creates an instance of PhaserGame.
+   * Sets up the game configuration including physics, scenes, and display settings.
+   * 
+   * @constructor
+   */
   constructor() {
     const config = {
       type: Phaser.AUTO,

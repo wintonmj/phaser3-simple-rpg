@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Player character class that extends the base Character class.
+ * Handles player movement, combat, and animations.
+ */
+
 import { Orientation } from '../geometry/orientation';
 import { Character } from './Character';
 import { Arrow } from './Arrow';
@@ -5,13 +10,25 @@ import { Monster } from './Monster';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 
+/** Delay between hits in milliseconds */
 const HIT_DELAY = 500;
+/** Player movement speed */
 const PLAYER_SPEED = 80;
+/** Reload time for shooting in milliseconds */
 const PLAYER_RELOAD = 500;
 
+/**
+ * Player character class that extends the base Character class.
+ * Handles player movement, combat, and animations.
+ * 
+ * @class Player
+ * @extends {Character}
+ */
 export class Player extends Character {
+  /** Maximum health points for the player */
   public static MAX_HP = 3;
 
+  /** Animation configurations for player movement in different directions */
   private static MOVE_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_UP },
@@ -19,6 +36,7 @@ export class Player extends Character {
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT },
   };
 
+  /** Animation configurations for player punching in different directions */
   private static PUNCH_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_UP },
@@ -26,6 +44,7 @@ export class Player extends Character {
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
   };
 
+  /** Animation configurations for player idle state in different directions */
   private static IDLE_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
@@ -33,6 +52,7 @@ export class Player extends Character {
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
   };
 
+  /** Animation configurations for player shooting in different directions */
   private static SHOOT_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP },
@@ -40,12 +60,24 @@ export class Player extends Character {
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
   };
 
+  /** Current orientation of the player */
   private orientation: Orientation;
+  /** Timestamp of the last hit taken */
   private lastTimeHit: number;
+  /** Whether the player is currently reloading */
   private isLoading: boolean;
+  /** Whether the player is currently shooting */
   private isShooting: boolean;
+  /** Tomb sprite shown when player dies */
   private tomb: Phaser.GameObjects.Sprite;
 
+  /**
+   * Creates an instance of Player.
+   * 
+   * @param {AbstractScene} scene - The scene the player belongs to
+   * @param {number} x - Initial x position
+   * @param {number} y - Initial y position
+   */
   constructor(scene: AbstractScene, x: number, y: number) {
     super(scene, x, y, ASSETS.IMAGES.PLAYER_IDLE_DOWN);
 

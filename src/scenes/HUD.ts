@@ -1,21 +1,44 @@
+/**
+ * @fileoverview Heads-Up Display (HUD) scene that shows player health and other UI elements.
+ * Manages the display of hearts representing player health.
+ */
+
 import { Player } from '../game-objects/Player';
 import { ASSETS } from '../constants/assets';
 import { SCENES } from '../constants/scenes';
 import { EVENTS } from '../constants/events';
 import { GameManager } from './GameManager';
 
+/** Distance between heart sprites in the HUD */
 const DISTANCE_BETWEEN_HEARTS = 15;
 
+/**
+ * Heads-Up Display (HUD) scene that shows player health and other UI elements.
+ * Manages the display of hearts representing player health.
+ * 
+ * @class HUD
+ * @extends {Phaser.Scene}
+ */
 export class HUD extends Phaser.Scene {
+  /** Array of heart sprites representing player health */
   private hearts: Phaser.GameObjects.Sprite[];
+  /** Reference to the game manager scene */
   private gameManager: GameManager;
 
+  /**
+   * Creates an instance of HUD.
+   * Initializes the scene with the appropriate scene key.
+   */
   constructor() {
     super(SCENES.HUD);
 
     this.hearts = [];
   }
 
+  /**
+   * Creates the HUD scene and initializes hearts.
+   * Sets up event listeners for health updates.
+   */
   protected create() {
     const gameManager: any = this.scene.get(SCENES.GAME_MANAGER);
     this.gameManager = gameManager;
@@ -27,6 +50,10 @@ export class HUD extends Phaser.Scene {
     this.initHearts();
   }
 
+  /**
+   * Initializes the heart sprites in the HUD.
+   * Creates empty hearts for maximum health and filled hearts for current health.
+   */
   private initHearts() {
     Array(Player.MAX_HP)
       .fill(0)

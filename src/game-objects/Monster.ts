@@ -1,22 +1,49 @@
+/**
+ * @fileoverview Abstract Monster class that extends the base Character class.
+ * Provides common functionality for all monster types including movement, combat, and AI behavior.
+ */
+
 import { Orientation } from '../geometry/orientation';
 import { Character } from './Character';
 import { ASSETS } from '../constants/assets';
 
+/**
+ * Abstract base class for all monsters in the game.
+ * Provides common functionality for movement, combat, and AI behavior.
+ * 
+ * @abstract
+ * @class Monster
+ * @extends {Character}
+ */
 export abstract class Monster extends Character {
+  /** Function that returns a random delay for wandering behavior */
   private static WANDER_DELAY = () => 1000 + 1000 * Math.random();
+  /** Function that returns a random duration for wandering behavior */
   private static WANDER_LENGTH = () => 1000 + 5000 * Math.random();
 
+  /** Animation configuration for monster walking */
   protected abstract WALK_ANIMATION;
+  /** Animation key for monster idle down state */
   protected abstract MONSTER_IDLE_DOWN;
+  /** Monster movement speed */
   protected MONSTER_SPEED = 20;
+  /** Delay between monster hits in milliseconds */
   protected MONSTER_HIT_DELAY = 100;
+  /** Distance at which monster will start chasing the player */
   protected CHASING_DISTANCE = 100;
 
+  /** Monster's health points */
   protected hp: number;
+  /** Timer event for chasing behavior */
   private chasingPlayerTimerEvent: Phaser.Time.TimerEvent;
+  /** Whether the monster is currently wandering */
   private isWandering = false;
+  /** Whether the monster is startled (after being hit) */
   private isStartled = false;
 
+  /**
+   * Updates the monster's behavior each frame
+   */
   public updateMonster() {
     if (!this.active) {
       return;
@@ -24,6 +51,9 @@ export abstract class Monster extends Character {
     this.handleChase();
   }
 
+  /**
+   * Attacks the player if they can be hit
+   */
   public attack = () => {
     if (!this.scene.player.canGetHit()) {
       return;
@@ -33,6 +63,11 @@ export abstract class Monster extends Character {
     this.animateAttack();
   };
 
+  /**
+   * Reduces monster's HP when hit by a projectile
+   * 
+   * @param {Phaser.Physics.Arcade.Sprite} projectile - The projectile that hit the monster
+   */
   public loseHp = (projectile: Phaser.Physics.Arcade.Sprite) => {
     this.hp--;
     this.isStartled = true;
