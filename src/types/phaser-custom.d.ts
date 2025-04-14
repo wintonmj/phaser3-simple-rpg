@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Custom Phaser type definitions for the game
+ * These are project-specific extensions to the main Phaser types
+ */
+
 declare namespace Phaser.Tilemaps {
   interface Tilemap {
     createLayer(layerID: string | number, tileset: Phaser.Tilemaps.Tileset | Phaser.Tilemaps.Tileset[], x?: number, y?: number): Phaser.Tilemaps.TilemapLayer;
