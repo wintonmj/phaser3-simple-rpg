@@ -106,6 +106,32 @@
                 }, 
                 {
                  "height":0,
+                 "id":16,
+                 "name":"goku",
+                 "point":true,
+                 "properties":
+                    {
+                     "message":"I'm Goku! I'm an animated NPC standing next to the guide.",
+                     "type":"animated",
+                     "shouldWander":"true",
+                     "combatMode":"false"
+                    },
+                 "propertytypes":
+                    {
+                     "message":"string",
+                     "type":"string",
+                     "shouldWander":"string",
+                     "combatMode":"string"
+                    },
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":88.2323,
+                 "y":146.777
+                },
+                {
+                 "height":0,
                  "id":7,
                  "name":"npc",
                  "point":true,
@@ -123,13 +149,39 @@
                  "width":0,
                  "x":445.118,
                  "y":308.711
+                },
+                {
+                 "height":0,
+                 "id":17,
+                 "name":"goku",
+                 "point":true,
+                 "properties":
+                    {
+                     "message":"I'm a combat-ready Goku! Watch me fight!",
+                     "type":"animated",
+                     "shouldWander":"false",
+                     "combatMode":"true"
+                    },
+                 "propertytypes":
+                    {
+                     "message":"string",
+                     "type":"string",
+                     "shouldWander":"string",
+                     "combatMode":"string"
+                    },
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":475.118,
+                 "y":308.711
                 }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
          "x":0,
          "y":0
-        }, 
+        },
         {
          "draworder":"topdown",
          "name":"zones",

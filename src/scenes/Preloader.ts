@@ -100,6 +100,9 @@ export class Preloader extends Phaser.Scene {
     // Load enemy assets
     this.loadEnemyAssets();
     
+    // Load Goku NPC assets
+    this.loadGokuNpcAssets();
+    
     // Load misc assets
     this.loadMiscAssets();
   }
@@ -196,6 +199,37 @@ export class Preloader extends Phaser.Scene {
   }
 
   /**
+   * Loads all Goku NPC-related assets
+   */
+  private loadGokuNpcAssets() {
+    // Goku animations
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_IDLE, 'assets/humanoid-spritesheets/goku/standard/idle.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_WALK, 'assets/humanoid-spritesheets/goku/standard/walk.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_RUN, 'assets/humanoid-spritesheets/goku/standard/run.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_SIT, 'assets/humanoid-spritesheets/goku/standard/sit.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_SLASH, 'assets/humanoid-spritesheets/goku/standard/slash.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_COMBAT_IDLE, 'assets/humanoid-spritesheets/goku/standard/combat_idle.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+  }
+
+  /**
    * Loads miscellaneous assets
    */
   private loadMiscAssets() {
@@ -211,6 +245,7 @@ export class Preloader extends Phaser.Scene {
   private createAnimations() {
     this.createPlayerAnimations();
     this.createEnemyAnimations();
+    this.createGokuNpcAnimations();
     this.createMiscAnimations();
   }
 
@@ -255,6 +290,33 @@ export class Preloader extends Phaser.Scene {
     this.createAnimation(ASSETS.ANIMATIONS.MOLE_WALK_SIDE, ASSETS.IMAGES.MOLE_WALK_SIDE, 0, 3, 7);
     this.createAnimation(ASSETS.ANIMATIONS.MOLE_WALK_DOWN, ASSETS.IMAGES.MOLE_WALK_DOWN, 0, 3, 7);
     this.createAnimation(ASSETS.ANIMATIONS.MOLE_WALK_UP, ASSETS.IMAGES.MOLE_WALK_UP, 0, 3, 7);
+  }
+
+  /**
+   * Creates all Goku NPC-related animations
+   */
+  private createGokuNpcAnimations() {
+    // Goku idle animation
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE, ASSETS.IMAGES.GOKU_IDLE, 0, 3, 5);
+    
+    // Goku walk animations
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_DOWN, ASSETS.IMAGES.GOKU_WALK, 0, 8, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_UP, ASSETS.IMAGES.GOKU_WALK, 9, 17, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_RIGHT, ASSETS.IMAGES.GOKU_WALK, 18, 26, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_LEFT, ASSETS.IMAGES.GOKU_WALK, 27, 35, 10);
+    
+    // Goku run animations
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_RUN_RIGHT, ASSETS.IMAGES.GOKU_RUN, 0, 7, 12);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_RUN_LEFT, ASSETS.IMAGES.GOKU_RUN, 8, 15, 12);
+    
+    // Goku sit animation
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SIT, ASSETS.IMAGES.GOKU_SIT, 0, 3, 5);
+    
+    // Goku slash animation
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SLASH, ASSETS.IMAGES.GOKU_SLASH, 0, 5, 10, true);
+    
+    // Goku combat idle animation
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_COMBAT_IDLE, ASSETS.IMAGES.GOKU_COMBAT_IDLE, 0, 5, 7);
   }
 
   /**

@@ -32,6 +32,13 @@ export const ASSETS = {
     MOLE_WALK_UP: 'mole-walk-up',
     MOLE_WALK_DOWN: 'mole-walk-down',
     MONSTER_DEATH: 'monster-death',
+    // Goku NPC sprites
+    GOKU_IDLE: 'goku-idle',
+    GOKU_WALK: 'goku-walk',
+    GOKU_RUN: 'goku-run',
+    GOKU_SIT: 'goku-sit',
+    GOKU_SLASH: 'goku-slash',
+    GOKU_COMBAT_IDLE: 'goku-combat-idle',
   },
   ANIMATIONS: {
     PLAYER_MOVE_LEFT: 'player-move-left',
@@ -56,5 +63,16 @@ export const ASSETS = {
     MOLE_WALK_UP: 'mole-walk-up',
     MOLE_WALK_DOWN: 'mole-walk-down',
     MONSTER_DEATH: 'monster-death',
+    // Goku NPC animations
+    GOKU_IDLE: 'goku-idle',
+    GOKU_WALK_LEFT: 'goku-walk-left',
+    GOKU_WALK_RIGHT: 'goku-walk-right',
+    GOKU_WALK_UP: 'goku-walk-up',
+    GOKU_WALK_DOWN: 'goku-walk-down',
+    GOKU_RUN_LEFT: 'goku-run-left',
+    GOKU_RUN_RIGHT: 'goku-run-right',
+    GOKU_SIT: 'goku-sit',
+    GOKU_SLASH: 'goku-slash',
+    GOKU_COMBAT_IDLE: 'goku-combat-idle',
   },
 } as const;

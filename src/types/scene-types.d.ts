@@ -19,6 +19,9 @@ export interface MapObjectProperties {
   scene?: string;
   comesBackFrom?: Orientation;
   message?: string;
+  type?: string;
+  shouldWander?: string;
+  combatMode?: string;
 }
 
 /**

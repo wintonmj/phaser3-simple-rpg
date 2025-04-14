@@ -15,6 +15,7 @@ import { MONSTERS } from '../constants/monsters';
 // Game object imports
 import { Player } from '../game-objects/Player';
 import { Npc } from '../game-objects/Npc';
+import { AnimatedNpc } from '../game-objects/AnimatedNpc';
 import { Monster } from '../game-objects/enemies/Monster';
 import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
@@ -44,7 +45,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   /** Keyboard input controls */
   public cursors: CursorKeys;
   /** Array of NPCs in the scene */
-  public npcs: Npc[];
+  public npcs: (Npc | AnimatedNpc)[];
   /** Array of monsters in the scene */
   public monsters: Monster[];
   /** The tilemap for the scene */
@@ -174,7 +175,22 @@ export abstract class AbstractScene extends Phaser.Scene {
   private initializeNPCs(): void {
     const npcsMapObjects = this.map.objects.find(o => o.name === MAP_CONTENT_KEYS.objects.NPCS);
     const npcs = (npcsMapObjects?.objects || []) as unknown as CustomTilemapObject[];
-    this.npcs = npcs.map(npc => new Npc(this, npc.x, npc.y, npc.properties.message));
+    
+    this.npcs = npcs.map(npc => {
+      // Check if this should be an animated NPC
+      if (npc.properties.type === 'animated') {
+        return new AnimatedNpc(
+          this, 
+          npc.x, 
+          npc.y, 
+          npc.properties.message,
+          npc.properties.shouldWander === 'true', 
+          npc.properties.combatMode === 'true'
+        );
+      }
+      // Regular NPC
+      return new Npc(this, npc.x, npc.y, npc.properties.message);
+    });
   }
 
   /**

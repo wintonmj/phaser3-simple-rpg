@@ -2,18 +2,18 @@
 
 ## Overview
 
-The animation system in the Phaser3 Simple RPG game is built around a centralized asset management approach. All animation keys and sprite references are defined in `src/constants/assets.ts` and are managed through the `Preloader` scene.
+The animation system in the Phaser3 Simple RPG game is built around a centralized asset management approach. All animation keys and sprite references are defined in `src/constants/assets.ts` and are managed through the `src/scenes/Preloader.ts` scene.
 
 ## Asset Management
 
 ### Assets Structure
 
-The `assets.ts` file contains two main sections:
+The `src/constants/assets.ts` file contains two main sections:
 
 - `IMAGES`: Contains keys for all sprite assets
 - `ANIMATIONS`: Contains keys for all animation configurations
 
-Example from `assets.ts`:
+Example from `src/constants/assets.ts`:
 
 ```typescript
 export const ASSETS = {
@@ -30,11 +30,32 @@ export const ASSETS = {
 } as const;
 ```
 
+### Asset File Locations
+
+The actual asset files are stored in the `assets` directory of the project and are loaded by the `src/scenes/Preloader.ts` scene. The directory structure is organized as follows:
+
+```
+assets/
+├── maps/                  # Tilemap files
+├── spritesheets/          # Character and enemy spritesheets
+│   ├── hero/              # Player character spritesheets
+│   │   ├── idle/          # Idle animations
+│   │   ├── walk/          # Walking animations
+│   │   └── attack/        # Attack animations
+│   ├── treant/            # Treant enemy spritesheets
+│   ├── mole/              # Mole enemy spritesheets
+│   └── misc/              # Miscellaneous spritesheets
+├── environment/           # Environment assets
+└── misc files             # Other assets (logo.png, heart.png, etc.)
+```
+
+During the build process, the `CopyWebpackPlugin` in `webpack.config.js` copies the entire `assets` directory to the `dist` directory, making these files available to the game at runtime.
+
 ## Animation Creation Process
 
 ### 1. Asset Loading
 
-The `Preloader` scene handles loading all game assets through several methods:
+The `src/scenes/Preloader.ts` scene handles loading all game assets through several methods:
 
 - `loadAssets()`: Main method that coordinates asset loading
   - `loadPlayerAssets()`: Loads player spritesheets
@@ -84,7 +105,7 @@ private createAnimation(
 
 ### Player Animations
 
-The `Player` class uses animations through static animation configurations:
+The `src/game-objects/Player.ts` class uses animations through static animation configurations:
 
 ```typescript
 private static MOVE_ANIMATION = {
@@ -97,7 +118,7 @@ private static MOVE_ANIMATION = {
 
 ### Monster Animations
 
-Monster classes (like `Treant` and `Mole`) extend the base `Monster` class and define their animations:
+Monster classes (like `src/game-objects/monsters/Treant.ts` and `src/game-objects/monsters/Mole.ts`) extend the base `src/game-objects/monsters/Monster.ts` class and define their animations:
 
 ```typescript
 protected WALK_ANIMATION = {
@@ -130,7 +151,7 @@ protected WALK_ANIMATION = {
 
 ## Best Practices
 
-1. **Centralized Management**: Always define new animation keys in `assets.ts`
+1. **Centralized Management**: Always define new animation keys in `src/constants/assets.ts`
 2. **Consistent Naming**: Follow the established naming convention:
    - `{entity}-{action}-{direction}`
    - Example: `player-move-down`, `treant-walk-side`
@@ -144,8 +165,8 @@ protected WALK_ANIMATION = {
 
 To add a new animation:
 
-1. Add the sprite key to `ASSETS.IMAGES`
-2. Add the animation key to `ASSETS.ANIMATIONS`
-3. Load the sprite in the appropriate `load*Assets()` method
-4. Create the animation in the appropriate `create*Animations()` method
+1. Add the sprite key to `ASSETS.IMAGES` in `src/constants/assets.ts`
+2. Add the animation key to `ASSETS.ANIMATIONS` in `src/constants/assets.ts`
+3. Load the sprite in the appropriate `load*Assets()` method in `src/scenes/Preloader.ts`
+4. Create the animation in the appropriate `create*Animations()` method in `src/scenes/Preloader.ts`
 5. Use the animation in the relevant game object class 
