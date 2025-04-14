@@ -61,6 +61,8 @@ export class AnimatedNpc extends Character {
   private isWandering: boolean;
   /** Whether the NPC is in combat mode */
   private isInCombatMode: boolean;
+  /** Whether the NPC should wander around */
+  private shouldWander: boolean;
 
   /**
    * Creates an instance of AnimatedNpc.
@@ -93,11 +95,17 @@ export class AnimatedNpc extends Character {
     this.orientation = Orientation.Down;
     this.isWandering = false;
     this.isInCombatMode = combatMode;
+    this.shouldWander = shouldWander;
     
+    // Set up physics body properly
+    scene.physics.world.enable(this);
     this.setDepth(5);
     this.setOrigin(0.5, 0.7);
     this.setSize(20, 30);
     this.setOffset(22, 24);
+    this.setScale(0.5);
+    this.setCollideWorldBounds(true);
+    this.setImmovable(false);
     
     // Start with idle animation
     if (this.isInCombatMode) {
@@ -106,16 +114,6 @@ export class AnimatedNpc extends Character {
       this.animate(AnimatedNpc.IDLE_ANIMATION, this.orientation);
     }
     
-    // Start wandering if requested
-    if (shouldWander) {
-      this.scene.time.addEvent({
-        delay: NPC_WANDER_DELAY(),
-        callback: this.startWandering,
-        callbackScope: this,
-        loop: true,
-      });
-    }
-
     // Listen for animation complete events
     this.on('animationcomplete', this.handleAnimationComplete, this);
   }
@@ -128,12 +126,19 @@ export class AnimatedNpc extends Character {
     
     // Update text position to follow NPC
     this.updateTextPosition();
+    
+    // Handle wandering if NPC should wander
+    if (this.shouldWander && !this.isWandering) {
+      this.wanderAround();
+    }
   }
 
   /**
    * Makes the NPC talk by displaying its text
    */
   public talk(): void {
+    if (!this.active || !this.textGameObject) return;
+    
     this.textGameObject.setAlpha(1);
     
     // Hide the text after a delay
@@ -181,6 +186,7 @@ export class AnimatedNpc extends Character {
    * Hides the NPC's text
    */
   private hideText(): void {
+    if (!this.active || !this.textGameObject) return;
     this.textGameObject.setAlpha(0);
   }
 
@@ -188,6 +194,8 @@ export class AnimatedNpc extends Character {
    * Updates the position of the text to follow the NPC
    */
   private updateTextPosition(): void {
+    if (!this.active || !this.textGameObject) return;
+    
     this.textGameObject.setPosition(
       this.x + (this.width - this.textGameObject.width) / 2,
       this.y - this.textGameObject.height - TEXT_VERTICAL_SHIFT,
@@ -195,27 +203,56 @@ export class AnimatedNpc extends Character {
   }
 
   /**
-   * Starts the NPC wandering around
+   * Makes the NPC wander in a random direction.
+   * Based on Monster.wanderAround() implementation.
    */
-  private startWandering(): void {
+  private wanderAround(): void {
     if (this.isWandering) return;
-    
+
     this.isWandering = true;
     const direction = this.getRandomDirection();
-    this.moveInDirection(direction);
-    
+    this.run(direction.x, direction.y);
+
     this.scene.time.addEvent({
       delay: NPC_WANDER_LENGTH(),
-      callback: this.stopWandering,
       callbackScope: this,
+      callback: () => {
+        this.stopRunning();
+
+        if (!this.active) return;
+
+        this.scene.time.addEvent({
+          delay: NPC_WANDER_DELAY(),
+          callbackScope: this,
+          callback: () => {
+            this.isWandering = false;
+          },
+        });
+      },
     });
   }
 
   /**
-   * Stops the NPC from wandering
+   * Sets the NPC's velocity based on direction.
+   * Similar to Monster.run() implementation.
    */
-  private stopWandering(): void {
-    this.isWandering = false;
+  private run(x: number, y: number): void {
+    if (x === 0 && y === 0 || !this.active) return;
+
+    this.setVelocityX(Math.sign(x) * NPC_SPEED);
+    this.setVelocityY(Math.sign(y) * NPC_SPEED);
+
+    const orientation = this.getOrientationFromTargettedPosition(x, y);
+    this.animate(AnimatedNpc.WALK_ANIMATION, orientation);
+  }
+
+  /**
+   * Stops the NPC's movement and plays idle animation.
+   * Similar to Monster.stopRunning() implementation.
+   */
+  private stopRunning(): void {
+    if (!this.active) return;
+    
     this.setVelocity(0, 0);
     
     if (this.isInCombatMode) {
@@ -226,27 +263,22 @@ export class AnimatedNpc extends Character {
   }
 
   /**
-   * Moves the NPC in a specific direction
+   * Gets the orientation based on movement direction.
+   * Similar to Monster.getOrientationFromTargettedPosition() implementation.
    */
-  private moveInDirection(direction: { x: number; y: number }): void {
-    this.setVelocityX(direction.x * NPC_SPEED);
-    this.setVelocityY(direction.y * NPC_SPEED);
-    
-    // Determine orientation from direction
-    if (Math.abs(direction.y) > Math.abs(direction.x)) {
-      this.orientation = direction.y < 0 ? Orientation.Up : Orientation.Down;
-    } else {
-      this.orientation = direction.x < 0 ? Orientation.Left : Orientation.Right;
+  private getOrientationFromTargettedPosition(x: number, y: number): Orientation {
+    if (Math.abs(y) > Math.abs(x)) {
+      return y < 0 ? Orientation.Up : Orientation.Down;
     }
-    
-    this.animate(AnimatedNpc.WALK_ANIMATION, this.orientation);
+    return x < 0 ? Orientation.Left : Orientation.Right;
   }
 
   /**
-   * Generates a random direction vector
+   * Generates a random direction vector.
+   * Updated to match Monster's implementation.
    */
   private getRandomDirection(): { x: number; y: number } {
-    const randomBetweenMinusOneAndOne = () => Math.floor(Math.random() * 3) - 1;
+    const randomBetweenMinusOneAndOne = () => Math.round(2 * Math.random()) - 1;
     return { 
       x: randomBetweenMinusOneAndOne(), 
       y: randomBetweenMinusOneAndOne() 
