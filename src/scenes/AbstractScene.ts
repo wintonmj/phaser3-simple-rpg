@@ -7,9 +7,9 @@
 
 import { Orientation } from '../geometry/orientation';
 import { Player } from '../game-objects/Player';
-import { Treant } from '../game-objects/Treant';
-import { Monster } from '../game-objects/Monster';
-import { Mole } from '../game-objects/Mole';
+import { Treant } from '../game-objects/enemies/Treant';
+import { Monster } from '../game-objects/enemies/Monster';
+import { Mole } from '../game-objects/enemies/Mole';
 import { Npc } from '../game-objects/Npc';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { ASSETS } from '../constants/assets';

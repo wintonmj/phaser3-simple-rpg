@@ -44,7 +44,7 @@ export class Preloader extends Phaser.Scene {
     // Images
     this.load.image(ASSETS.IMAGES.LOGO, 'assets/logo.png');
     this.load.image(ASSETS.IMAGES.TILES, 'assets/environment/tileset.png');
-    this.load.image(ASSETS.IMAGES.ARROW, 'assets/sprites/misc/arrow.png');
+    this.load.image(ASSETS.IMAGES.ARROW, 'assets/spritesheets/misc/arrow.png');
     this.load.image(ASSETS.IMAGES.TREANT_ATTACK, 'assets/environment/sliced-objects/trunk.png');
     this.load.image(ASSETS.IMAGES.HEART, 'assets/heart.png');
     this.load.image(ASSETS.IMAGES.HEART_EMPTY, 'assets/heart-empty.png');

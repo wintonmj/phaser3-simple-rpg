@@ -6,7 +6,7 @@
 import { Orientation } from '../geometry/orientation';
 import { Character } from './Character';
 import { Arrow } from './Arrow';
-import { Monster } from './Monster';
+import { Monster } from './enemies/Monster';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 

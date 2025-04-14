@@ -1,5 +1,5 @@
 import { Monster } from './Monster';
-import { ASSETS } from '../constants/assets';
+import { ASSETS } from '../../constants/assets';
 
 const DESTROY_SPRITE_ATTACK_DELAY = 200;
 

@@ -1,5 +1,5 @@
 import { Monster } from './Monster';
-import { ASSETS } from '../constants/assets';
+import { ASSETS } from '../../constants/assets';
 
 export class Mole extends Monster {
   protected WALK_ANIMATION = {

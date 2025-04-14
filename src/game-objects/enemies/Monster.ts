@@ -3,9 +3,9 @@
  * Provides common functionality for all monster types including movement, combat, and AI behavior.
  */
 
-import { Orientation } from '../geometry/orientation';
-import { Character } from './Character';
-import { ASSETS } from '../constants/assets';
+import { Orientation } from '../../geometry/orientation';
+import { Character } from '../Character';
+import { ASSETS } from '../../constants/assets';
 
 /**
  * Abstract base class for all monsters in the game.
