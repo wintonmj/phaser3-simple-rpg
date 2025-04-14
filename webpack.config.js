@@ -2,7 +2,6 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const AwesomeTypescriptLoader = require('awesome-typescript-loader');
 
 module.exports = {
   entry: './src/index.ts',
@@ -10,8 +9,16 @@ module.exports = {
   devtool: 'source-map',
   module: {
     rules: [
-      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
-      { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader' },
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      {
+        enforce: 'pre',
+        test: /\.js$/,
+        use: 'source-map-loader',
+      },
     ],
   },
   plugins: [
@@ -20,13 +27,25 @@ module.exports = {
       title: 'Phaser3 Simple RPG',
       template: './src/index.html',
     }),
-    new CopyWebpackPlugin([{ from: 'assets', to: 'assets' }]),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'assets', to: 'assets' }
+      ],
+    }),
   ],
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    clean: true,
   },
   resolve: {
     extensions: ['.ts', '.js', '.json'],
+  },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    compress: true,
+    port: 8080,
   },
 };

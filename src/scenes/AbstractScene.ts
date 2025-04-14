@@ -1,3 +1,5 @@
+/// <reference path="../types/phaser-extensions.d.ts" />
+
 import { Orientation } from '../geometry/orientation';
 import { Player } from '../game-objects/Player';
 import { Treant } from '../game-objects/Treant';
@@ -26,9 +28,9 @@ export abstract class AbstractScene extends Phaser.Scene {
   public map: Phaser.Tilemaps.Tilemap;
   public monsterGroup: Phaser.Physics.Arcade.Group;
   public layers: {
-    terrain: Phaser.Tilemaps.StaticTilemapLayer;
-    deco: Phaser.Tilemaps.StaticTilemapLayer;
-    bridge: Phaser.Tilemaps.StaticTilemapLayer;
+    terrain: Phaser.Tilemaps.TilemapLayer;
+    deco: Phaser.Tilemaps.TilemapLayer;
+    bridge: Phaser.Tilemaps.TilemapLayer;
   };
   public mapKey: string;
 
@@ -117,9 +119,9 @@ export abstract class AbstractScene extends Phaser.Scene {
     const tileset = this.map.addTilesetImage(ASSETS.TILESET, ASSETS.IMAGES.TILES, 16, 16, 0, 0);
 
     this.layers = {
-      terrain: this.map.createStaticLayer(MAP_CONTENT_KEYS.layers.BACKGROUND, tileset, 0, 0),
-      deco: this.map.createStaticLayer(MAP_CONTENT_KEYS.layers.DECORATION, tileset, 0, 0),
-      bridge: this.map.createStaticLayer(MAP_CONTENT_KEYS.layers.BRIDGE, tileset, 0, 0),
+      terrain: this.map.createLayer(MAP_CONTENT_KEYS.layers.BACKGROUND, tileset, 0, 0),
+      deco: this.map.createLayer(MAP_CONTENT_KEYS.layers.DECORATION, tileset, 0, 0),
+      bridge: this.map.createLayer(MAP_CONTENT_KEYS.layers.BRIDGE, tileset, 0, 0),
     };
     this.layers.terrain.setCollisionByProperty({ collides: true });
     this.layers.deco.setCollisionByProperty({ collides: true });
