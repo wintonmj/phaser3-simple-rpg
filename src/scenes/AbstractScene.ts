@@ -14,6 +14,7 @@ import { Npc } from '../game-objects/Npc';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { ASSETS } from '../constants/assets';
 import { MONSTERS } from '../constants/monsters';
+import { SCENES } from '../constants/scenes';
 
 /** Camera lerp factor for smooth camera movement */
 const CAMERA_LERP = 1;
@@ -144,6 +145,18 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.addColliders();
 
     this.initCamera();
+
+    // Add number key shortcuts for level transitions
+    this.input.keyboard.on('keydown-ONE', () => {
+      if (this.scene.key !== SCENES.FIRST_LEVEL) {
+        this.scene.start(SCENES.FIRST_LEVEL, { comesFrom: this.scene.key });
+      }
+    });
+    this.input.keyboard.on('keydown-TWO', () => {
+      if (this.scene.key !== SCENES.SECOND_LEVEL) {
+        this.scene.start(SCENES.SECOND_LEVEL, { comesFrom: this.scene.key });
+      }
+    });
 
     this.cursors = this.input.keyboard.createCursorKeys();
   }
