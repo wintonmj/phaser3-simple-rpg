@@ -1,0 +1,41 @@
+{
+  "bodyTypeName": "male",
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Zombie_zombie&head=Zombie_zombie&sex=male&wings=none_Feathered_Wings&tail=none_Wolf_Tail",
+  "spritesheets": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/spritesheets/",
+  "version": 1,
+  "datetime": "10/04/2025, 12:17:32",
+  "credits": [
+    {
+      "fileName": "body/bodies/zombie/zombie.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "Stephen Challener (Redshrike),Johannes Sjölund (wulax),Sander Frenken (castelonia),Benjamin K. Smith (BenCreating),bluecarrot16",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases",
+      "notes": ""
+    },
+    {
+      "fileName": "head/heads/zombie/adult/zombie.png",
+      "licenses": "CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,Benjamin K. Smith (BenCreating),Sander Frenken (castelonia),Stephen Challener (Redshrike)",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases",
+      "notes": ""
+    }
+  ],
+  "layers": [
+    {
+      "fileName": "body/bodies/zombie/zombie.png",
+      "zPos": 10,
+      "parentName": "body",
+      "name": "Zombie",
+      "variant": "zombie",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "head/heads/zombie/adult/zombie.png",
+      "zPos": 100,
+      "parentName": "head",
+      "name": "Zombie",
+      "variant": "zombie",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    }
+  ]
+}

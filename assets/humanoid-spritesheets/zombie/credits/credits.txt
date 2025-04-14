@@ -1,0 +1,33 @@
+body/bodies/zombie/zombie.png
+	- Note: 
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- Stephen Challener (Redshrike)
+		- Johannes Sjölund (wulax)
+		- Sander Frenken (castelonia)
+		- Benjamin K. Smith (BenCreating)
+		- bluecarrot16
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+		- https://opengameart.org/content/lpc-zombie
+		- https://opengameart.org/content/lpc-character-bases
+
+head/heads/zombie/adult/zombie.png
+	- Note: 
+	- Licenses:
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Benjamin K. Smith (BenCreating)
+		- Sander Frenken (castelonia)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-zombie
+		- https://opengameart.org/content/lpc-character-bases
+

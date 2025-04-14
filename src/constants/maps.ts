@@ -1,10 +1,10 @@
 export const MAPS = {
   firstLevel: {
-    file: 'tilemap.json',
+    file: 'maps/tilemap.json',
     key: 'first-level',
   },
   secondLevel: {
-    file: 'second-map.json',
+    file: 'maps/second-map.json',
     key: 'second-level',
   },
 } as const;
