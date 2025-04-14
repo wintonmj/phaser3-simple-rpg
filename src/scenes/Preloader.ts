@@ -15,11 +15,17 @@ import { SCENES } from '../constants/scenes';
  * @extends {Phaser.Scene}
  */
 export class Preloader extends Phaser.Scene {
+  private loadingBar: Phaser.GameObjects.Graphics;
+  private progressBar: Phaser.GameObjects.Graphics;
+  private loadingText: Phaser.GameObjects.Text;
+
   /**
    * Preloads all game assets.
-   * Called automatically by Phaser before the create method.
+   * Called automatically by Phaser before the preload method.
    */
   protected preload() {
+    this.createLoadingUI();
+    this.setupLoadingEvents();
     this.loadAssets();
   }
 
@@ -34,14 +40,82 @@ export class Preloader extends Phaser.Scene {
   }
 
   /**
+   * Creates the loading UI elements
+   */
+  private createLoadingUI() {
+    // Create loading bar background
+    this.loadingBar = this.add.graphics();
+    this.loadingBar.fillStyle(0x222222, 0.8);
+    this.loadingBar.fillRect(240, 270, 320, 50);
+    
+    // Create progress bar
+    this.progressBar = this.add.graphics();
+    
+    // Create loading text
+    this.loadingText = this.add.text(400, 295, 'Loading...', {
+      font: '20px monospace',
+      color: '#ffffff'
+    });
+    this.loadingText.setOrigin(0.5, 0.5);
+  }
+
+  /**
+   * Sets up loading events to update the progress bar
+   */
+  private setupLoadingEvents() {
+    this.load.on('progress', (value: number) => {
+      this.progressBar.clear();
+      this.progressBar.fillStyle(0xffffff, 1);
+      this.progressBar.fillRect(250, 280, 300 * value, 30);
+      this.loadingText.setText(`Loading: ${Math.floor(value * 100)}%`);
+    });
+
+    this.load.on('complete', () => {
+      this.progressBar.destroy();
+      this.loadingBar.destroy();
+      this.loadingText.destroy();
+    });
+
+    this.load.on('loaderror', (fileObj: any) => {
+      console.error('Error loading asset:', fileObj.src);
+      this.loadingText.setText('Error loading assets. Please refresh.');
+      this.loadingText.setColor('#ff0000');
+    });
+  }
+
+  /**
    * Loads all game assets including tilemaps, images, and spritesheets.
    * Uses the constants defined in MAPS and ASSETS to load the correct files.
    */
   private loadAssets() {
+    // Load maps
+    this.loadMaps();
+    
+    // Load images
+    this.loadImages();
+    
+    // Load player assets
+    this.loadPlayerAssets();
+    
+    // Load enemy assets
+    this.loadEnemyAssets();
+    
+    // Load misc assets
+    this.loadMiscAssets();
+  }
+
+  /**
+   * Loads all map assets
+   */
+  private loadMaps() {
     this.load.tilemapTiledJSON(MAPS.firstLevel.key, `assets/${MAPS.firstLevel.file}`);
     this.load.tilemapTiledJSON(MAPS.secondLevel.key, `assets/${MAPS.secondLevel.file}`);
+  }
 
-    // Images
+  /**
+   * Loads all static image assets
+   */
+  private loadImages() {
     this.load.image(ASSETS.IMAGES.LOGO, 'assets/logo.png');
     this.load.image(ASSETS.IMAGES.TILES, 'assets/environment/tileset.png');
     this.load.image(ASSETS.IMAGES.ARROW, 'assets/spritesheets/misc/arrow.png');
@@ -49,296 +123,171 @@ export class Preloader extends Phaser.Scene {
     this.load.image(ASSETS.IMAGES.HEART, 'assets/heart.png');
     this.load.image(ASSETS.IMAGES.HEART_EMPTY, 'assets/heart-empty.png');
     this.load.image(ASSETS.IMAGES.TOMB, 'assets/tomb.png');
+  }
 
-    // Spritesheets
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_IDLE_DOWN,
-      'assets/spritesheets/hero/idle/hero-idle-front.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_IDLE_UP,
-      'assets/spritesheets/hero/idle/hero-idle-back.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_IDLE_SIDE,
-      'assets/spritesheets/hero/idle/hero-idle-side.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_WALK_DOWN,
-      'assets/spritesheets/hero/walk/hero-walk-front.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_WALK_UP,
-      'assets/spritesheets/hero/walk/hero-walk-back.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_WALK_SIDE,
-      'assets/spritesheets/hero/walk/hero-walk-side.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_ATTACK_DOWN,
-      'assets/spritesheets/hero/attack/hero-attack-front.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_ATTACK_UP,
-      'assets/spritesheets/hero/attack/hero-attack-back.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_ATTACK_SIDE,
-      'assets/spritesheets/hero/attack/hero-attack-side.png',
-      {
-        frameWidth: 32,
-        frameHeight: 32,
-      },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_DOWN,
-      'assets/spritesheets/hero/attack-weapon/hero-attack-front-weapon.png',
-      { frameWidth: 32, frameHeight: 32 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_UP,
-      'assets/spritesheets/hero/attack-weapon/hero-attack-back-weapon.png',
-      { frameWidth: 32, frameHeight: 32 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_SIDE,
-      'assets/spritesheets/hero/attack-weapon/hero-attack-side-weapon.png',
-      { frameWidth: 32, frameHeight: 32 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.TREANT_IDLE_DOWN,
-      'assets/spritesheets/treant/idle/treant-idle-front.png',
-      { frameWidth: 31, frameHeight: 35 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.TREANT_WALK_SIDE,
-      'assets/spritesheets/treant/walk/treant-walk-side.png',
-      { frameWidth: 31, frameHeight: 35 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.TREANT_WALK_UP,
-      'assets/spritesheets/treant/walk/treant-walk-back.png',
-      { frameWidth: 31, frameHeight: 35 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.TREANT_WALK_DOWN,
-      'assets/spritesheets/treant/walk/treant-walk-front.png',
-      { frameWidth: 31, frameHeight: 35 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.MOLE_IDLE_DOWN,
-      'assets/spritesheets/mole/idle/mole-idle-front.png',
-      { frameWidth: 24, frameHeight: 24 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.MOLE_WALK_SIDE,
-      'assets/spritesheets/mole/walk/mole-walk-side.png',
-      { frameWidth: 24, frameHeight: 24 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.MOLE_WALK_UP,
-      'assets/spritesheets/mole/walk/mole-walk-back.png',
-      { frameWidth: 24, frameHeight: 24 },
-    );
-    this.load.spritesheet(
-      ASSETS.IMAGES.MOLE_WALK_DOWN,
-      'assets/spritesheets/mole/walk/mole-walk-front.png',
-      { frameWidth: 24, frameHeight: 24 },
-    );
+  /**
+   * Loads all player-related assets
+   */
+  private loadPlayerAssets() {
+    // Player idle animations
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_IDLE_DOWN, 'assets/spritesheets/hero/idle/hero-idle-front.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_IDLE_UP, 'assets/spritesheets/hero/idle/hero-idle-back.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_IDLE_SIDE, 'assets/spritesheets/hero/idle/hero-idle-side.png');
+    
+    // Player walk animations
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_WALK_DOWN, 'assets/spritesheets/hero/walk/hero-walk-front.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_WALK_UP, 'assets/spritesheets/hero/walk/hero-walk-back.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_WALK_SIDE, 'assets/spritesheets/hero/walk/hero-walk-side.png');
+    
+    // Player attack animations
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_ATTACK_DOWN, 'assets/spritesheets/hero/attack/hero-attack-front.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_ATTACK_UP, 'assets/spritesheets/hero/attack/hero-attack-back.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_ATTACK_SIDE, 'assets/spritesheets/hero/attack/hero-attack-side.png');
+    
+    // Player weapon attack animations
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_DOWN, 'assets/spritesheets/hero/attack-weapon/hero-attack-front-weapon.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_UP, 'assets/spritesheets/hero/attack-weapon/hero-attack-back-weapon.png');
+    this.loadPlayerSpritesheet(ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_SIDE, 'assets/spritesheets/hero/attack-weapon/hero-attack-side-weapon.png');
+    
+    // Legacy player sprite
     this.load.spritesheet(ASSETS.IMAGES.PLAYER, 'assets/player.png', {
       frameWidth: 16,
       frameHeight: 16,
     });
-    this.load.spritesheet(ASSETS.IMAGES.NPCS, 'assets/npc.png', {
-      frameWidth: 16,
-      frameHeight: 16,
-    });
-    this.load.spritesheet(ASSETS.IMAGES.MONSTER_DEATH, 'assets/spritesheets/misc/enemy-death.png', {
-      frameWidth: 30,
+  }
+
+  /**
+   * Helper method to load player spritesheets with consistent frame size
+   */
+  private loadPlayerSpritesheet(key: string, path: string) {
+    this.load.spritesheet(key, path, {
+      frameWidth: 32,
       frameHeight: 32,
     });
   }
 
+  /**
+   * Loads all enemy-related assets
+   */
+  private loadEnemyAssets() {
+    // Treant assets
+    this.load.spritesheet(ASSETS.IMAGES.TREANT_IDLE_DOWN, 'assets/spritesheets/treant/idle/treant-idle-front.png', 
+      { frameWidth: 31, frameHeight: 35 });
+    this.load.spritesheet(ASSETS.IMAGES.TREANT_WALK_SIDE, 'assets/spritesheets/treant/walk/treant-walk-side.png', 
+      { frameWidth: 31, frameHeight: 35 });
+    this.load.spritesheet(ASSETS.IMAGES.TREANT_WALK_UP, 'assets/spritesheets/treant/walk/treant-walk-back.png', 
+      { frameWidth: 31, frameHeight: 35 });
+    this.load.spritesheet(ASSETS.IMAGES.TREANT_WALK_DOWN, 'assets/spritesheets/treant/walk/treant-walk-front.png', 
+      { frameWidth: 31, frameHeight: 35 });
+    
+    // Mole assets
+    this.load.spritesheet(ASSETS.IMAGES.MOLE_IDLE_DOWN, 'assets/spritesheets/mole/idle/mole-idle-front.png', 
+      { frameWidth: 24, frameHeight: 24 });
+    this.load.spritesheet(ASSETS.IMAGES.MOLE_WALK_SIDE, 'assets/spritesheets/mole/walk/mole-walk-side.png', 
+      { frameWidth: 24, frameHeight: 24 });
+    this.load.spritesheet(ASSETS.IMAGES.MOLE_WALK_UP, 'assets/spritesheets/mole/walk/mole-walk-back.png', 
+      { frameWidth: 24, frameHeight: 24 });
+    this.load.spritesheet(ASSETS.IMAGES.MOLE_WALK_DOWN, 'assets/spritesheets/mole/walk/mole-walk-front.png', 
+      { frameWidth: 24, frameHeight: 24 });
+    
+    // Monster death animation
+    this.load.spritesheet(ASSETS.IMAGES.MONSTER_DEATH, 'assets/spritesheets/misc/enemy-death.png', 
+      { frameWidth: 30, frameHeight: 32 });
+  }
+
+  /**
+   * Loads miscellaneous assets
+   */
+  private loadMiscAssets() {
+    this.load.spritesheet(ASSETS.IMAGES.NPCS, 'assets/npc.png', {
+      frameWidth: 16,
+      frameHeight: 16,
+    });
+  }
+
+  /**
+   * Creates all animations for the game
+   */
   private createAnimations() {
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_MOVE_LEFT,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_WALK_SIDE, { start: 0, end: 2 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_WALK_SIDE, { start: 0, end: 2 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_MOVE_UP,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_WALK_UP, { start: 0, end: 2 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_WALK_DOWN, { start: 0, end: 2 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_IDLE_UP,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_IDLE_UP, { start: 0, end: 0 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_IDLE_DOWN, { start: 0, end: 0 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_IDLE_SIDE, { start: 0, end: 0 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_ATTACK_DOWN, {
-        start: 0,
-        end: 2,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_ATTACK_UP,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_ATTACK_UP, { start: 0, end: 2 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_ATTACK_SIDE, {
-        start: 0,
-        end: 2,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_DOWN, {
-        start: 0,
-        end: 2,
-      }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_UP, {
-        start: 0,
-        end: 2,
-      }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_SIDE, {
-        start: 0,
-        end: 2,
-      }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.TREANT_IDLE_DOWN, { start: 0, end: 0 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.TREANT_WALK_SIDE,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.TREANT_WALK_SIDE, { start: 0, end: 3 }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.TREANT_WALK_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.TREANT_WALK_DOWN, { start: 0, end: 3 }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.TREANT_WALK_UP,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.TREANT_WALK_UP, { start: 0, end: 3 }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.MOLE_IDLE_DOWN, { start: 0, end: 0 }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.MOLE_WALK_SIDE,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.MOLE_WALK_SIDE, { start: 0, end: 3 }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.MOLE_WALK_DOWN,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.MOLE_WALK_DOWN, { start: 0, end: 3 }),
-      frameRate: 7,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ASSETS.ANIMATIONS.MOLE_WALK_UP,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.MOLE_WALK_UP, { start: 0, end: 3 }),
-      frameRate: 7,
-      repeat: -1,
-    });
+    this.createPlayerAnimations();
+    this.createEnemyAnimations();
+    this.createMiscAnimations();
+  }
+
+  /**
+   * Creates all player-related animations
+   */
+  private createPlayerAnimations() {
+    // Player movement animations
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_MOVE_LEFT, ASSETS.IMAGES.PLAYER_WALK_SIDE, 0, 2, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT, ASSETS.IMAGES.PLAYER_WALK_SIDE, 0, 2, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_MOVE_UP, ASSETS.IMAGES.PLAYER_WALK_UP, 0, 2, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN, ASSETS.IMAGES.PLAYER_WALK_DOWN, 0, 2, 10);
+    
+    // Player idle animations
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_IDLE_UP, ASSETS.IMAGES.PLAYER_IDLE_UP, 0, 0, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN, ASSETS.IMAGES.PLAYER_IDLE_DOWN, 0, 0, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE, ASSETS.IMAGES.PLAYER_IDLE_SIDE, 0, 0, 10);
+    
+    // Player attack animations
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN, ASSETS.IMAGES.PLAYER_ATTACK_DOWN, 0, 2, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_UP, ASSETS.IMAGES.PLAYER_ATTACK_UP, 0, 2, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE, ASSETS.IMAGES.PLAYER_ATTACK_SIDE, 0, 2, 10);
+    
+    // Player weapon attack animations
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN, ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_DOWN, 0, 2, 7);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP, ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_UP, 0, 2, 7);
+    this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE, ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_SIDE, 0, 2, 7);
+  }
+
+  /**
+   * Creates all enemy-related animations
+   */
+  private createEnemyAnimations() {
+    // Treant animations
+    this.createAnimation(ASSETS.ANIMATIONS.TREANT_IDLE_DOWN, ASSETS.IMAGES.TREANT_IDLE_DOWN, 0, 0, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.TREANT_WALK_SIDE, ASSETS.IMAGES.TREANT_WALK_SIDE, 0, 3, 7);
+    this.createAnimation(ASSETS.ANIMATIONS.TREANT_WALK_DOWN, ASSETS.IMAGES.TREANT_WALK_DOWN, 0, 3, 7);
+    this.createAnimation(ASSETS.ANIMATIONS.TREANT_WALK_UP, ASSETS.IMAGES.TREANT_WALK_UP, 0, 3, 7);
+    
+    // Mole animations
+    this.createAnimation(ASSETS.ANIMATIONS.MOLE_IDLE_DOWN, ASSETS.IMAGES.MOLE_IDLE_DOWN, 0, 0, 10);
+    this.createAnimation(ASSETS.ANIMATIONS.MOLE_WALK_SIDE, ASSETS.IMAGES.MOLE_WALK_SIDE, 0, 3, 7);
+    this.createAnimation(ASSETS.ANIMATIONS.MOLE_WALK_DOWN, ASSETS.IMAGES.MOLE_WALK_DOWN, 0, 3, 7);
+    this.createAnimation(ASSETS.ANIMATIONS.MOLE_WALK_UP, ASSETS.IMAGES.MOLE_WALK_UP, 0, 3, 7);
+  }
+
+  /**
+   * Creates miscellaneous animations
+   */
+  private createMiscAnimations() {
+    // Create monster death animation with special handling for hideOnComplete
     this.anims.create({
       key: ASSETS.ANIMATIONS.MONSTER_DEATH,
-      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.MONSTER_DEATH, { start: 0, end: 6 }),
+      frames: this.anims.generateFrameNumbers(ASSETS.IMAGES.MONSTER_DEATH, { start: 0, end: 5 }),
       frameRate: 15,
-      hideOnComplete: true,
+      repeat: 0, // Don't repeat the animation
+      hideOnComplete: true // Hide the sprite when animation completes
+    });
+  }
+
+  /**
+   * Helper method to create animations with consistent parameters
+   */
+  private createAnimation(
+    key: string, 
+    spriteKey: string, 
+    startFrame: number, 
+    endFrame: number, 
+    frameRate: number, 
+    hideOnComplete: boolean = false
+  ) {
+    this.anims.create({
+      key,
+      frames: this.anims.generateFrameNumbers(spriteKey, { start: startFrame, end: endFrame }),
+      frameRate,
+      repeat: -1,
+      hideOnComplete
     });
   }
 }
