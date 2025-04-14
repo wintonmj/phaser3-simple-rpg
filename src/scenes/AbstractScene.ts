@@ -87,6 +87,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   public update(): void {
     const keyState = this.getKeyState();
     this.updateMonsters();
+    this.updateNPCs();
     this.player.updatePlayer(keyState);
   }
 
@@ -109,6 +110,17 @@ export abstract class AbstractScene extends Phaser.Scene {
    */
   private updateMonsters(): void {
     this.monsters.forEach(monster => monster.updateMonster());
+  }
+
+  /**
+   * Update all NPCs in the scene
+   */
+  private updateNPCs(): void {
+    this.npcs.forEach(npc => {
+      if (npc instanceof AnimatedNpc) {
+        npc.update();
+      }
+    });
   }
 
   /**
@@ -251,7 +263,15 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.layers.deco);
     
     // NPC collisions
-    this.npcs.forEach(npc => this.physics.add.collider(npc, this.player, npc.talk));
+    const npcGroup = this.physics.add.group(this.npcs);
+    this.physics.add.collider(npcGroup, this.layers.terrain);
+    this.physics.add.collider(npcGroup, this.layers.deco);
+    this.physics.add.collider(npcGroup, npcGroup); // NPCs collide with each other
+    
+    // Individual NPC-player collisions for talk functionality
+    this.npcs.forEach(npc => {
+      this.physics.add.collider(npc, this.player, npc.talk);
+    });
   }
 
   /**

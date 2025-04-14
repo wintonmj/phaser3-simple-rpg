@@ -9,9 +9,6 @@ import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 
 const TEXT_VERTICAL_SHIFT = 10;
-const NPC_WANDER_DELAY = () => 3000 + 2000 * Math.random();
-const NPC_WANDER_LENGTH = () => 1000 + 2000 * Math.random();
-const NPC_SPEED = 40;
 
 /**
  * Animated NPC class that extends the base Character class.
@@ -21,6 +18,11 @@ const NPC_SPEED = 40;
  * @extends {Character}
  */
 export class AnimatedNpc extends Character {
+  // Constants
+  private static readonly WANDER_DELAY = () => 1000 + 1000 * Math.random();
+  private static readonly WANDER_LENGTH = () => 1000 + 5000 * Math.random();
+  private static readonly NPC_SPEED = 20;
+
   /** Animation configurations for NPC walking in different directions */
   private static WALK_ANIMATION: CharacterAnimation = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_WALK_DOWN },
@@ -128,7 +130,7 @@ export class AnimatedNpc extends Character {
     this.updateTextPosition();
     
     // Handle wandering if NPC should wander
-    if (this.shouldWander && !this.isWandering) {
+    if (this.shouldWander) {
       this.wanderAround();
     }
   }
@@ -204,7 +206,7 @@ export class AnimatedNpc extends Character {
 
   /**
    * Makes the NPC wander in a random direction.
-   * Based on Monster.wanderAround() implementation.
+   * Match implementation from Monster.wanderAround()
    */
   private wanderAround(): void {
     if (this.isWandering) return;
@@ -214,7 +216,7 @@ export class AnimatedNpc extends Character {
     this.run(direction.x, direction.y);
 
     this.scene.time.addEvent({
-      delay: NPC_WANDER_LENGTH(),
+      delay: AnimatedNpc.WANDER_LENGTH(),
       callbackScope: this,
       callback: () => {
         this.stopRunning();
@@ -222,7 +224,7 @@ export class AnimatedNpc extends Character {
         if (!this.active) return;
 
         this.scene.time.addEvent({
-          delay: NPC_WANDER_DELAY(),
+          delay: AnimatedNpc.WANDER_DELAY(),
           callbackScope: this,
           callback: () => {
             this.isWandering = false;
@@ -234,21 +236,22 @@ export class AnimatedNpc extends Character {
 
   /**
    * Sets the NPC's velocity based on direction.
-   * Similar to Monster.run() implementation.
+   * Directly copied from Monster.run() implementation.
    */
   private run(x: number, y: number): void {
     if (x === 0 && y === 0 || !this.active) return;
 
-    this.setVelocityX(Math.sign(x) * NPC_SPEED);
-    this.setVelocityY(Math.sign(y) * NPC_SPEED);
+    this.setVelocityX(Math.sign(x) * AnimatedNpc.NPC_SPEED);
+    this.setVelocityY(Math.sign(y) * AnimatedNpc.NPC_SPEED);
 
     const orientation = this.getOrientationFromTargettedPosition(x, y);
+    this.orientation = orientation;
     this.animate(AnimatedNpc.WALK_ANIMATION, orientation);
   }
 
   /**
    * Stops the NPC's movement and plays idle animation.
-   * Similar to Monster.stopRunning() implementation.
+   * Directly copied from Monster.stopRunning() implementation.
    */
   private stopRunning(): void {
     if (!this.active) return;
@@ -264,7 +267,7 @@ export class AnimatedNpc extends Character {
 
   /**
    * Gets the orientation based on movement direction.
-   * Similar to Monster.getOrientationFromTargettedPosition() implementation.
+   * Directly copied from Monster.getOrientationFromTargettedPosition() implementation.
    */
   private getOrientationFromTargettedPosition(x: number, y: number): Orientation {
     if (Math.abs(y) > Math.abs(x)) {
@@ -275,7 +278,7 @@ export class AnimatedNpc extends Character {
 
   /**
    * Generates a random direction vector.
-   * Updated to match Monster's implementation.
+   * Directly copied from Monster.getRandomDirection() implementation.
    */
   private getRandomDirection(): { x: number; y: number } {
     const randomBetweenMinusOneAndOne = () => Math.round(2 * Math.random()) - 1;
