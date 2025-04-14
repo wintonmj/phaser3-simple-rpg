@@ -36,6 +36,7 @@ export abstract class Projectile extends Phaser.Physics.Arcade.Sprite {
         this.scene = scene;
         this.scene.physics.add.existing(this);
         this.scene.add.existing(this);
+        this.setDepth(1000); // Set default depth for all projectiles
     }
 
     /**

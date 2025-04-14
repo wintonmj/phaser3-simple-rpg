@@ -4,8 +4,8 @@
  */
 
 import 'phaser';
-import { FirstLevel } from './scenes/FirstLevel';
-import { SecondLevel } from './scenes/SecondLevel';
+import { FirstLevel } from './scenes/levels/FirstLevel';
+import { SecondLevel } from './scenes/levels/SecondLevel';
 import { Preloader } from './scenes/Preloader';
 import { GameManager } from './scenes/GameManager';
 import { HUD } from './scenes/HUD';

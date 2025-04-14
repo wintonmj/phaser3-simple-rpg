@@ -3,9 +3,9 @@
  * Extends the AbstractScene class to provide the second level of gameplay.
  */
 
-import { AbstractScene } from './AbstractScene';
-import { SCENES } from '../constants/scenes';
-import { MAPS } from '../constants/maps';
+import { AbstractScene } from '../AbstractScene';
+import { SCENES } from '../../constants/scenes';
+import { MAPS } from '../../constants/maps';
 
 /**
  * Second level scene of the game.

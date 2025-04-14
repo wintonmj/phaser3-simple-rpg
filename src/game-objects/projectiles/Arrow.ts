@@ -40,8 +40,6 @@ export class Arrow extends Projectile {
      * Initialize the arrow's properties and behavior.
      */
     protected initialize(): void {
-        this.setDepth(1000);
-        
         switch (this.direction) {
             case Orientation.Up:
                 this.setVelocityY(-this.speed);

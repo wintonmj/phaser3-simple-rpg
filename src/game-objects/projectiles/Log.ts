@@ -34,7 +34,6 @@ export class Log extends Projectile {
      * Initialize the log's properties and behavior.
      */
     protected initialize(): void {
-        this.setDepth(5);
         // Add collision with player
         this.scene.physics.add.collider(this, this.scene.player, () => {
             if (this.scene.player.canGetHit()) {
