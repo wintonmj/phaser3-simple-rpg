@@ -9,7 +9,12 @@ export class Treant extends Monster {
     left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
     right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
   };
-  protected MONSTER_IDLE_DOWN = ASSETS.ANIMATIONS.TREANT_IDLE_DOWN;
+  protected MONSTER_IDLE_DOWN = {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+  };
 
   protected MONSTER_SPEED = 20;
 

@@ -12,7 +12,7 @@ import { GameManager } from '../scenes/GameManager';
  * Type definition for character animations in different orientations
  * @typedef {Object} CharacterAnimation
  */
-type CharacterAnimation = {
+export type CharacterAnimation = {
   [K in Orientation]: {
     flip: boolean;
     anim: string;
