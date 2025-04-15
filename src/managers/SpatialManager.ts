@@ -24,7 +24,7 @@ export class SpatialManager implements ISpatialManager {
    * 
    * Note: scene parameter is required by interface but unused in this implementation
    */
-  // @ts-ignore: Unused parameter - required by interface
+  // @ts-expect-error: Unused parameter - required by interface
   constructor(scene: Phaser.Scene) {
     // Initialize with a small default size, will be replaced in initialize()
     this.quadTree = new QuadTree(

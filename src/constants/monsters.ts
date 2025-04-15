@@ -1,18 +1,7 @@
-export const ENTITIES = {
-  HOSTILE: {
-    TREANT: 'treant',
-    MOLE: 'mole',
-    // Future hostile entities...
-  },
-  FRIENDLY: {
-    GOKU: 'goku',
-    VILLAGER: 'villager',
-    // Future friendly entities...
-  }
-} as const;
+/**
+ * @fileoverview Re-export of MONSTERS from entities.ts for backward compatibility
+ * @deprecated Use entities.ts instead
+ */
 
-// Keep the original export for backward compatibility during refactoring
-export const MONSTERS = {
-  mole: ENTITIES.HOSTILE.MOLE,
-  treant: ENTITIES.HOSTILE.TREANT,
-} as const;
+// Re-export everything from entities.ts to maintain compatibility
+export * from './entities'; 

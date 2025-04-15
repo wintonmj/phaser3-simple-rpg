@@ -9,7 +9,7 @@ import { Monster } from '../game-objects/enemies/Monster';
 import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
-import { MONSTERS } from '../constants/monsters';
+import { MONSTERS } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
 
 /** Distance threshold for monster updates (in pixels) */

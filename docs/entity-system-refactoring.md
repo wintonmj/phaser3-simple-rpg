@@ -8,23 +8,23 @@ This document outlines a plan to refactor the entity system in the Phaser3 Simpl
 
 ### Entity Structure
 
-- `Character` - Base class for all character entities
-  - `Player` - Player character implementation
-  - `Monster` - Abstract class for hostile entities
-    - `Treant` - Specific monster implementation
-    - `Mole` - Specific monster implementation
+- `/src/game-objects/Character.ts` - Base class for all character entities
+  - `/src/game-objects/Player.ts` - Player character implementation
+  - `/src/game-objects/enemies/Monster.ts` - Abstract class for hostile entities
+    - `/src/game-objects/enemies/Treant.ts` - Specific monster implementation
+    - `/src/game-objects/enemies/Mole.ts` - Specific monster implementation
   - NPC entities are handled inconsistently
 
 ### Constants & Asset Management
 
-- `src/constants/monsters.ts` - Only contains monster types
-- `src/constants/assets.ts` - Contains all entity assets including monsters and NPCs (Goku)
+- `/src/constants/monsters.ts` - Only contains monster types
+- `/src/constants/assets.ts` - Contains all entity assets including monsters and NPCs (Goku)
 
 ### Managers
 
-- `EntityManager` - Creates and manages player, NPCs, and monsters
-- `PhysicsManager` - Handles collision between entities
-- `SpatialManager` - Uses QuadTree for entity culling, specifically for monsters
+- `/src/managers/EntityManager.ts` - Creates and manages player, NPCs, and monsters
+- `/src/managers/PhysicsManager.ts` - Handles collision between entities
+- `/src/managers/SpatialManager.ts` - Uses QuadTree for entity culling, specifically for monsters
 
 ## Proposed Changes
 
@@ -45,9 +45,10 @@ Character (Base class)
 
 ### 2. Constants Reorganization
 
-Extend `src/constants/monsters.ts` to include all entity types:
+Reorganize entity type constants in a new file structure:
 
 ```typescript
+// /src/constants/entities.ts
 export const ENTITIES = {
   HOSTILE: {
     TREANT: 'treant',
@@ -56,7 +57,8 @@ export const ENTITIES = {
   },
   FRIENDLY: {
     GOKU: 'goku',
-    
+    WIZARD: 'wizard',
+    FEMALE_VILLAGER: 'female_villager',
     // Future friendly entities...
   }
 } as const;
@@ -67,6 +69,7 @@ export const ENTITIES = {
 Create a new abstract base class that handles common functionality for all non-player entities:
 
 ```typescript
+// /src/game-objects/entities/NonPlayerEntity.ts
 /**
  * Abstract base class for all non-player entities
  * Provides common functionality for appearance, animation, and basic movement
@@ -95,6 +98,7 @@ export abstract class NonPlayerEntity extends Character {
 ### 4. FriendlyEntity Class
 
 ```typescript
+// /src/game-objects/entities/FriendlyEntity.ts
 /**
  * Abstract base class for all friendly NPCs
  */
@@ -118,6 +122,7 @@ export abstract class FriendlyEntity extends NonPlayerEntity {
 ### 5. HostileEntity Class (renamed from Monster)
 
 ```typescript
+// /src/game-objects/entities/HostileEntity.ts
 /**
  * Abstract base class for all hostile entities
  */
@@ -159,6 +164,7 @@ The `EntityManager` needs to be updated to handle the new entity hierarchy:
 - Update type casting and TypeScript interfaces
 
 ```typescript
+// /src/managers/EntityManager.ts
 public createNonPlayerEntities(): void {
   // Create all non-player entities
   this.createFriendlyEntities();
@@ -184,6 +190,7 @@ The `PhysicsManager` must be updated to handle different collision behaviors:
 - Entity-world collisions (all entities should collide with the world)
 
 ```typescript
+// /src/managers/PhysicsManager.ts
 public setupColliders(
   player: Player,
   layers: MapLayers,
@@ -213,6 +220,7 @@ The `SpatialManager` currently only handles monsters but should be updated to:
 - Use entity type to determine update behavior
 
 ```typescript
+// /src/managers/SpatialManager.ts
 public update(cameraBounds: Phaser.Geom.Rectangle, playerPosition: Phaser.Math.Vector2): void {
   // Clear existing quadtree
   this.quadTree.clear();
@@ -244,6 +252,7 @@ The `Preloader` scene must be updated to:
 - Ensure all entities follow the same animation conventions
 
 ```typescript
+// /src/scenes/Preloader.ts
 private loadAssets() {
   // Load maps
   this.loadMaps();
@@ -268,9 +277,21 @@ private loadNonPlayerAssets() {
 
 ### Phase 1: Constants and Interfaces
 
-1. Update `src/constants/monsters.ts` to `src/constants/entities.ts`
-2. Create interfaces for the new class hierarchy
-3. Update TypeScript types throughout the codebase
+✅ 1. Update `/src/constants/monsters.ts` to `/src/constants/entities.ts` and create re-export for compatibility
+
+- Created `/src/constants/entities.ts` with organized entity type constants
+- Added TypeScript type definitions (HostileEntityType, FriendlyEntityType, EntityType)
+- Created backward compatibility re-export in `/src/constants/monsters.ts`
+
+✅ 2. Create interfaces for the new class hierarchy
+
+- Created `/src/types/entities/entity-interfaces.ts` with INonPlayerEntity, IFriendlyEntity, IHostileEntity interfaces
+
+✅ 3. Create extended manager interfaces to support the new entity hierarchy
+
+- Created `/src/types/entity-manager-interfaces.ts` with IExtendedEntityManager interface
+- Created `/src/types/physics-manager-interfaces.ts` with IExtendedPhysicsManager interface
+- Created `/src/types/spatial-manager-interfaces.ts` with IExtendedSpatialManager interface
 
 ### Phase 2: Refactor Monster to NonPlayerEntity
 
@@ -323,6 +344,37 @@ private loadNonPlayerAssets() {
 4. **Easier Extensibility**: Simplified process for adding new entity types
 5. **Consistent Behavior**: Standardized approach to entity movement, animation, and interactions
 
+## Backward Compatibility Cleanup
+
+After the refactoring is complete, the following items should be addressed to clean up temporary backward compatibility elements:
+
+### Removal of Deprecated Files
+
+- [ ] TODO: Remove `/src/constants/monsters.ts` re-export file
+- [ ] TODO: Remove the original `/src/game-objects/enemies/Monster.ts` class after migrating all functionality
+
+### Interface and Type Cleanup
+
+- [ ] TODO: Migrate from `IExtendedEntityManager` to replace the original `IEntityManager` interface
+- [ ] TODO: Migrate from `IExtendedPhysicsManager` to replace the original `IPhysicsManager` interface 
+- [ ] TODO: Migrate from `IExtendedSpatialManager` to replace the original `ISpatialManager` interface
+- [ ] TODO: Remove legacy type references to `Monster` in manager interfaces
+- [ ] TODO: Update all imports throughout the codebase to use the new entity types
+
+### Code Reference Updates
+
+- [ ] TODO: Update any remaining hardcoded string references to 'monsters' in map parsing
+- [ ] TODO: Ensure all old `getMonsters()` calls are updated to use the appropriate entity getter
+- [ ] TODO: Update collision detection logic to use the new entity types
+- [ ] TODO: Search for any `instanceof Monster` checks and update to appropriate entity type checks
+
+### Testing for Complete Migration
+
+- [ ] TODO: Create a comprehensive test suite that validates all entity behaviors
+- [ ] TODO: Verify no references to old class structure remain using static code analysis
+- [ ] TODO: Test each entity type to ensure special behaviors are preserved
+- [ ] TODO: Performance test to ensure the new structure doesn't negatively impact game performance
+
 ## Conclusion
 
-This refactoring will provide a more maintainable and extensible entity system that can accommodate a wider variety of non-player entities while reducing code duplication and improving type safety. The changes focus on creating a clear hierarchy of entity types with shared behavior while maintaining the specialized behavior needed for different entity categories. 
+This refactoring will provide a more maintainable and extensible entity system that can accommodate a wider variety of non-player entities while reducing code duplication and improving type safety. The changes focus on creating a clear hierarchy of entity types with shared behavior while maintaining the specialized behavior needed for different entity categories.
