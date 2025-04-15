@@ -4,6 +4,7 @@
 
 import { ISpatialManager } from '../types/manager-interfaces';
 import { QuadTree, QUADTREE } from '../utils/QuadTree';
+import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 
 /** Distance threshold for entity updates (in pixels) */
@@ -24,8 +25,7 @@ export class SpatialManager implements ISpatialManager {
    * 
    * Note: scene parameter is required by interface but unused in this implementation
    */
-  // @ts-expect-error: Unused parameter - required by interface
-  constructor(scene: Phaser.Scene) {
+  constructor(_scene: Phaser.Scene) {
     // Initialize with a small default size, will be replaced in initialize()
     this.quadTree = new QuadTree(
       new Phaser.Geom.Rectangle(0, 0, 1000, 1000),
@@ -78,16 +78,23 @@ export class SpatialManager implements ISpatialManager {
       if (!entity.active) return;
       
       // Only insert NonPlayerEntity types into the quadtree
-      if (entity instanceof NonPlayerEntity) {
+      if (this.isNonPlayerEntity(entity)) {
         // Use rectangle contains for faster boundary check
         if (Phaser.Geom.Rectangle.Contains(expandedBounds, entity.x, entity.y)) {
-          this.quadTree.insert(entity);
+          this.quadTree.insert(entity as unknown as NonPlayerEntity);
         }
       }
     });
     
     // Update active entities based on distance to player
     this.updateActiveEntities(playerPosition);
+  }
+
+  /**
+   * Type guard to check if an entity is a NonPlayerEntity
+   */
+  private isNonPlayerEntity(entity: Phaser.GameObjects.GameObject): entity is Phaser.GameObjects.GameObject & INonPlayerEntity {
+    return 'updateEntity' in entity && 'entityType' in entity;
   }
 
   /**
@@ -122,7 +129,7 @@ export class SpatialManager implements ISpatialManager {
         this.activeEntities.add(entity);
         
         // If the entity is a non-player entity, update it
-        if (entity instanceof NonPlayerEntity) {
+        if (this.isNonPlayerEntity(entity)) {
           entity.updateEntity();
         }
       }
@@ -133,7 +140,8 @@ export class SpatialManager implements ISpatialManager {
    * Get active entities within range of the player
    * @returns Set of currently active entities
    */
-  public getActiveEntities(): Set<Phaser.GameObjects.GameObject> {
+  public getActiveEntities(_range?: number): Set<Phaser.GameObjects.GameObject> {
+    // Range parameter is ignored in this implementation
     return this.activeEntities;
   }
 

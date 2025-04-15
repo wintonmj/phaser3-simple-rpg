@@ -11,6 +11,7 @@ import { Mole } from '../game-objects/enemies/Mole';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { MONSTERS } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
+import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 
 /** Distance threshold for entity updates (in pixels) */
 const ENTITY_UPDATE_DISTANCE = 400;
@@ -41,7 +42,7 @@ export class EntityManager implements IEntityManager {
   private scene: SceneType;
   private map: Phaser.Tilemaps.Tilemap;
   private player: Player;
-  private monsters: NonPlayerEntity[] = [];
+  private monsters: INonPlayerEntity[] = [];
   private objectPools: Record<string, Phaser.GameObjects.Group> = {};
 
   /**
@@ -76,7 +77,7 @@ export class EntityManager implements IEntityManager {
 
     // Using type casting for compatibility during refactoring
     // In a complete implementation, the game classes would be updated
-    this.player = new Player(this.scene as any, position.x, position.y);
+    this.player = new Player(this.scene as AbstractScene, position.x, position.y);
     return this.player;
   }
 
@@ -94,9 +95,9 @@ export class EntityManager implements IEntityManager {
       // Using type casting for compatibility during refactoring
       switch (type) {
         case MONSTERS.treant:
-          return new Treant(this.scene as any, x, y);
+          return new Treant(this.scene as AbstractScene, x, y);
         case MONSTERS.mole:
-          return new Mole(this.scene as any, x, y);
+          return new Mole(this.scene as AbstractScene, x, y);
         default:
           return null;
       }
@@ -117,7 +118,7 @@ export class EntityManager implements IEntityManager {
       }
     });
     
-    this.monsters = monsterCreationOperations.filter(Boolean);
+    this.monsters = monsterCreationOperations.filter(Boolean) as INonPlayerEntity[];
       
     // Initially deactivate monsters that are far from player
     if (this.player) {
@@ -196,7 +197,7 @@ export class EntityManager implements IEntityManager {
   /**
    * Get all monsters in the scene
    */
-  public getMonsters(): NonPlayerEntity[] {
+  public getMonsters(): INonPlayerEntity[] {
     return this.monsters;
   }
 

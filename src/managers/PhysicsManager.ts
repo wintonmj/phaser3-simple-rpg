@@ -5,7 +5,7 @@
 import { IPhysicsManager } from '../types/manager-interfaces';
 import { MapLayers } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
-import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
+import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 
 /**
  * Manages physics operations and collision handling
@@ -52,10 +52,10 @@ export class PhysicsManager implements IPhysicsManager {
   public setupColliders(
     player: Player,
     layers: MapLayers,
-    monsters: NonPlayerEntity[]
+    monsters: INonPlayerEntity[]
   ): void {
     // Create groups once and reuse
-    const monsterGroup = this.createGroup(monsters);
+    const monsterGroup = this.createGroup(monsters as unknown as Phaser.GameObjects.GameObject[]);
     
     // Create composite collider for solid world objects
     const solidLayers = [layers.terrain, layers.deco];
@@ -80,21 +80,26 @@ export class PhysicsManager implements IPhysicsManager {
         monsterGroup, 
         player, 
         // Collision callback
-        (_player: Player, monster: NonPlayerEntity) => {
-          monster.attack();
+        (_player: Player, monster: Phaser.GameObjects.GameObject) => {
+          const nonPlayerEntity = monster as unknown as INonPlayerEntity;
+          if (nonPlayerEntity.attack) {
+            nonPlayerEntity.attack();
+          }
         },
         // Process callback for early filtering
-        (_player: Player, monster: NonPlayerEntity) => {
+        (_player: Player, monster: Phaser.GameObjects.GameObject) => {
           // Only process collision if monster is active
           if (!monster.active) return false;
           
           // Efficient squared distance check
-          const dx = _player.x - monster.x;
-          const dy = _player.y - monster.y;
+          const monsterSprite = monster as Phaser.Physics.Arcade.Sprite;
+          const dx = _player.x - monsterSprite.x;
+          const dy = _player.y - monsterSprite.y;
           const distanceSq = dx * dx + dy * dy;
           
           // Quick body width calculation
-          const radiusSum = monster.body.width * 0.75; // Half width * 1.5
+          const body = monster.body as Phaser.Physics.Arcade.Body;
+          const radiusSum = body.width * 0.75; // Half width * 1.5
           const radiusSumSq = radiusSum * radiusSum;
           
           return distanceSq <= radiusSumSq;

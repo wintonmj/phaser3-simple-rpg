@@ -37,4 +37,16 @@ export interface INonPlayerEntity {
   
   /** Enemy loses health points (for hostile entities) */
   loseHp?(damage: number): void;
+
+  /** X position on the game world */
+  readonly x: number;
+  
+  /** Y position on the game world */
+  readonly y: number;
+  
+  /** Whether this entity is currently active */
+  readonly active: boolean;
+  
+  /** Body property from Phaser physics system */
+  readonly body: Phaser.Physics.Arcade.Body;
 } 

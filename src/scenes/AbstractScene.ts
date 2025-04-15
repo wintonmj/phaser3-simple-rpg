@@ -9,7 +9,7 @@ import { InterSceneData, MapLayers } from '../types/scene-types';
 
 // Game object imports
 import { Player } from '../game-objects/Player';
-import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
+import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 
 // Manager imports
 import { MapManager } from '../managers/MapManager';
@@ -48,7 +48,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   public cursors: CursorKeys;
   public map: Phaser.Tilemaps.Tilemap;
   public layers: MapLayers;
-  public monsters: NonPlayerEntity[] = [];
+  public monsters: INonPlayerEntity[] = [];
   public monsterGroup: Phaser.Physics.Arcade.Group;
 
   /**
@@ -128,7 +128,7 @@ export abstract class AbstractScene extends Phaser.Scene {
     // Register entities with spatial manager
     this.spatialManager.registerEntities([
       this.player,
-      ...this.monsters
+      ...this.monsters as unknown as Phaser.GameObjects.GameObject[]
     ]);
     
     // Set up physics colliders
@@ -139,7 +139,7 @@ export abstract class AbstractScene extends Phaser.Scene {
     );
     
     // Store monsterGroup for backward compatibility
-    this.monsterGroup = this.physicsManager.createGroup(this.monsters);
+    this.monsterGroup = this.physicsManager.createGroup(this.monsters as unknown as Phaser.GameObjects.GameObject[]);
     
     // Initialize scene transitions
     this.sceneFlowManager.initialize(this.map, this.player);

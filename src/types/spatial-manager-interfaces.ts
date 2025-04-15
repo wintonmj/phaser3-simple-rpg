@@ -49,4 +49,45 @@ export interface IExtendedSpatialManager {
    * Clear spatial data when shutting down
    */
   shutdown(): void;
+}
+
+/**
+ * Original interface for spatial management (should be updated to match extended version)
+ */
+export interface ISpatialManager {
+  /**
+   * Initialize the spatial manager
+   * @param mapWidth - Width of the map in pixels
+   * @param mapHeight - Height of the map in pixels
+   */
+  initialize(mapWidth: number, mapHeight: number): void;
+
+  /**
+   * Register entities to be tracked in the spatial system
+   * @param entities - Entities to register
+   */
+  registerEntities(entities: INonPlayerEntity[] | Phaser.GameObjects.GameObject[]): void;
+
+  /**
+   * Update the spatial partitioning structure
+   * @param cameraBounds - The current camera view bounds
+   * @param playerPosition - The current player position
+   */
+  update(cameraBounds: Phaser.Geom.Rectangle, playerPosition: Phaser.Math.Vector2): void;
+
+  /**
+   * Get active entities within range of the player
+   * @param range - Distance from player to consider entities active
+   */
+  getActiveEntities(range: number): Set<INonPlayerEntity>;
+
+  /**
+   * Get the quadtree data structure
+   */
+  getQuadTree(): QuadTree;
+
+  /**
+   * Clear spatial data when shutting down
+   */
+  shutdown(): void;
 } 

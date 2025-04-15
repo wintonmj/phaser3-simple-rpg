@@ -5,8 +5,8 @@
 import { Orientation } from '../geometry/orientation';
 import { InterSceneData, MapLayers, KeyState } from './scene-types';
 import { Player } from '../game-objects/Player';
-import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 import { QuadTree } from '../utils/QuadTree';
+import { INonPlayerEntity } from './entities/entity-interfaces';
 
 /**
  * Interface for map creation and management
@@ -76,7 +76,7 @@ export interface IEntityManager {
   /**
    * Get all monsters in the scene
    */
-  getMonsters(): NonPlayerEntity[];
+  getMonsters(): INonPlayerEntity[];
 
   /**
    * Get an object pool by name
@@ -156,7 +156,7 @@ export interface IPhysicsManager {
   setupColliders(
     player: Player,
     layers: MapLayers,
-    monsters: NonPlayerEntity[]
+    monsters: INonPlayerEntity[]
   ): void;
 
   /**
