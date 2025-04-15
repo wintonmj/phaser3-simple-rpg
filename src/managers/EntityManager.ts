@@ -5,7 +5,6 @@
 import { IEntityManager } from '../types/manager-interfaces';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
-import { Npc } from '../game-objects/Npc';
 import { Monster } from '../game-objects/enemies/Monster';
 import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
@@ -42,7 +41,6 @@ export class EntityManager implements IEntityManager {
   private scene: SceneType;
   private map: Phaser.Tilemaps.Tilemap;
   private player: Player;
-  private npcs: Npc[] = [];
   private monsters: Monster[] = [];
   private objectPools: Record<string, Phaser.GameObjects.Group> = {};
 
@@ -63,7 +61,6 @@ export class EntityManager implements IEntityManager {
     this.map = map;
     this.createObjectPools();
     this.createPlayer(sceneData);
-    this.createNPCs();
     this.createMonsters();
   }
 
@@ -81,40 +78,6 @@ export class EntityManager implements IEntityManager {
     // In a complete implementation, the game classes would be updated
     this.player = new Player(this.scene as any, position.x, position.y);
     return this.player;
-  }
-
-  /**
-   * Create NPCs from map data
-   */
-  public createNPCs(): void {
-    const npcsMapObjects = this.map.objects.find(o => o.name === MAP_CONTENT_KEYS.objects.NPCS);
-    const npcs = (npcsMapObjects?.objects || []) as unknown as CustomTilemapObject[];
-    
-    // Create extended camera bounds for culling
-    const extendedBounds = new Phaser.Geom.Rectangle(
-      0, 0, 
-      this.scene.cameras.main.width + MONSTER_UPDATE_DISTANCE*2, 
-      this.scene.cameras.main.height + MONSTER_UPDATE_DISTANCE*2
-    );
-    
-    // Batch NPC creation
-    const npcCreationOperations: Npc[] = [];
-    
-    npcs
-      // Pre-filter NPCs by distance to camera to reduce object creation
-      .filter(npc => Phaser.Geom.Rectangle.Contains(extendedBounds, npc.x, npc.y))
-      .forEach(npc => {
-        // Using type casting for compatibility during refactoring
-        const newNpc = new Npc(
-          this.scene as any, 
-          npc.x, 
-          npc.y, 
-          npc.properties.message || ''
-        );
-        npcCreationOperations.push(newNpc);
-      });
-    
-    this.npcs = npcCreationOperations;
   }
 
   /**
@@ -231,13 +194,6 @@ export class EntityManager implements IEntityManager {
   }
 
   /**
-   * Get all NPCs in the scene
-   */
-  public getNPCs(): Npc[] {
-    return this.npcs;
-  }
-
-  /**
    * Get all monsters in the scene
    */
   public getMonsters(): Monster[] {
@@ -269,13 +225,6 @@ export class EntityManager implements IEntityManager {
    * Clean up entities when scene is shutdown
    */
   public shutdown(): void {
-    // Clear NPCs
-    this.npcs.forEach(npc => {
-      if (npc.active) {
-        npc.destroy();
-      }
-    });
-    
     // Return monsters to object pool instead of destroying
     this.monsters.forEach(monster => {
       if (monster.active) {
@@ -288,6 +237,5 @@ export class EntityManager implements IEntityManager {
     
     // Clear collections
     this.monsters = [];
-    this.npcs = [];
   }
 } 

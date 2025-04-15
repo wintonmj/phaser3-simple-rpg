@@ -5,7 +5,6 @@
 import { Orientation } from '../geometry/orientation';
 import { InterSceneData, MapLayers, KeyState } from './scene-types';
 import { Player } from '../game-objects/Player';
-import { Npc } from '../game-objects/Npc';
 import { Monster } from '../game-objects/enemies/Monster';
 import { QuadTree } from '../utils/QuadTree';
 
@@ -60,11 +59,6 @@ export interface IEntityManager {
   createPlayer(sceneData: InterSceneData): Player;
 
   /**
-   * Create NPCs from map data
-   */
-  createNPCs(): void;
-
-  /**
    * Create monsters from map data
    */
   createMonsters(): void;
@@ -78,11 +72,6 @@ export interface IEntityManager {
    * Get the player instance
    */
   getPlayer(): Player;
-
-  /**
-   * Get all NPCs in the scene
-   */
-  getNPCs(): Npc[];
 
   /**
    * Get all monsters in the scene
@@ -163,13 +152,11 @@ export interface IPhysicsManager {
    * @param player - The player object
    * @param layers - Map layers with collision
    * @param monsters - Monster entities
-   * @param npcs - NPC entities
    */
   setupColliders(
     player: Player,
     layers: MapLayers,
-    monsters: Monster[],
-    npcs: Npc[]
+    monsters: Monster[]
   ): void;
 
   /**

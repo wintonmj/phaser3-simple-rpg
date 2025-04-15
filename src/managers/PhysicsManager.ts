@@ -6,7 +6,6 @@ import { IPhysicsManager } from '../types/manager-interfaces';
 import { MapLayers } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
 import { Monster } from '../game-objects/enemies/Monster';
-import { Npc } from '../game-objects/Npc';
 
 /**
  * Manages physics operations and collision handling
@@ -49,17 +48,14 @@ export class PhysicsManager implements IPhysicsManager {
    * @param player - The player object
    * @param layers - Map layers with collision
    * @param monsters - Monster entities
-   * @param npcs - NPC entities
    */
   public setupColliders(
     player: Player,
     layers: MapLayers,
-    monsters: Monster[],
-    npcs: Npc[]
+    monsters: Monster[]
   ): void {
     // Create groups once and reuse
     const monsterGroup = this.createGroup(monsters);
-    const npcGroup = this.createGroup(npcs);
     
     // Create composite collider for solid world objects
     const solidLayers = [layers.terrain, layers.deco];
@@ -74,11 +70,6 @@ export class PhysicsManager implements IPhysicsManager {
       // Add collider for all monsters
       this.queuePhysicsOperation(() => {
         this.scene.physics.add.collider(monsterGroup, layer);
-      });
-      
-      // Add collider for NPCs
-      this.queuePhysicsOperation(() => {
-        this.scene.physics.add.collider(npcGroup, layer);
       });
     });
     
@@ -107,35 +98,6 @@ export class PhysicsManager implements IPhysicsManager {
           const radiusSumSq = radiusSum * radiusSum;
           
           return distanceSq <= radiusSumSq;
-        }
-      );
-    });
-    
-    // NPC collisions
-    this.queuePhysicsOperation(() => {
-      this.scene.physics.add.collider(npcGroup, npcGroup);
-    });
-    
-    this.queuePhysicsOperation(() => {
-      this.scene.physics.add.collider(npcGroup, player);
-    });
-    
-    // NPC interactions - use a single overlap handler for all NPCs with process callback
-    this.queuePhysicsOperation(() => {
-      this.scene.physics.add.overlap(
-        npcGroup, 
-        player, 
-        (_player: Player, npc: Npc) => {
-          npc.talk();
-        },
-        // Process callback to check if player is facing the NPC
-        (_player: Player, npc: Npc) => {
-          // Efficient squared distance check for interaction
-          const dx = _player.x - npc.x;
-          const dy = _player.y - npc.y;
-          const distanceSq = dx * dx + dy * dy;
-          
-          return distanceSq < 1600; // 40^2
         }
       );
     });

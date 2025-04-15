@@ -9,7 +9,6 @@ import { InterSceneData, MapLayers } from '../types/scene-types';
 
 // Game object imports
 import { Player } from '../game-objects/Player';
-import { Npc } from '../game-objects/Npc';
 import { Monster } from '../game-objects/enemies/Monster';
 
 // Manager imports
@@ -49,7 +48,6 @@ export abstract class AbstractScene extends Phaser.Scene {
   public cursors: CursorKeys;
   public map: Phaser.Tilemaps.Tilemap;
   public layers: MapLayers;
-  public npcs: Npc[] = [];
   public monsters: Monster[] = [];
   public monsterGroup: Phaser.Physics.Arcade.Group;
 
@@ -125,13 +123,11 @@ export abstract class AbstractScene extends Phaser.Scene {
     
     // Store references for backward compatibility
     this.player = this.entityManager.getPlayer();
-    this.npcs = this.entityManager.getNPCs();
     this.monsters = this.entityManager.getMonsters();
     
     // Register entities with spatial manager
     this.spatialManager.registerEntities([
       this.player,
-      ...this.npcs,
       ...this.monsters
     ]);
     
@@ -139,8 +135,7 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.physicsManager.setupColliders(
       this.player,
       this.layers,
-      this.monsters,
-      this.npcs
+      this.monsters
     );
     
     // Store monsterGroup for backward compatibility
