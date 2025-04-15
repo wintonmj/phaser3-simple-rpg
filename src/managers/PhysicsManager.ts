@@ -6,12 +6,12 @@ import { IPhysicsManager } from '../types/manager-interfaces';
 import { MapLayers } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
+import { BaseManager } from './BaseManager';
 
 /**
  * Manages physics operations and collision handling
  */
-export class PhysicsManager implements IPhysicsManager {
-  private scene: Phaser.Scene;
+export class PhysicsManager extends BaseManager implements IPhysicsManager {
   private pendingPhysicsOperations: Array<() => void> = [];
 
   /**
@@ -19,7 +19,7 @@ export class PhysicsManager implements IPhysicsManager {
    * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+    super(scene);
   }
 
   /**

@@ -5,12 +5,12 @@
 import { IInputManager } from '../types/manager-interfaces';
 import { KeyState } from '../types/scene-types';
 import { SCENES } from '../constants/scenes';
+import { BaseManager } from './BaseManager';
 
 /**
  * Manages keyboard input and state tracking
  */
-export class InputManager implements IInputManager {
-  private scene: Phaser.Scene;
+export class InputManager extends BaseManager implements IInputManager {
   private cursors: CursorKeys;
   private keyboardHandler: (event: KeyboardEvent) => void;
   private keyState: KeyState = {
@@ -27,7 +27,7 @@ export class InputManager implements IInputManager {
    * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+    super(scene);
     this.keyboardHandler = () => {};
     this.cursors = {} as CursorKeys; // Will be initialized in initialize()
   }

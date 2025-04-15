@@ -7,6 +7,7 @@ import { Player } from '../game-objects/Player';
 import { Orientation } from '../geometry/orientation';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
+import { BaseManager } from './BaseManager';
 
 /** Default player starting position */
 const PLAYER_INITIAL_POSITION = {
@@ -20,8 +21,7 @@ const SCENE_TRANSITION_SHIFT = 50;
 /**
  * Manages scene transitions and zones
  */
-export class SceneFlowManager implements ISceneFlowManager {
-  private scene: Phaser.Scene;
+export class SceneFlowManager extends BaseManager implements ISceneFlowManager {
   private map: Phaser.Tilemaps.Tilemap;
   private player: Player;
   private transitionZones: Phaser.GameObjects.Zone[] = [];
@@ -31,7 +31,7 @@ export class SceneFlowManager implements ISceneFlowManager {
    * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+    super(scene);
   }
 
   /**

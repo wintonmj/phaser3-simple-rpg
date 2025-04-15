@@ -3,6 +3,7 @@
  */
 
 import { IObjectPoolManager } from '../types/manager-interfaces';
+import { BaseManager } from './BaseManager';
 
 /** Object pool sizes */
 const POOL_SIZES = {
@@ -13,8 +14,7 @@ const POOL_SIZES = {
 /**
  * Manages object pools for reusable game objects like particles and projectiles
  */
-export class ObjectPoolManager implements IObjectPoolManager {
-  private scene: Phaser.Scene;
+export class ObjectPoolManager extends BaseManager implements IObjectPoolManager {
   private objectPools: Record<string, Phaser.GameObjects.Group> = {};
 
   /**
@@ -22,7 +22,14 @@ export class ObjectPoolManager implements IObjectPoolManager {
    * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+    super(scene);
+    this.initialize();
+  }
+
+  /**
+   * Initialize object pools
+   */
+  public initialize(): void {
     this.createObjectPools();
   }
 

@@ -6,12 +6,12 @@ import { IMapManager } from '../types/manager-interfaces';
 import { MapLayers } from '../types/scene-types';
 import { ASSETS } from '../constants/assets';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
+import { BaseManager } from './BaseManager';
 
 /**
  * Manages map creation and layer operations
  */
-export class MapManager implements IMapManager {
-  private scene: Phaser.Scene;
+export class MapManager extends BaseManager implements IMapManager {
   private map: Phaser.Tilemaps.Tilemap;
   private layers: MapLayers;
 
@@ -20,7 +20,7 @@ export class MapManager implements IMapManager {
    * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+    super(scene);
   }
 
   /**

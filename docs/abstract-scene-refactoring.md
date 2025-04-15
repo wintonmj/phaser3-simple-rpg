@@ -26,7 +26,15 @@ The `AbstractScene` class currently handles:
 
 ## Proposed Architecture
 
-The refactored architecture divides these responsibilities into logical groupings, with each group becoming a specialized manager class:
+The refactored architecture divides these responsibilities into logical groupings, with each group becoming a specialized manager class that extends a common `BaseManager` class:
+
+### 0. BaseManager (Implemented)
+
+**Responsibilities:**
+- Provide a common interface for all managers
+- Store reference to the scene
+- Facilitate communication between managers
+- Define common lifecycle methods (initialize, shutdown)
 
 ### 1. MapManager
 
@@ -37,16 +45,16 @@ The refactored architecture divides these responsibilities into logical grouping
 - Physics world boundaries
 - Map layer culling and visibility
 
-### 2. EntityManager
+### 2. EntityManager (Implemented)
 
 **Responsibilities:**
 
 - Player initialization and management
 - NPC creation and management
 - Monster spawning and lifecycle
-- Object pooling for particles and projectiles
+- Entity state management
 
-### 3. SpatialManager
+### 3. SpatialManager (Implemented)
 
 **Responsibilities:**
 
@@ -89,11 +97,23 @@ The refactored architecture divides these responsibilities into logical grouping
 - Scene lifecycle (init, shutdown)
 - Memory cleanup
 
+### 8. ObjectPoolManager (Implemented)
+
+**Responsibilities:**
+- Create and manage object pools for reusable game objects
+- Provide access to specific object pools
+- Handle cleanup of pooled objects
+
 ## Dependency Tree
 
 ```
                 +---------------+
                 | AbstractScene |
+                +-------+-------+
+                        |
+                        v
+                +---------------+
+                |  BaseManager  |
                 +-------+-------+
                         |
         +---------------+---------------+
@@ -108,10 +128,11 @@ The refactored architecture divides these responsibilities into logical grouping
      |           |          +------------v--+
      |      +----v------+   |InputManager   |
      |      |CameraMan  |   +---------------+
-     |      +----+------+
-     |           |
-+----v-----------v----+
-|   PhysicsManager    |
+     |      +----+------+        |
+     |           |               |
+     |           |         +-----v-------+
++----v-----------v-------->|ObjectPoolMan|
+|   PhysicsManager    |    +-------------+
 +---------------------+
 ```
 
@@ -119,51 +140,81 @@ The refactored architecture divides these responsibilities into logical grouping
 
 1. **AbstractScene**: Central coordinator that initializes and manages all specialized managers
 
-2. **MapManager**:
+2. **BaseManager**: 
+   - Abstract base class that all managers extend
+   - Provides references to other managers
+   - Defines common lifecycle methods
+
+3. **MapManager**:
    - Provides map data to EntityManager for spawns
    - Sends collision layers to PhysicsManager
 
-3. **EntityManager**:
+4. **EntityManager**:
    - Gets spawn locations from MapManager
-   - Registers entities with SpatialManager
+   - Accesses SpatialManager via BaseManager
+   - Accesses ObjectPoolManager via BaseManager
    - Provides entity references to PhysicsManager
    - Gives player object to CameraManager
 
-4. **SpatialManager**:
+5. **SpatialManager**:
    - Gets entities from EntityManager
    - Provides culling info to EntityManager
    - Requests camera bounds from CameraManager
 
-5. **PhysicsManager**:
+6. **PhysicsManager**:
    - Receives entities from EntityManager
    - Gets collision layers from MapManager
    - Handles collision callbacks
 
-6. **InputManager**:
+7. **InputManager**:
    - Provides input state to EntityManager (player)
    - Sends key events to SceneFlowManager
 
-7. **CameraManager**:
+8. **CameraManager**:
    - Follows player from EntityManager
    - Gets bounds from MapManager
    - Provides view bounds to SpatialManager
 
-8. **SceneFlowManager**:
+9. **SceneFlowManager**:
    - Manages scene transitions
    - Gets player position from EntityManager
    - Uses InputManager for keyboard shortcuts
 
+10. **ObjectPoolManager**:
+    - Creates and manages reusable object pools
+    - Provides access to pools for other managers
+
 ## Implementation Strategy
 
-### Phase 1: Extract QuadTree
+### Phase 1: Create a Common BaseManager (Completed)
 
-The QuadTree implementation is a natural first candidate for extraction as it's already a well-encapsulated piece of functionality.
+1. Create a `BaseManager` abstract class with:
+   - Scene reference
+   - References to other managers
+   - Abstract initialize() and shutdown() methods
+   - Getter/setter methods for manager references
 
-1. Create a new file `src/utils/QuadTree.ts`
-2. Move the QuadTree class implementation
-3. Update imports in AbstractScene
+### Phase 2: Extract QuadTree (Completed)
 
-### Phase 2: Create Manager Interfaces
+The QuadTree implementation has been extracted to `src/utils/QuadTree.ts`
+
+### Phase 3: Implement Core Manager Classes (Partially Completed)
+
+Completed:
+- EntityManager
+- SpatialManager
+- ObjectPoolManager
+
+Each extends BaseManager and implements its specialized interface.
+
+Remaining:
+- MapManager
+- PhysicsManager
+- InputManager
+- CameraManager
+- SceneFlowManager
+
+### Phase 4: Create Manager Interfaces (Partially Completed)
 
 Define interfaces for each manager to establish clear contracts:
 
@@ -182,13 +233,13 @@ interface IEntityManager {
 }
 ```
 
-### Phase 3: Implement Manager Classes
+### Phase 5: Refactor AbstractScene
 
-Implement each manager class according to its interface, moving code from AbstractScene.
-
-### Phase 4: Refactor AbstractScene
-
-Update AbstractScene to use the new manager classes, gradually replacing direct implementations with manager method calls.
+Update AbstractScene to:
+1. Initialize all manager instances
+2. Set up manager references using BaseManager methods
+3. Delegate responsibilities to appropriate managers
+4. Coordinate high-level game flow
 
 ## Benefits
 
@@ -197,11 +248,14 @@ Update AbstractScene to use the new manager classes, gradually replacing direct 
 3. **Reduced Complexity**: Class relationships are clearly defined
 4. **Easier Onboarding**: New developers can understand isolated components
 5. **More Flexible Architecture**: Components can be modified independently
+6. **Decoupled Dependencies**: Managers access each other through BaseManager methods
 
 ## Best Practices
 
-1. Use dependency injection to provide manager dependencies
-2. Keep manager API surfaces small and focused
-3. Use TypeScript interfaces to define clear contracts
-4. Document manager responsibilities and relationships
-5. Consider using an event system for cross-manager communication 
+1. Use BaseManager for manager references rather than direct instantiation
+2. Initialize all managers in AbstractScene
+3. Set up manager references using setter methods
+4. Keep manager API surfaces small and focused
+5. Use TypeScript interfaces to define clear contracts
+6. Document manager responsibilities and relationships
+7. Consider using an event system for additional cross-manager communication 

@@ -6,6 +6,7 @@ import { ISpatialManager } from '../types/manager-interfaces';
 import { QuadTree, QUADTREE } from '../utils/QuadTree';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
+import { BaseManager } from './BaseManager';
 
 /** Distance threshold for entity updates (in pixels) */
 const ENTITY_UPDATE_DISTANCE = 400;
@@ -21,7 +22,7 @@ type EntityWithPosition = Phaser.GameObjects.GameObject & {
 /**
  * Manages spatial partitioning and entity culling
  */
-export class SpatialManager implements ISpatialManager {
+export class SpatialManager extends BaseManager implements ISpatialManager {
   private quadTree: QuadTree;
   private entities: Phaser.GameObjects.GameObject[] = [];
   private activeEntities: Set<Phaser.GameObjects.GameObject> = new Set();
@@ -30,18 +31,17 @@ export class SpatialManager implements ISpatialManager {
   /**
    * Create a new SpatialManager
    * 
-   * Note: scene parameter is required by interface but not used directly
+   * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
+    super(scene);
+    
     // Initialize with a small default size, will be replaced in initialize()
     this.quadTree = new QuadTree(
       new Phaser.Geom.Rectangle(0, 0, 1000, 1000),
       QUADTREE.MAX_OBJECTS,
       QUADTREE.MAX_LEVELS
     );
-    
-    // Suppress unused parameter warning while keeping for interface compatibility
-    void scene;
   }
 
   /**
@@ -216,8 +216,7 @@ export class SpatialManager implements ISpatialManager {
    * Get active entities within range of the player
    * @returns Set of currently active entities
    */
-  public getActiveEntities(_range?: number): Set<Phaser.GameObjects.GameObject> {
-    // Range parameter is provided for interface compatibility but not used
+  public getActiveEntities(): Set<Phaser.GameObjects.GameObject> {
     return this.activeEntities;
   }
 

@@ -3,6 +3,7 @@
  */
 
 import { ICameraManager } from '../types/manager-interfaces';
+import { BaseManager } from './BaseManager';
 
 /** Camera lerp factor for smooth camera movement */
 const CAMERA_LERP = 1;
@@ -10,8 +11,7 @@ const CAMERA_LERP = 1;
 /**
  * Manages camera setup and behavior
  */
-export class CameraManager implements ICameraManager {
-  private scene: Phaser.Scene;
+export class CameraManager extends BaseManager implements ICameraManager {
   private cameraBounds: Phaser.Geom.Rectangle;
   private target: Phaser.GameObjects.GameObject | null = null;
 
@@ -20,7 +20,7 @@ export class CameraManager implements ICameraManager {
    * @param scene - The scene this manager belongs to
    */
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
+    super(scene);
     this.cameraBounds = new Phaser.Geom.Rectangle(0, 0, 0, 0);
   }
 
