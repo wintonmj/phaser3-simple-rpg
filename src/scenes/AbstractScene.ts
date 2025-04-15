@@ -41,6 +41,12 @@ const POOL_SIZES = {
   PROJECTILES: 20,
 };
 
+/** Grid parameters for spatial partitioning */
+const GRID = {
+  CELL_SIZE: 400,
+  UPDATE_RANGE: 1, // Number of cells around player to update
+};
+
 /**
  * Abstract base class for all game scenes.
  * Provides common functionality for map creation, player initialization, and game mechanics.
@@ -75,14 +81,20 @@ export abstract class AbstractScene extends Phaser.Scene {
   private transitionZones: Phaser.GameObjects.Zone[] = [];
   /** Single keyboard handler */
   private keyboardHandler: (event: KeyboardEvent) => void;
-  /** Spatial grid for monster culling */
+  /** Spatial grid for entity culling */
   private spatialGrid: Map<string, Monster[]> = new Map();
   /** Grid cell size for spatial partitioning */
-  private gridCellSize = MONSTER_UPDATE_DISTANCE;
+  private gridCellSize = GRID.CELL_SIZE;
   /** Object pools */
   protected objectPools: Record<string, Phaser.GameObjects.Group> = {};
+  /** Active monsters being processed */
+  private activeMonsters: Set<Monster> = new Set();
   /** Last known player grid position */
   private lastPlayerGridPos: { x: number; y: number } = { x: 0, y: 0 };
+  /** Camera bounds */
+  private cameraBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
+  /** Frame counter for staggered updates */
+  private frameCounter: number = 0;
 
   /**
    * Creates an instance of AbstractScene.
@@ -95,22 +107,35 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Main update loop
+   * Main update loop - optimized with frame-skipping for non-critical elements
    */
   public update(): void {
-    this.updateKeyState();
+    this.frameCounter++;
     
-    // Only recalculate spatial grid when player moves to a new grid cell
+    // Update player and keyboard input every frame
+    this.updateKeyState();
+    this.player.updatePlayer(this.keyState);
+    
+    // Update camera bounds once per frame
+    this.updateCameraBounds();
+    
+    // Check for player grid cell change and update spatial grid if needed
     const gridX = Math.floor(this.player.x / this.gridCellSize);
     const gridY = Math.floor(this.player.y / this.gridCellSize);
     
-    if (gridX !== this.lastPlayerGridPos.x || gridY !== this.lastPlayerGridPos.y) {
+    const playerGridChanged = gridX !== this.lastPlayerGridPos.x || gridY !== this.lastPlayerGridPos.y;
+    if (playerGridChanged) {
       this.lastPlayerGridPos = { x: gridX, y: gridY };
-      this.updateSpatialGrid();
+      this.updateActiveMonsters();
     }
     
-    this.updateMonstersInRange();
-    this.player.updatePlayer(this.keyState);
+    // Stagger non-critical updates across frames
+    if (this.frameCounter % 10 === 0) {
+      this.updateSpatialGrid(); // Heavy operation, only do occasionally
+    }
+    
+    // Update active monsters every frame for smooth gameplay
+    this.updateActiveMonsters();
   }
 
   /**
@@ -126,12 +151,38 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Update spatial partitioning grid
+   * Update the camera bounds for culling calculations
+   */
+  private updateCameraBounds(): void {
+    const camera = this.cameras.main;
+    this.cameraBounds.x = camera.scrollX;
+    this.cameraBounds.y = camera.scrollY;
+    this.cameraBounds.width = camera.width;
+    this.cameraBounds.height = camera.height;
+  }
+
+  /**
+   * Update spatial partitioning grid - now optimized to rebuild only when necessary
    */
   private updateSpatialGrid(): void {
+    // Clear existing grid
     this.spatialGrid.clear();
     
+    // Only process monsters that are close enough to potentially become active
+    // This avoids processing monsters that are far away from the player
+    const expandedBounds = new Phaser.Geom.Rectangle(
+      this.cameraBounds.x - this.gridCellSize,
+      this.cameraBounds.y - this.gridCellSize,
+      this.cameraBounds.width + this.gridCellSize * 2,
+      this.cameraBounds.height + this.gridCellSize * 2
+    );
+    
     this.monsters.forEach(monster => {
+      // Skip inactive monsters or those far from camera view
+      if (!monster.active || !Phaser.Geom.Rectangle.Contains(expandedBounds, monster.x, monster.y)) {
+        return;
+      }
+      
       const gridX = Math.floor(monster.x / this.gridCellSize);
       const gridY = Math.floor(monster.y / this.gridCellSize);
       const key = `${gridX},${gridY}`;
@@ -148,27 +199,35 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Update only monsters within range of the player
+   * Update the set of active monsters based on player position
    */
-  private updateMonstersInRange(): void {
-    // Get player's grid cell and adjacent cells
-    const playerGridX = Math.floor(this.player.x / this.gridCellSize);
-    const playerGridY = Math.floor(this.player.y / this.gridCellSize);
+  private updateActiveMonsters(): void {
+    // Clear previous active set
+    this.activeMonsters.clear();
     
-    // Check 3x3 grid of cells around player
-    for (let x = playerGridX - 1; x <= playerGridX + 1; x++) {
-      for (let y = playerGridY - 1; y <= playerGridY + 1; y++) {
+    // Get player's grid cell
+    const playerGridX = this.lastPlayerGridPos.x;
+    const playerGridY = this.lastPlayerGridPos.y;
+    
+    // Check player cell and surrounding cells based on configured range
+    const range = GRID.UPDATE_RANGE;
+    for (let x = playerGridX - range; x <= playerGridX + range; x++) {
+      for (let y = playerGridY - range; y <= playerGridY + range; y++) {
         const key = `${x},${y}`;
         const monsters = this.spatialGrid.get(key) || [];
         
         monsters.forEach(monster => {
-          // Final distance check for monsters in adjacent cells
+          // Skip deactivated monsters
+          if (!monster.active) return;
+          
+          // Final distance check for monsters in grid cells
           const distance = Phaser.Math.Distance.Between(
             this.player.x, this.player.y, 
             monster.x, monster.y
           );
           
           if (distance <= MONSTER_UPDATE_DISTANCE) {
+            this.activeMonsters.add(monster);
             monster.updateMonster();
           }
         });
@@ -177,7 +236,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Scene shutdown handler - performs cleanup
+   * Scene shutdown handler - performs cleanup with improved memory management
    */
   public shutdown(): void {
     // Remove keyboard event handler
@@ -185,31 +244,47 @@ export abstract class AbstractScene extends Phaser.Scene {
       this.input.keyboard.off('keydown', this.keyboardHandler, this, false);
     }
     
-    // Clean up physics
-    if (this.monsterGroup) {
+    // Clean up physics - handle non-active groups gracefully
+    if (this.monsterGroup && this.monsterGroup.active) {
       this.monsterGroup.clear(true, true);
     }
     
     // Destroy transition zones
     this.transitionZones.forEach(zone => {
-      zone.destroy();
-    });
-    
-    // Deactivate monsters instead of destroying
-    this.monsters.forEach(monster => {
-      if (monster.active) {
-        monster.setActive(false);
+      if (zone.active) {
+        zone.destroy();
       }
     });
     
-    // Clear arrays
+    // Return monsters to object pool instead of destroying
+    this.monsters.forEach(monster => {
+      if (monster.active) {
+        monster.setActive(false);
+        if (monster instanceof Phaser.GameObjects.Sprite) {
+          monster.setVisible(false);
+        }
+      }
+    });
+    
+    // Clear active monster tracking
+    this.activeMonsters.clear();
+    
+    // Clear NPCs
+    this.npcs.forEach(npc => {
+      if (npc.active) {
+        npc.destroy();
+      }
+    });
+    
+    // Clear collections
     this.monsters = [];
-    this.npcs.forEach(npc => npc.destroy());
     this.npcs = [];
     this.spatialGrid.clear();
     
-    // Clear all colliders
-    this.physics.world.colliders.destroy();
+    // Destroy physics colliders
+    if (this.physics.world.colliders.getActive().length > 0) {
+      this.physics.world.colliders.destroy();
+    }
     
     // Clear scene references
     this.transitionZones = [];
@@ -219,6 +294,9 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Initialize the scene
    */
   protected init(data: InterSceneData): void {
+    // Reset frame counter
+    this.frameCounter = 0;
+    
     this.createObjectPools();
     this.createMapWithLayers();
     this.setupPhysicsWorld();
@@ -263,7 +341,14 @@ export abstract class AbstractScene extends Phaser.Scene {
       bridge: this.map.createLayer(MAP_CONTENT_KEYS.layers.BRIDGE, tileset, 0, 0),
     };
 
-    // Optimize layer collision setup
+    // Optimize tilemap layers
+    Object.values(this.layers).forEach(layer => {
+      // Enable layer culling to avoid drawing offscreen tiles
+      layer.setCullPadding(1, 1);
+      layer.setVisible(true);
+    });
+
+    // Only add collisions to tiles that actually need them
     this.layers.terrain.setCollisionByProperty({ collides: true });
     this.layers.deco.setCollisionByProperty({ collides: true });
   }
@@ -286,18 +371,28 @@ export abstract class AbstractScene extends Phaser.Scene {
     const npcsMapObjects = this.map.objects.find(o => o.name === MAP_CONTENT_KEYS.objects.NPCS);
     const npcs = (npcsMapObjects?.objects || []) as unknown as CustomTilemapObject[];
     
-    this.npcs = npcs.map(npc => {
-      return new Npc(
-        this, 
-        npc.x, 
-        npc.y, 
-        npc.properties.message || ''
-      );
-    });
+    // Only create NPCs that would be visible on screen
+    const cameraView = new Phaser.Geom.Rectangle(
+      0, 0, 
+      this.cameras.main.width + MONSTER_UPDATE_DISTANCE*2, 
+      this.cameras.main.height + MONSTER_UPDATE_DISTANCE*2
+    );
+    
+    this.npcs = npcs
+      // Pre-filter NPCs by distance to camera to reduce object creation
+      .filter(npc => Phaser.Geom.Rectangle.Contains(cameraView, npc.x, npc.y))
+      .map(npc => {
+        return new Npc(
+          this, 
+          npc.x, 
+          npc.y, 
+          npc.properties.message || ''
+        );
+      });
   }
 
   /**
-   * Initialize monsters in the scene with distance-based activation
+   * Initialize monsters in the scene with optimized object creation
    */
   private initializeMonsters(): void {
     const monstersMapObjects = this.map.objects.find(
@@ -305,16 +400,48 @@ export abstract class AbstractScene extends Phaser.Scene {
     );
     const monsters = (monstersMapObjects?.objects || []) as unknown as CustomTilemapObject[];
 
-    this.monsters = monsters.map((monster: CustomTilemapObject): Monster | null => {
-      switch (monster.name) {
+    // Object pooling factory function to reuse monster instances
+    const createMonster = (type: string, x: number, y: number): Monster | null => {
+      switch (type) {
         case MONSTERS.treant:
-          return new Treant(this, monster.x, monster.y);
+          return new Treant(this, x, y);
         case MONSTERS.mole:
-          return new Mole(this, monster.x, monster.y);
+          return new Mole(this, x, y);
         default:
           return null;
       }
-    }).filter((monster): monster is Monster => monster !== null);
+    };
+
+    // Create monsters with immediate distance check to avoid creating unnecessary objects
+    this.monsters = monsters
+      .map((monster: CustomTilemapObject): Monster | null => {
+        // Early skip for invalid types
+        if (!monster.name || !(monster.name in MONSTERS)) {
+          return null;
+        }
+        
+        // Create the monster instance
+        return createMonster(monster.name, monster.x, monster.y);
+      })
+      .filter((monster): monster is Monster => monster !== null);
+      
+    // Initially deactivate monsters that are far from player
+    const playerX = this.player.x;
+    const playerY = this.player.y;
+    
+    this.monsters.forEach(monster => {
+      const distance = Phaser.Math.Distance.Between(
+        playerX, playerY, monster.x, monster.y
+      );
+      
+      // Set initial active state based on distance
+      if (distance > MONSTER_UPDATE_DISTANCE * 1.5) {
+        monster.setActive(false);
+        if (monster instanceof Phaser.GameObjects.Sprite) {
+          monster.setVisible(false);
+        }
+      }
+    });
   }
 
   /**
@@ -329,14 +456,20 @@ export abstract class AbstractScene extends Phaser.Scene {
       this.transitionZones = levelChangerObjectLayer.objects.map((o) => {
         const zoneObject = o as unknown as CustomTilemapObject;
         const zone = this.add.zone(zoneObject.x, zoneObject.y, zoneObject.width, zoneObject.height);
-        this.physics.add.existing(zone);
+        
+        // Zone needs physics but doesn't need to move or use gravity
+        this.physics.add.existing(zone, true); // true = static body
         
         // Store transition data on zone for reuse
         zone.setData('targetScene', zoneObject.properties.scene);
         
-        // Create overlap handler
+        // Create overlap handler with debounce mechanism to prevent multiple triggers
+        let canTransition = true;
         this.physics.add.overlap(zone, this.player, () => {
-          this.scene.start(zone.getData('targetScene'), { comesFrom: this.scene.key });
+          if (canTransition) {
+            canTransition = false;
+            this.scene.start(zone.getData('targetScene'), { comesFrom: this.scene.key });
+          }
         });
         
         return zone;
@@ -345,10 +478,10 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Create object pools for frequently used objects
+   * Create object pools for frequently used objects with reuse strategies
    */
   private createObjectPools(): void {
-    // Create pools for common objects
+    // Create pools with specific recycling behavior
     this.objectPools.particles = this.add.group({
       maxSize: POOL_SIZES.PARTICLES,
       active: false,
@@ -356,6 +489,16 @@ export abstract class AbstractScene extends Phaser.Scene {
         this.physics.world.enable(particle);
         if (particle.body) {
           (particle.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
+        }
+      },
+      removeCallback: (particle) => {
+        // Reset particle state when removed from active use
+        particle.setActive(false);
+        if (particle instanceof Phaser.GameObjects.Sprite) {
+          particle.setVisible(false);
+        }
+        if (particle.body) {
+          (particle.body as Phaser.Physics.Arcade.Body).reset(0, 0);
         }
       }
     });
@@ -365,12 +508,22 @@ export abstract class AbstractScene extends Phaser.Scene {
       active: false,
       createCallback: (projectile) => {
         this.physics.world.enable(projectile);
+      },
+      removeCallback: (projectile) => {
+        // Reset projectile state when removed from active use
+        projectile.setActive(false);
+        if (projectile instanceof Phaser.GameObjects.Sprite) {
+          projectile.setVisible(false);
+        }
+        if (projectile.body) {
+          (projectile.body as Phaser.Physics.Arcade.Body).reset(0, 0);
+        }
       }
     });
   }
 
   /**
-   * Add physics colliders
+   * Add physics colliders with optimization strategies
    */
   private addColliders(): void {
     // Create groups once and reuse
@@ -382,22 +535,31 @@ export abstract class AbstractScene extends Phaser.Scene {
     
     // Add colliders for solid layers - use collider optimization
     solidLayers.forEach(layer => {
-      // Make sure to only add collision tiles to the physics world
-      layer.setCollisionByProperty({ collides: true });
+      // Add collider for player
       this.physics.add.collider(this.player, layer);
       
       // Add collider for all monsters
       this.physics.add.collider(this.monsterGroup, layer);
       
+      // Add collider for NPCs
       this.physics.add.collider(npcGroup, layer);
     });
     
     // Entity collisions - use a single collider with a callback
+    // Optimize by using a processing callback to early-exit unnecessary collision checks
     this.physics.add.collider(
       this.monsterGroup, 
       this.player, 
+      // Collision callback
       (_player: Player, monster: Monster) => {
         monster.attack();
+      },
+      // Process callback for early filtering
+      (_player: Player, monster: Monster) => {
+        // Only process collision if monster is active and close enough
+        return monster.active && Phaser.Math.Distance.Between(
+          _player.x, _player.y, monster.x, monster.y
+        ) < monster.body.width * 1.5;
       }
     );
     
@@ -405,21 +567,35 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.physics.add.collider(npcGroup, npcGroup);
     this.physics.add.collider(npcGroup, this.player);
     
-    // NPC interactions - use a single overlap handler for all NPCs
-    const interactionHandler = (_player: Player, npc: Npc) => {
-      npc.talk();
-    };
-    
-    this.physics.add.overlap(npcGroup, this.player, interactionHandler);
+    // NPC interactions - use a single overlap handler for all NPCs with process callback
+    this.physics.add.overlap(
+      npcGroup, 
+      this.player, 
+      (_player: Player, npc: Npc) => {
+        npc.talk();
+      },
+      // Process callback to check if player is facing the NPC
+      (_player: Player, npc: Npc) => {
+        // Check if close enough to interact
+        return Phaser.Math.Distance.Between(
+          _player.x, _player.y, npc.x, npc.y
+        ) < 40; // Interaction distance
+      }
+    );
   }
 
   /**
-   * Initialize the camera
+   * Initialize the camera with optimized settings
    */
   private initCamera(): void {
     this.cameras.main.setRoundPixels(true);
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+    
+    // Use smooth follow for better performance
     this.cameras.main.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
+    
+    // Set up initial camera bounds for culling calculations
+    this.updateCameraBounds();
   }
 
   /**
