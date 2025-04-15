@@ -16,3 +16,5 @@
 
 // Re-export all types for easier imports
 export * from './scene-types'; 
+
+export * from './manager-interfaces'; 
