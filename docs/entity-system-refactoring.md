@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines a plan to refactor the entity system in the Phaser3 Simple RPG game to create a more generic approach for handling non-player entities (NPCs and monsters). The current implementation has separate handling for monsters and NPCs, with significant code duplication. This refactoring will introduce a common base class for all non-player entities while maintaining specialized behavior for hostile entities.
+This document outlines a plan to refactor the entity system in the Phaser3 Simple RPG game to create a more generic approach for handling non-player entities (NPCs and monsters). The current implementation has separate handling for monsters and NPCs, with significant code duplication. This refactoring will introduce a composition-based approach for all non-player entities while maintaining specialized behavior for different entity types.
 
 ## Current Implementation
 
@@ -26,21 +26,45 @@ This document outlines a plan to refactor the entity system in the Phaser3 Simpl
 - `/src/managers/PhysicsManager.ts` - Handles collision between entities
 - `/src/managers/SpatialManager.ts` - Uses QuadTree for entity culling, specifically for monsters
 
-## Proposed Changes
+## Proposed Changes: Composition-Based Approach
 
-### 1. Entity Hierarchy Refactoring
+After evaluating different refactoring strategies, we've decided to implement a composition-based approach for entity management. This will provide maximum flexibility for creating diverse entity types with different combinations of behaviors.
+
+### 1. Entity Composition Structure
 
 ```
 Character (Base class)
 ├── Player
-└── NonPlayerEntity (NEW abstract class)
-    ├── FriendlyEntity (NEW abstract class for NPCs)
-    │   ├── StaticNPC
-    │   └── MovingNPC
-    └── HostileEntity (Renamed from Monster)
-        ├── Treant
-        ├── Mole
-        └── Future monster types...
+└── NonPlayerEntity (Container for behavior components)
+    │
+    ├── Behavior Components
+    │   ├── MovementBehavior
+    │   │   ├── WanderMovement
+    │   │   ├── PatrolMovement
+    │   │   ├── ChaseMovement
+    │   │   └── StationaryMovement
+    │   │
+    │   ├── CombatBehavior
+    │   │   ├── MeleeCombat
+    │   │   ├── RangedCombat
+    │   │   └── PassiveBehavior
+    │   │
+    │   ├── InteractionBehavior
+    │   │   ├── DialogInteraction
+    │   │   ├── ShopInteraction
+    │   │   ├── QuestInteraction
+    │   │   └── NoInteraction
+    │   │
+    │   └── AnimationBehavior
+    │       ├── HumanoidAnimation
+    │       ├── MonsterAnimation
+    │       └── SimpleAnimation
+    │
+    └── Entity Instances (Created with specific behaviors)
+        ├── Treant (ChaseMovement + RangedCombat + NoInteraction + MonsterAnimation)
+        ├── Mole (ChaseMovement + MeleeCombat + NoInteraction + MonsterAnimation)
+        ├── Villager (WanderMovement + PassiveBehavior + DialogInteraction + HumanoidAnimation)
+        └── Shopkeeper (StationaryMovement + PassiveBehavior + ShopInteraction + HumanoidAnimation)
 ```
 
 ### 2. Constants Reorganization
@@ -64,349 +88,248 @@ export const ENTITIES = {
 } as const;
 ```
 
-### 3. NonPlayerEntity Base Class
+### 3. Behavior Interfaces
 
-Create a new abstract base class that handles common functionality for all non-player entities:
+Create interfaces for each behavior type:
+
+```typescript
+// /src/behaviors/interfaces.ts
+
+// Base behavior interface
+export interface IBehavior {
+  update(entity: NonPlayerEntity): void;
+}
+
+// Movement behavior
+export interface IMovementBehavior extends IBehavior {
+  move(entity: NonPlayerEntity, target?: Phaser.Math.Vector2): void;
+  stop(entity: NonPlayerEntity): void;
+}
+
+// Combat behavior
+export interface ICombatBehavior extends IBehavior {
+  attack(entity: NonPlayerEntity, target: Character): void;
+  takeDamage(entity: NonPlayerEntity, amount: number): void;
+}
+
+// Interaction behavior
+export interface IInteractionBehavior extends IBehavior {
+  interact(entity: NonPlayerEntity, player: Player): void;
+  canInteract(entity: NonPlayerEntity, player: Player): boolean;
+}
+
+// Animation behavior
+export interface IAnimationBehavior extends IBehavior {
+  playAnimation(entity: NonPlayerEntity, state: string, orientation: Orientation): void;
+  setupAnimations(entity: NonPlayerEntity): void;
+}
+```
+
+### 4. NonPlayerEntity Base Class
+
+Refactor the NonPlayerEntity class to act as a container for behavior components:
 
 ```typescript
 // /src/game-objects/entities/NonPlayerEntity.ts
-/**
- * Abstract base class for all non-player entities
- * Provides common functionality for appearance, animation, and basic movement
- */
-export abstract class NonPlayerEntity extends Character {
-  // Common properties
-  protected abstract IDLE_ANIMATION: CharacterAnimation;
-  protected abstract WALK_ANIMATION: CharacterAnimation;
+export class NonPlayerEntity extends Character {
+  // Entity type and properties
+  public readonly entityType: EntityType;
   
-  // Basic behavior methods
-  public abstract updateEntity(): void;
-  protected abstract beIdle(): void;
+  // Behavior components
+  private movementBehavior: IMovementBehavior;
+  private combatBehavior: ICombatBehavior;
+  private interactionBehavior: IInteractionBehavior;
+  private animationBehavior: IAnimationBehavior;
   
-  // Common movement methods
-  protected move(x: number, y: number, speed: number): void {
-    // Implementation...
+  // Entity state
+  public hp: number = 0;
+  
+  constructor(
+    scene: Phaser.Scene, 
+    x: number, 
+    y: number, 
+    texture: string,
+    entityType: EntityType,
+    options: {
+      movement?: IMovementBehavior,
+      combat?: ICombatBehavior,
+      interaction?: IInteractionBehavior,
+      animation?: IAnimationBehavior,
+      hp?: number
+    }
+  ) {
+    super(scene, x, y, texture);
+    
+    this.entityType = entityType;
+    
+    // Set up behaviors (with defaults)
+    this.movementBehavior = options.movement || new StationaryMovement();
+    this.combatBehavior = options.combat || new PassiveBehavior();
+    this.interactionBehavior = options.interaction || new NoInteraction();
+    this.animationBehavior = options.animation || new SimpleAnimation();
+    
+    // Set up entity state
+    this.hp = options.hp || 0;
+    
+    // Initialize animations
+    this.animationBehavior.setupAnimations(this);
   }
   
-  // Common animation methods
-  protected animate(animation: CharacterAnimation, orientation: Orientation): void {
-    // Implementation...
-  }
-}
-```
-
-### 4. FriendlyEntity Class
-
-```typescript
-// /src/game-objects/entities/FriendlyEntity.ts
-/**
- * Abstract base class for all friendly NPCs
- */
-export abstract class FriendlyEntity extends NonPlayerEntity {
-  // NPC-specific properties
-  protected dialogKey?: string;
-  protected interactionZone: Phaser.GameObjects.Zone;
-  
-  // NPC behavior methods
-  public interact(): void {
-    // Implementation...
-  }
-  
-  public updateEntity(): void {
-    // Basic NPC behavior - can be overridden by specific NPCs
-    this.wander();
-  }
-}
-```
-
-### 5. HostileEntity Class (renamed from Monster)
-
-```typescript
-// /src/game-objects/entities/HostileEntity.ts
-/**
- * Abstract base class for all hostile entities
- */
-export abstract class HostileEntity extends NonPlayerEntity {
-  // Hostile-specific properties
-  protected hp: number;
-  protected attackDamage: number;
-  protected isStartled: boolean = false;
-  
-  // Hostile behavior methods
-  public attack(): void {
-    // Implementation...
-  }
-  
-  public loseHp(damage: number): void {
-    // Implementation...
-  }
-  
+  // Main update method called by scene
   public updateEntity(): void {
     if (!this.active) return;
-    this.handleChase();
-  }
-  
-  protected abstract animateAttack(): void;
-  private handleChase(): void {
-    // Implementation...
-  }
-}
-```
-
-## Implementation Considerations
-
-### 1. EntityManager Updates
-
-The `EntityManager` needs to be updated to handle the new entity hierarchy:
-
-- Create separate methods for friendly and hostile entities
-- Use factory methods to create entities based on type
-- Update type casting and TypeScript interfaces
-
-```typescript
-// /src/managers/EntityManager.ts
-public createNonPlayerEntities(): void {
-  // Create all non-player entities
-  this.createFriendlyEntities();
-  this.createHostileEntities();
-}
-
-private createFriendlyEntities(): void {
-  // Create NPCs from map data
-}
-
-private createHostileEntities(): void {
-  // Create hostile entities from map data
-}
-```
-
-### 2. Physics System Considerations
-
-The `PhysicsManager` must be updated to handle different collision behaviors:
-
-- Player-friendly collisions (blocking or triggering dialog)
-- Player-hostile collisions (damage)
-- Friendly-hostile collisions (NPCs might be attacked)
-- Entity-world collisions (all entities should collide with the world)
-
-```typescript
-// /src/managers/PhysicsManager.ts
-public setupColliders(
-  player: Player,
-  layers: MapLayers,
-  friendlyEntities: FriendlyEntity[],
-  hostileEntities: HostileEntity[]
-): void {
-  // Create entity groups
-  const friendlyGroup = this.createGroup(friendlyEntities);
-  const hostileGroup = this.createGroup(hostileEntities);
-  
-  // Set up world collisions for all entities
-  
-  // Set up player-friendly interactions
-  
-  // Set up player-hostile interactions
-  
-  // Optionally set up friendly-hostile interactions
-}
-```
-
-### 3. Spatial Management Updates
-
-The `SpatialManager` currently only handles monsters but should be updated to:
-
-- Track all non-player entities in the quadtree
-- Implement different culling distances for friendly vs. hostile entities
-- Use entity type to determine update behavior
-
-```typescript
-// /src/managers/SpatialManager.ts
-public update(cameraBounds: Phaser.Geom.Rectangle, playerPosition: Phaser.Math.Vector2): void {
-  // Clear existing quadtree
-  this.quadTree.clear();
-  
-  // Get expanded bounds
-  const expandedBounds = /* calculation */;
-  
-  // Insert all entities that are active and within expanded bounds
-  this.entities.forEach(entity => {
-    if (!entity.active) return;
     
-    if (entity instanceof NonPlayerEntity) {
-      // Insert into quadtree with appropriate type information
-      this.quadTree.insert(entity);
-    }
-  });
+    this.movementBehavior.update(this);
+    this.combatBehavior.update(this);
+    this.interactionBehavior.update(this);
+  }
   
-  // Update active entities based on distance and type
-  this.updateActiveEntities(playerPosition);
+  // Delegate methods to appropriate behaviors
+  public move(target?: Phaser.Math.Vector2): void {
+    this.movementBehavior.move(this, target);
+  }
+  
+  public attack(target: Character): void {
+    this.combatBehavior.attack(this, target);
+  }
+  
+  public takeDamage(amount: number): void {
+    this.combatBehavior.takeDamage(this, amount);
+  }
+  
+  public interact(player: Player): void {
+    this.interactionBehavior.interact(this, player);
+  }
+  
+  public canInteract(player: Player): boolean {
+    return this.interactionBehavior.canInteract(this, player);
+  }
+  
+  public playAnimation(state: string, orientation: Orientation): void {
+    this.animationBehavior.playAnimation(this, state, orientation);
+  }
+  
+  // Behavior getters/setters
+  public getMovementBehavior(): IMovementBehavior {
+    return this.movementBehavior;
+  }
+  
+  public setMovementBehavior(behavior: IMovementBehavior): void {
+    this.movementBehavior = behavior;
+  }
+  
+  // Similar getters/setters for other behaviors...
 }
 ```
 
-### 4. Asset and Animation Updates
+## Implementation Plan
 
-The `Preloader` scene must be updated to:
+### Phase 1: Setup Interfaces and Base Structure
 
-- Organize asset loading by entity type
-- Create consistent animation patterns for all entity types
-- Ensure all entities follow the same animation conventions
+1. Create behavior interfaces in `/src/behaviors/interfaces.ts`
+   - Define IMovementBehavior, ICombatBehavior, IInteractionBehavior, IAnimationBehavior
+   - Create base IBehavior interface
 
-```typescript
-// /src/scenes/Preloader.ts
-private loadAssets() {
-  // Load maps
-  this.loadMaps();
-  
-  // Load images
-  this.loadImages();
-  
-  // Load player assets
-  this.loadPlayerAssets();
-  
-  // Load non-player entity assets (grouped by type)
-  this.loadNonPlayerAssets();
-}
+2. Update entity constants
+   - Create `/src/constants/entities.ts` with organized entity types
+   - Create backward compatibility with existing monster constants
 
-private loadNonPlayerAssets() {
-  this.loadHostileEntityAssets();
-  this.loadFriendlyEntityAssets();
-}
-```
+3. Refactor NonPlayerEntity class
+   - Convert to behavior composition pattern
+   - Add constructor that accepts behavior components
+   - Create delegate methods that forward to appropriate behaviors
+
+### Phase 2: Implement Core Behaviors
+
+1. Movement Behaviors (`/src/behaviors/movement/`)
+   - Create StationaryMovement (default, does nothing)
+   - Create WanderMovement (random movement)
+   - Create ChaseMovement (follows target when in range)
+   - Create PatrolMovement (moves between set points)
+
+2. Combat Behaviors (`/src/behaviors/combat/`)
+   - Create PassiveBehavior (default, no combat)
+   - Create MeleeCombat (short-range attacks)
+   - Create RangedCombat (projectile attacks)
+
+3. Interaction Behaviors (`/src/behaviors/interaction/`)
+   - Create NoInteraction (default)
+   - Create DialogInteraction (displays dialog when player interacts)
+   - Create ShopInteraction (opens shop interface)
+
+4. Animation Behaviors (`/src/behaviors/animation/`)
+   - Create SimpleAnimation (basic animations)
+   - Create HumanoidAnimation (NPC animations)
+   - Create MonsterAnimation (enemy animations)
+
+### Phase 3: Refactor Existing Entities
+
+1. Create EntityFactory class
+   - Create factory methods for different entity types
+   - Implement configurable creation with behavior options
+
+2. Refactor Treant implementation
+   - Convert to use composition with ChaseMovement, RangedCombat, etc.
+   - Ensure backward compatibility with existing functionality
+
+3. Refactor Mole implementation
+   - Convert to use composition with ChaseMovement, MeleeCombat, etc.
+   - Ensure backward compatibility with existing functionality
+
+4. Implement NPCs with behavior components
+   - Create Villager, Shopkeeper, and other NPC types
+
+### Phase 4: Update Managers
+
+1. Update EntityManager
+   - Use EntityFactory to create entities
+   - Support different entity types with appropriate behaviors
+
+2. Update PhysicsManager
+   - Handle collisions based on entity behavior types
+   - Implement interaction zones for interactable entities
+
+3. Update SpatialManager
+   - Handle all entity types in the quadtree
+   - Use behavior type to determine update behavior
+
+### Phase 5: Testing and Documentation
+
+1. Create comprehensive tests for behavior components
+   - Test each behavior component individually
+   - Test combinations of behaviors
+
+2. Document behavior interfaces and implementations
+   - Create usage examples for new entity creation
+   - Document behavior composition patterns
+
+3. Create end-to-end tests for entity interactions
+   - Test player-entity interactions
+   - Test entity-entity interactions
+
+## Benefits of Composition Approach
+
+1. **Maximum Flexibility**: Mix and match behaviors to create unique entities without deep inheritance hierarchies
+2. **Easy Extension**: Add new behaviors without modifying existing code
+3. **Better Reusability**: Share behaviors across different entity types
+4. **Simpler Testing**: Test behaviors in isolation
+5. **Runtime Behavior Changes**: Change entity behaviors dynamically during gameplay
 
 ## Migration Strategy
 
-### Phase 1: Constants and Interfaces
+1. Implement the new system alongside the existing one
+2. Convert entities one by one to the new system
+3. Update manager classes to support both systems during transition
+4. Once all entities are converted, remove legacy code
 
-✅ 1. Update `/src/constants/monsters.ts` to `/src/constants/entities.ts` and create re-export for compatibility
+## Backward Compatibility
 
-- Created `/src/constants/entities.ts` with organized entity type constants
-- Added TypeScript type definitions (HostileEntityType, FriendlyEntityType, EntityType)
-- Created backward compatibility re-export in `/src/constants/monsters.ts`
+During the transition period, we'll maintain backward compatibility by:
 
-✅ 2. Create interfaces for the new class hierarchy
-
-- Created `/src/types/entities/entity-interfaces.ts` with INonPlayerEntity, IFriendlyEntity, IHostileEntity interfaces
-
-✅ 3. Create extended manager interfaces to support the new entity hierarchy
-
-- Created `/src/types/entity-manager-interfaces.ts` with IExtendedEntityManager interface
-- Created `/src/types/physics-manager-interfaces.ts` with IExtendedPhysicsManager interface
-- Created `/src/types/spatial-manager-interfaces.ts` with IExtendedSpatialManager interface
-
-### Phase 2: Refactor Monster to NonPlayerEntity
-
-✅ 1. Rename the `Monster` class to `NonPlayerEntity`
-
-- Created a new `NonPlayerEntity` class in `/src/game-objects/entities/NonPlayerEntity.ts`
-- Copied all functionality from `Monster` class
-- Renamed methods and variables from monster-specific to more generic entity terms
-
-✅ 2. Update all references to `Monster` to use `NonPlayerEntity`
-
-- Updated `Treant` and `Mole` classes to extend `NonPlayerEntity`
-- Created backward compatibility re-export in original `Monster.ts` file
-
-✅ 3. Keep all existing hostile behaviors in `NonPlayerEntity` temporarily
-
-- Maintained chase, attack, and HP functionality in `NonPlayerEntity`
-
-✅ 4. Make sure all current monster implementations extend the new `NonPlayerEntity` class
-
-- Both `Treant` and `Mole` classes now extend `NonPlayerEntity`
-
-✅ 5. Test to ensure existing monster functionality is preserved
-
-- Updated `SpatialManager` to call `upd ateEntity()` instead of `updateMonster()`
-- Verified that monster behavior remains the same
-
-### Phase 3: Extract Hostile Behavior
-
-1. Create a new `HostileEntity` class that extends `NonPlayerEntity`
-2. Move all hostile-specific behaviors from `NonPlayerEntity` to `HostileEntity`
-   - Combat mechanics (attack, loseHp)
-   - Chase behavior
-   - Hostile animations
-3. Update existing monster implementations to extend `HostileEntity`
-4. Test to ensure all hostile entity functionality works as expected
-
-### Phase 4: Implement Friendly Entities
-
-1. Create the `FriendlyEntity` class extending `NonPlayerEntity`
-2. Implement common NPC behaviors in `FriendlyEntity`
-   - Dialog triggers
-   - Interaction zones
-   - Idle and wandering behaviors
-3. Create specific friendly entity implementations (e.g., `GokuNPC`, `VillagerNPC`)
-4. Test friendly entity behavior
-
-### Phase 5: Manager Updates
-
-1. Update `EntityManager` to use the new class hierarchy
-   - Add factory methods for different entity types
-   - Update entity creation logic
-2. Refactor `PhysicsManager` for the new collision types
-3. Update `SpatialManager` to handle all entity types
-
-### Phase 6: Polish and Cleanup
-
-1. Review for any remaining code duplication
-2. Ensure consistent naming and patterns across entity classes
-3. Update documentation and comments
-4. Final thorough testing of all entity interactions
-
-## Benefits
-
-1. **Reduced Code Duplication**: Common behavior shared between NPCs and monsters
-2. **Improved Type Safety**: Properly typed entity hierarchy
-3. **Better Organization**: Clear separation between entity types
-4. **Easier Extensibility**: Simplified process for adding new entity types
-5. **Consistent Behavior**: Standardized approach to entity movement, animation, and interactions
-
-## Backward Compatibility Cleanup
-
-After the refactoring is complete, the following items should be addressed to clean up temporary backward compatibility elements:
-
-### Removal of Deprecated Files
-
-- [ ] TODO: Remove `/src/constants/monsters.ts` re-export file after updating all imports to use `/src/constants/entities.ts`
-- [ ] TODO: Remove the original `/src/game-objects/enemies/Monster.ts` re-export file after all code is migrated to use `NonPlayerEntity` or `HostileEntity`
-
-### Interface and Type Cleanup
-
-- [ ] TODO: Update type definitions in `QuadTree.ts` to use `NonPlayerEntity` instead of `Monster`
-- [ ] TODO: Migrate from `IExtendedEntityManager` to replace the original `IEntityManager` interface
-- [ ] TODO: Migrate from `IExtendedPhysicsManager` to replace the original `IPhysicsManager` interface 
-- [ ] TODO: Migrate from `IExtendedSpatialManager` to replace the original `ISpatialManager` interface
-- [ ] TODO: Remove legacy type references to `Monster` in all manager interfaces
-- [ ] TODO: Update all imports throughout the codebase to use the new entity types
-
-### Code Reference Updates
-
-- [ ] TODO: Update `EntityManager.createMonsters()` to `EntityManager.createHostileEntities()`
-- [ ] TODO: Update `EntityManager.getMonsters()` to return appropriate entity types
-- [ ] TODO: Rename monster-related constants in `SpatialManager` (e.g., `MONSTER_UPDATE_DISTANCE` to `ENTITY_UPDATE_DISTANCE`)
-- [ ] TODO: Update any remaining hardcoded string references to 'monsters' in map parsing
-- [ ] TODO: Update all `instanceof Monster` checks to use appropriate entity type checks:
-  ```typescript
-  // Change from:
-  if (entity instanceof Monster) {
-    // ...
-  }
-  
-  // To:
-  if (entity instanceof NonPlayerEntity) { // or HostileEntity where appropriate
-    // ...
-  }
-  ```
-
-### Testing for Complete Migration
-
-- [ ] TODO: Create a comprehensive test suite that validates all entity behaviors
-- [ ] TODO: Run static code analysis to verify no references to old class structure remain
-- [ ] TODO: Test each entity type to ensure special behaviors are preserved
-- [ ] TODO: Performance test to ensure the new structure doesn't negatively impact game performance
-- [ ] TODO: Create a full test run through the game to verify all NPC and monster interactions work correctly
+1. Keeping the existing Monster class as a redirect to NonPlayerEntity with appropriate behaviors
+2. Using factory methods that create entities with expected behaviors
+3. Maintaining the same APIs for entity interaction in the manager classes
 
 ## Conclusion
 
-This refactoring will provide a more maintainable and extensible entity system that can accommodate a wider variety of non-player entities while reducing code duplication and improving type safety. The changes focus on creating a clear hierarchy of entity types with shared behavior while maintaining the specialized behavior needed for different entity categories.
+This composition-based approach will provide much greater flexibility for creating diverse entity types while reducing code duplication. It aligns with modern game development practices and will make it easier to extend the game with new entity types and behaviors in the future.
