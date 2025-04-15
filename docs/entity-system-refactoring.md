@@ -1,5 +1,15 @@
 # Entity System Refactoring Plan
 
+## Progress Report
+
+| Phase | Description | Status |
+|------|-------------|--------|
+| Phase 1 | Setup Interfaces and Base Structure | ✅ Complete |
+| Phase 2 | Implement Core Behaviors | 🔄 Pending |
+| Phase 3 | Refactor Existing Entities | 🔄 Pending |
+| Phase 4 | Update Managers | 🔄 Pending |
+| Phase 5 | Testing and Documentation | 🔄 Pending |
+
 ## Overview
 
 This document outlines a plan to refactor the entity system in the Phaser3 Simple RPG game to create a more generic approach for handling non-player entities (NPCs and monsters). The current implementation has separate handling for monsters and NPCs, with significant code duplication. This refactoring will introduce a composition-based approach for all non-player entities while maintaining specialized behavior for different entity types.
@@ -131,9 +141,12 @@ Refactor the NonPlayerEntity class to act as a container for behavior components
 
 ```typescript
 // /src/game-objects/entities/NonPlayerEntity.ts
-export class NonPlayerEntity extends Character {
+export class NonPlayerEntity extends Character implements INonPlayerEntity {
   // Entity type and properties
   public readonly entityType: EntityType;
+  public readonly dialogKey?: string;
+  public hp: number = 0;
+  public readonly attackDamage: number = 1;
   
   // Behavior components
   private movementBehavior: IMovementBehavior;
@@ -141,35 +154,39 @@ export class NonPlayerEntity extends Character {
   private interactionBehavior: IInteractionBehavior;
   private animationBehavior: IAnimationBehavior;
   
-  // Entity state
-  public hp: number = 0;
-  
   constructor(
-    scene: Phaser.Scene, 
+    scene: AbstractScene, 
     x: number, 
     y: number, 
     texture: string,
     entityType: EntityType,
     options: {
-      movement?: IMovementBehavior,
-      combat?: ICombatBehavior,
-      interaction?: IInteractionBehavior,
-      animation?: IAnimationBehavior,
-      hp?: number
+      movement: IMovementBehavior,
+      combat: ICombatBehavior,
+      interaction: IInteractionBehavior,
+      animation: IAnimationBehavior,
+      hp?: number,
+      dialogKey?: string,
+      attackDamage?: number
     }
   ) {
     super(scene, x, y, texture);
     
     this.entityType = entityType;
     
-    // Set up behaviors (with defaults)
-    this.movementBehavior = options.movement || new StationaryMovement();
-    this.combatBehavior = options.combat || new PassiveBehavior();
-    this.interactionBehavior = options.interaction || new NoInteraction();
-    this.animationBehavior = options.animation || new SimpleAnimation();
+    // Set up behaviors
+    this.movementBehavior = options.movement;
+    this.combatBehavior = options.combat;
+    this.interactionBehavior = options.interaction;
+    this.animationBehavior = options.animation;
     
     // Set up entity state
-    this.hp = options.hp || 0;
+    this.hp = options.hp ?? 1;
+    this.dialogKey = options.dialogKey;
+    
+    if (options.attackDamage !== undefined) {
+      this.attackDamage = options.attackDamage;
+    }
     
     // Initialize animations
     this.animationBehavior.setupAnimations(this);
@@ -182,6 +199,7 @@ export class NonPlayerEntity extends Character {
     this.movementBehavior.update(this);
     this.combatBehavior.update(this);
     this.interactionBehavior.update(this);
+    // Animation behavior doesn't need updating every frame
   }
   
   // Delegate methods to appropriate behaviors
@@ -189,16 +207,26 @@ export class NonPlayerEntity extends Character {
     this.movementBehavior.move(this, target);
   }
   
-  public attack(target: Character): void {
-    this.combatBehavior.attack(this, target);
+  public attack(): void {
+    if (this.scene.player) {
+      this.combatBehavior.attack(this, this.scene.player);
+    }
   }
   
-  public takeDamage(amount: number): void {
-    this.combatBehavior.takeDamage(this, amount);
+  public loseHp(damage: number | Phaser.Physics.Arcade.Sprite): void {
+    // Handle legacy behavior when receiving a sprite projectile
+    if (typeof damage !== 'number') {
+      damage.destroy();
+      damage = 1; // Default damage amount for backward compatibility
+    }
+    
+    this.combatBehavior.takeDamage(this, damage);
   }
   
-  public interact(player: Player): void {
-    this.interactionBehavior.interact(this, player);
+  public interact(): void {
+    if (this.scene.player) {
+      this.interactionBehavior.interact(this, this.scene.player);
+    }
   }
   
   public canInteract(player: Player): boolean {
@@ -209,7 +237,7 @@ export class NonPlayerEntity extends Character {
     this.animationBehavior.playAnimation(this, state, orientation);
   }
   
-  // Behavior getters/setters
+  // Behavior getters/setters (for runtime behavior changes)
   public getMovementBehavior(): IMovementBehavior {
     return this.movementBehavior;
   }
@@ -224,23 +252,29 @@ export class NonPlayerEntity extends Character {
 
 ## Implementation Plan
 
-### Phase 1: Setup Interfaces and Base Structure
+### Phase 1: Setup Interfaces and Base Structure ✅
 
-1. Create behavior interfaces in `/src/behaviors/interfaces.ts`
-   - Define IMovementBehavior, ICombatBehavior, IInteractionBehavior, IAnimationBehavior
-   - Create base IBehavior interface
-   - Dependencies: `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/game-objects/Character.ts`, `/src/types/entities/entity-interfaces.ts`
+1. ✅ Created behavior interfaces in `/src/behaviors/interfaces.ts`
+   - Defined `IBehavior` as the base interface with an `update` method
+   - Implemented `IMovementBehavior` with `move` and `stop` methods
+   - Implemented `ICombatBehavior` with `attack` and `takeDamage` methods
+   - Implemented `IInteractionBehavior` with `interact` and `canInteract` methods
+   - Implemented `IAnimationBehavior` with `playAnimation` and `setupAnimations` methods
+   - Added detailed JSDoc comments for all interfaces
+   - Used forward reference for `NonPlayerEntity` to avoid circular dependency
 
-2. Update entity constants
-   - Create `/src/constants/entities.ts` with organized entity types
-   - Create backward compatibility with existing monster constants
-   - Dependencies: `/src/constants/entities.ts`, `/src/game-objects/enemies/Treant.ts`, `/src/game-objects/enemies/Mole.ts`
+2. ✅ Verified entity constants in `/src/constants/entities.ts`
+   - Confirmed the file already had proper organization with `ENTITIES.HOSTILE` and `ENTITIES.FRIENDLY` categories
+   - Verified that backward compatibility with `MONSTERS` constant was maintained
+   - Confirmed type definitions for entity types were properly defined
 
-3. Refactor NonPlayerEntity class
-   - Convert to behavior composition pattern
-   - Add constructor that accepts behavior components
-   - Create delegate methods that forward to appropriate behaviors
-   - Dependencies: `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/types/entities/entity-interfaces.ts`, `/src/behaviors/interfaces.ts`
+3. ✅ Refactored `NonPlayerEntity` class to use behavior composition
+   - Converted from abstract class to concrete implementation
+   - Added behavior component properties (`movementBehavior`, `combatBehavior`, etc.)
+   - Implemented constructor that accepts behavior components as options
+   - Created delegate methods that forward to appropriate behaviors
+   - Added behavior getters/setters to allow runtime behavior changes
+   - Maintained backward compatibility with existing entity API
 
 ### Phase 2: Implement Core Behaviors
 
@@ -344,3 +378,20 @@ During the transition period, we'll maintain backward compatibility by:
 ## Conclusion
 
 This composition-based approach will provide much greater flexibility for creating diverse entity types while reducing code duplication. It aligns with modern game development practices and will make it easier to extend the game with new entity types and behaviors in the future.
+
+## Next Steps
+
+We've successfully completed Phase 1 of the refactoring plan:
+
+- Created behavior interfaces in `src/behaviors/interfaces.ts`
+- Confirmed entity constants in `src/constants/entities.ts` meet our requirements
+- Refactored `NonPlayerEntity` class to use the behavior composition pattern
+
+The next phase will be to implement the core behavior components:
+
+- Develop movement behaviors (StationaryMovement, WanderMovement, ChaseMovement, PatrolMovement)
+- Implement combat behaviors (PassiveBehavior, MeleeCombat, RangedCombat)
+- Create interaction behaviors (NoInteraction, DialogInteraction, ShopInteraction)
+- Design animation behaviors (SimpleAnimation, HumanoidAnimation, MonsterAnimation)
+
+Once these behavior implementations are complete, we can begin refactoring the existing entity types to use the new composition system, ensuring backward compatibility throughout the process.
