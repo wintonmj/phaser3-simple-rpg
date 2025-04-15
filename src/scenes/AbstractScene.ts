@@ -44,9 +44,9 @@ export abstract class AbstractScene extends Phaser.Scene {
   /** Keyboard input controls */
   public cursors: CursorKeys;
   /** Array of NPCs in the scene */
-  public npcs: Npc[];
+  public npcs: Npc[] = [];
   /** Array of monsters in the scene */
-  public monsters: Monster[];
+  public monsters: Monster[] = [];
   /** The tilemap for the scene */
   public map: Phaser.Tilemaps.Tilemap;
   /** Physics group for monsters */
@@ -55,6 +55,8 @@ export abstract class AbstractScene extends Phaser.Scene {
   public layers: MapLayers;
   /** Key for the map asset */
   public mapKey: string;
+  /** Keyboard event handlers for easy cleanup */
+  private keyboardListeners: Phaser.Events.EventEmitter[] = [];
 
   /**
    * Creates an instance of AbstractScene.
@@ -64,20 +66,6 @@ export abstract class AbstractScene extends Phaser.Scene {
   constructor(key: string, mapKey: string) {
     super(key);
     this.mapKey = mapKey;
-    this.initializeProperties();
-  }
-
-  /**
-   * Initialize scene properties
-   */
-  private initializeProperties(): void {
-    this.player = null;
-    this.cursors = null;
-    this.npcs = [];
-    this.monsters = [];
-    this.monsterGroup = null;
-    this.map = null;
-    this.layers = null;
   }
 
   /**
@@ -86,7 +74,6 @@ export abstract class AbstractScene extends Phaser.Scene {
   public update(): void {
     const keyState = this.getKeyState();
     this.updateMonsters();
-    this.updateNPCs();
     this.player.updatePlayer(keyState);
   }
 
@@ -112,11 +99,17 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Update all NPCs in the scene
+   * Scene shutdown handler - performs cleanup
    */
-  private updateNPCs(): void {
-    // Remove animated NPC update logic since we're only using basic NPCs
-    // NPCs don't have an update method in the current implementation
+  public shutdown(): void {
+    // Clean up keyboard listeners
+    this.keyboardListeners.forEach(emitter => emitter.removeAllListeners());
+    this.keyboardListeners = [];
+    
+    // Clean up physics
+    if (this.monsterGroup) {
+      this.monsterGroup.clear(true, true);
+    }
   }
 
   /**
@@ -185,7 +178,6 @@ export abstract class AbstractScene extends Phaser.Scene {
     const npcs = (npcsMapObjects?.objects || []) as unknown as CustomTilemapObject[];
     
     this.npcs = npcs.map(npc => {
-      // Create standard NPC with message only
       return new Npc(
         this, 
         npc.x, 
@@ -239,30 +231,32 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Add physics colliders
    */
   private addColliders(): void {
+    // Create groups once and reuse
     this.monsterGroup = this.physics.add.group(this.monsters);
+    const npcGroup = this.physics.add.group(this.npcs);
     
-    // Monster collisions
-    this.physics.add.collider(this.monsterGroup, this.layers.terrain);
-    this.physics.add.collider(this.monsterGroup, this.layers.deco);
+    // Create solid world objects group for optimization
+    const solidLayers = [this.layers.terrain, this.layers.deco];
+
+    // Add colliders for solid layers
+    solidLayers.forEach(layer => {
+      this.physics.add.collider(this.monsterGroup, layer);
+      this.physics.add.collider(this.player, layer);
+      this.physics.add.collider(npcGroup, layer);
+    });
+    
+    // Entity collisions
     this.physics.add.collider(this.monsterGroup, this.player, (_: Player, m: Monster) => {
       m.attack();
     });
-
-    // Player collisions
-    this.physics.add.collider(this.player, this.layers.terrain);
-    this.physics.add.collider(this.player, this.layers.deco);
     
-    // NPC collisions
-    const npcGroup = this.physics.add.group(this.npcs);
-    this.physics.add.collider(npcGroup, this.layers.terrain);
-    this.physics.add.collider(npcGroup, this.layers.deco);
-    this.physics.add.collider(npcGroup, npcGroup); // NPCs collide with each other
+    this.physics.add.collider(npcGroup, npcGroup);
+    this.physics.add.collider(npcGroup, this.player);
     
-    // Individual NPC-player collisions for talk functionality
+    // NPC interactions
     this.npcs.forEach(npc => {
-      // Use overlap for interaction but still collide physically
+      // Use overlap for interaction
       this.physics.add.overlap(npc, this.player, npc.talk);
-      this.physics.add.collider(npc, this.player);
     });
   }
 
@@ -279,17 +273,19 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Set up keyboard shortcuts for scene transitions
    */
   private setupKeyboardShortcuts(): void {
-    this.input.keyboard.on('keydown-ONE', () => {
+    const key1Handler = this.input.keyboard.on('keydown-ONE', () => {
       if (this.scene.key !== SCENES.FIRST_LEVEL) {
         this.scene.start(SCENES.FIRST_LEVEL, { comesFrom: this.scene.key });
       }
     });
+    this.keyboardListeners.push(key1Handler);
     
-    this.input.keyboard.on('keydown-TWO', () => {
+    const key2Handler = this.input.keyboard.on('keydown-TWO', () => {
       if (this.scene.key !== SCENES.SECOND_LEVEL) {
         this.scene.start(SCENES.SECOND_LEVEL, { comesFrom: this.scene.key });
       }
     });
+    this.keyboardListeners.push(key2Handler);
   }
 
   /**
