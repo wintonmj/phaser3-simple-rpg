@@ -1,6 +1,7 @@
 /**
  * @fileoverview Abstract base scene class that provides common functionality for all game scenes.
  * This class handles map creation, player initialization, camera setup, and basic game mechanics.
+ * 
  */
 
 // Core imports
@@ -34,6 +35,8 @@ const SCENE_TRANSITION_SHIFT = 50;
 
 /** Distance threshold for monster updates (in pixels) */
 const MONSTER_UPDATE_DISTANCE = 400;
+/** Square of monster update distance for more efficient distance checks */
+const MONSTER_UPDATE_DISTANCE_SQ = MONSTER_UPDATE_DISTANCE * MONSTER_UPDATE_DISTANCE;
 
 /** Object pool sizes */
 const POOL_SIZES = {
@@ -41,11 +44,202 @@ const POOL_SIZES = {
   PROJECTILES: 20,
 };
 
-/** Grid parameters for spatial partitioning */
-const GRID = {
-  CELL_SIZE: 400,
-  UPDATE_RANGE: 1, // Number of cells around player to update
+/** QuadTree configuration */
+const QUADTREE = {
+  MAX_OBJECTS: 10,
+  MAX_LEVELS: 4,
+  MIN_SIZE: 200
 };
+
+/**
+ * QuadTree implementation for efficient spatial partitioning
+ */
+class QuadTree {
+  private bounds: Phaser.Geom.Rectangle;
+  private maxObjects: number;
+  private maxLevels: number;
+  private level: number;
+  private objects: Monster[];
+  private nodes: QuadTree[];
+
+  /**
+   * Create a new QuadTree
+   */
+  constructor(bounds: Phaser.Geom.Rectangle, maxObjects = 10, maxLevels = 4, level = 0) {
+    this.bounds = bounds;
+    this.maxObjects = maxObjects;
+    this.maxLevels = maxLevels;
+    this.level = level;
+    this.objects = [];
+    this.nodes = [];
+  }
+
+  /**
+   * Clear the quadtree
+   */
+  clear(): void {
+    this.objects = [];
+    
+    for (let i = 0; i < this.nodes.length; i++) {
+      if (this.nodes[i]) {
+        this.nodes[i].clear();
+      }
+    }
+    
+    this.nodes = [];
+  }
+
+  /**
+   * Split the node into 4 subnodes
+   */
+  split(): void {
+    const nextLevel = this.level + 1;
+    const subWidth = this.bounds.width / 2;
+    const subHeight = this.bounds.height / 2;
+    const x = this.bounds.x;
+    const y = this.bounds.y;
+
+    // Top right
+    this.nodes[0] = new QuadTree(
+      new Phaser.Geom.Rectangle(x + subWidth, y, subWidth, subHeight),
+      this.maxObjects,
+      this.maxLevels,
+      nextLevel
+    );
+
+    // Top left
+    this.nodes[1] = new QuadTree(
+      new Phaser.Geom.Rectangle(x, y, subWidth, subHeight),
+      this.maxObjects,
+      this.maxLevels,
+      nextLevel
+    );
+
+    // Bottom left
+    this.nodes[2] = new QuadTree(
+      new Phaser.Geom.Rectangle(x, y + subHeight, subWidth, subHeight),
+      this.maxObjects,
+      this.maxLevels,
+      nextLevel
+    );
+
+    // Bottom right
+    this.nodes[3] = new QuadTree(
+      new Phaser.Geom.Rectangle(x + subWidth, y + subHeight, subWidth, subHeight),
+      this.maxObjects,
+      this.maxLevels,
+      nextLevel
+    );
+  }
+
+  /**
+   * Determine which node the object belongs to
+   */
+  getIndex(monster: Monster): number {
+    let index = -1;
+    const verticalMidpoint = this.bounds.x + (this.bounds.width / 2);
+    const horizontalMidpoint = this.bounds.y + (this.bounds.height / 2);
+
+    // Object can completely fit within the top quadrants
+    const topQuadrant = (monster.y < horizontalMidpoint);
+    // Object can completely fit within the bottom quadrants
+    const bottomQuadrant = (monster.y >= horizontalMidpoint);
+
+    // Object can completely fit within the left quadrants
+    if (monster.x < verticalMidpoint) {
+      if (topQuadrant) {
+        index = 1;
+      } else if (bottomQuadrant) {
+        index = 2;
+      }
+    }
+    // Object can completely fit within the right quadrants
+    else if (monster.x >= verticalMidpoint) {
+      if (topQuadrant) {
+        index = 0;
+      } else if (bottomQuadrant) {
+        index = 3;
+      }
+    }
+
+    return index;
+  }
+
+  /**
+   * Insert an object into the quadtree
+   */
+  insert(monster: Monster): void {
+    // If we have subnodes, try to insert there
+    if (this.nodes.length) {
+      const index = this.getIndex(monster);
+
+      if (index !== -1) {
+        this.nodes[index].insert(monster);
+        return;
+      }
+    }
+
+    // If we don't have subnodes or object doesn't fit in one, add to this node
+    this.objects.push(monster);
+
+    // Check if we need to split after inserting
+    if (this.objects.length > this.maxObjects && this.level < this.maxLevels) {
+      if (this.nodes.length === 0) {
+        this.split();
+      }
+
+      // Reorganize objects into subnodes
+      let i = 0;
+      while (i < this.objects.length) {
+        const index = this.getIndex(this.objects[i]);
+        if (index !== -1) {
+          this.nodes[index].insert(this.objects.splice(i, 1)[0]);
+        } else {
+          i++;
+        }
+      }
+    }
+  }
+
+  /**
+   * Return all objects that could collide with the given object
+   */
+  retrieve(monster: Monster): Monster[] {
+    const index = this.getIndex(monster);
+    let returnObjects = this.objects;
+
+    // If we have subnodes
+    if (this.nodes.length) {
+      // If object fits in a specific node, check that node
+      if (index !== -1) {
+        returnObjects = returnObjects.concat(this.nodes[index].retrieve(monster));
+      } else {
+        // If object overlaps multiple nodes, check all nodes
+        for (let i = 0; i < this.nodes.length; i++) {
+          returnObjects = returnObjects.concat(this.nodes[i].retrieve(monster));
+        }
+      }
+    }
+
+    return returnObjects;
+  }
+
+  /**
+   * Return all objects that are within a given area
+   */
+  retrieveInBounds(bounds: Phaser.Geom.Rectangle): Monster[] {
+    let returnObjects = this.objects;
+
+    // If we have subnodes and the bounds intersect with this node
+    if (this.nodes.length && Phaser.Geom.Rectangle.Overlaps(this.bounds, bounds)) {
+      for (let i = 0; i < this.nodes.length; i++) {
+        returnObjects = returnObjects.concat(this.nodes[i].retrieveInBounds(bounds));
+      }
+    }
+
+    return returnObjects;
+  }
+}
 
 /**
  * Abstract base class for all game scenes.
@@ -81,20 +275,18 @@ export abstract class AbstractScene extends Phaser.Scene {
   private transitionZones: Phaser.GameObjects.Zone[] = [];
   /** Single keyboard handler */
   private keyboardHandler: (event: KeyboardEvent) => void;
-  /** Spatial grid for entity culling */
-  private spatialGrid: Map<string, Monster[]> = new Map();
-  /** Grid cell size for spatial partitioning */
-  private gridCellSize = GRID.CELL_SIZE;
+  /** QuadTree for entity culling */
+  private quadTree: QuadTree;
   /** Object pools */
   protected objectPools: Record<string, Phaser.GameObjects.Group> = {};
   /** Active monsters being processed */
   private activeMonsters: Set<Monster> = new Set();
-  /** Last known player grid position */
-  private lastPlayerGridPos: { x: number; y: number } = { x: 0, y: 0 };
   /** Camera bounds */
   private cameraBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
   /** Frame counter for staggered updates */
   private frameCounter: number = 0;
+  /** Physics operations queue for batching */
+  private pendingPhysicsOperations: Array<() => void> = [];
 
   /**
    * Creates an instance of AbstractScene.
@@ -119,23 +311,16 @@ export abstract class AbstractScene extends Phaser.Scene {
     // Update camera bounds once per frame
     this.updateCameraBounds();
     
-    // Check for player grid cell change and update spatial grid if needed
-    const gridX = Math.floor(this.player.x / this.gridCellSize);
-    const gridY = Math.floor(this.player.y / this.gridCellSize);
-    
-    const playerGridChanged = gridX !== this.lastPlayerGridPos.x || gridY !== this.lastPlayerGridPos.y;
-    if (playerGridChanged) {
-      this.lastPlayerGridPos = { x: gridX, y: gridY };
-      this.updateActiveMonsters();
-    }
-    
-    // Stagger non-critical updates across frames
+    // Check if we need to update the quadtree
     if (this.frameCounter % 10 === 0) {
-      this.updateSpatialGrid(); // Heavy operation, only do occasionally
+      this.updateQuadTree();
     }
     
     // Update active monsters every frame for smooth gameplay
     this.updateActiveMonsters();
+    
+    // Process batched physics operations
+    this.processBatchedPhysics();
   }
 
   /**
@@ -162,77 +347,89 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Update spatial partitioning grid - now optimized to rebuild only when necessary
+   * Update QuadTree for efficient spatial partitioning
    */
-  private updateSpatialGrid(): void {
-    // Clear existing grid
-    this.spatialGrid.clear();
+  private updateQuadTree(): void {
+    // Clear existing quadtree
+    this.quadTree.clear();
     
-    // Only process monsters that are close enough to potentially become active
-    // This avoids processing monsters that are far away from the player
+    // Get expanded bounds to include monsters just outside the camera view
     const expandedBounds = new Phaser.Geom.Rectangle(
-      this.cameraBounds.x - this.gridCellSize,
-      this.cameraBounds.y - this.gridCellSize,
-      this.cameraBounds.width + this.gridCellSize * 2,
-      this.cameraBounds.height + this.gridCellSize * 2
+      this.cameraBounds.x - MONSTER_UPDATE_DISTANCE,
+      this.cameraBounds.y - MONSTER_UPDATE_DISTANCE,
+      this.cameraBounds.width + MONSTER_UPDATE_DISTANCE * 2,
+      this.cameraBounds.height + MONSTER_UPDATE_DISTANCE * 2
     );
     
+    // Only insert monsters that are active and within expanded bounds
     this.monsters.forEach(monster => {
-      // Skip inactive monsters or those far from camera view
-      if (!monster.active || !Phaser.Geom.Rectangle.Contains(expandedBounds, monster.x, monster.y)) {
-        return;
-      }
+      if (!monster.active) return;
       
-      const gridX = Math.floor(monster.x / this.gridCellSize);
-      const gridY = Math.floor(monster.y / this.gridCellSize);
-      const key = `${gridX},${gridY}`;
-      
-      if (!this.spatialGrid.has(key)) {
-        this.spatialGrid.set(key, []);
-      }
-      
-      const monsters = this.spatialGrid.get(key);
-      if (monsters) {
-        monsters.push(monster);
+      // Use rectangle contains for faster boundary check
+      if (Phaser.Geom.Rectangle.Contains(expandedBounds, monster.x, monster.y)) {
+        this.quadTree.insert(monster);
       }
     });
   }
 
   /**
-   * Update the set of active monsters based on player position
+   * Uses QuadTree to efficiently find and update active monsters
    */
   private updateActiveMonsters(): void {
     // Clear previous active set
     this.activeMonsters.clear();
     
-    // Get player's grid cell
-    const playerGridX = this.lastPlayerGridPos.x;
-    const playerGridY = this.lastPlayerGridPos.y;
+    // Get query area around player for monster activation
+    const playerQueryArea = new Phaser.Geom.Rectangle(
+      this.player.x - MONSTER_UPDATE_DISTANCE,
+      this.player.y - MONSTER_UPDATE_DISTANCE,
+      MONSTER_UPDATE_DISTANCE * 2,
+      MONSTER_UPDATE_DISTANCE * 2
+    );
     
-    // Check player cell and surrounding cells based on configured range
-    const range = GRID.UPDATE_RANGE;
-    for (let x = playerGridX - range; x <= playerGridX + range; x++) {
-      for (let y = playerGridY - range; y <= playerGridY + range; y++) {
-        const key = `${x},${y}`;
-        const monsters = this.spatialGrid.get(key) || [];
-        
-        monsters.forEach(monster => {
-          // Skip deactivated monsters
-          if (!monster.active) return;
-          
-          // Final distance check for monsters in grid cells
-          const distance = Phaser.Math.Distance.Between(
-            this.player.x, this.player.y, 
-            monster.x, monster.y
-          );
-          
-          if (distance <= MONSTER_UPDATE_DISTANCE) {
-            this.activeMonsters.add(monster);
-            monster.updateMonster();
-          }
-        });
+    // Query quadtree for monsters in range
+    const nearbyMonsters = this.quadTree.retrieveInBounds(playerQueryArea);
+    
+    // Final squared distance check and activate monsters
+    const playerX = this.player.x;
+    const playerY = this.player.y;
+    
+    nearbyMonsters.forEach(monster => {
+      if (!monster.active) return;
+      
+      // Efficient squared distance check
+      const dx = monster.x - playerX;
+      const dy = monster.y - playerY;
+      const distanceSq = dx * dx + dy * dy;
+      
+      if (distanceSq <= MONSTER_UPDATE_DISTANCE_SQ) {
+        this.activeMonsters.add(monster);
+        monster.updateMonster();
       }
+    });
+  }
+
+  /**
+   * Queue physics operations for batched processing
+   */
+  private queuePhysicsOperation(operation: () => void): void {
+    this.pendingPhysicsOperations.push(operation);
+  }
+
+  /**
+   * Process all batched physics operations in one go
+   */
+  private processBatchedPhysics(): void {
+    // Early exit if no operations
+    if (this.pendingPhysicsOperations.length === 0) return;
+    
+    // Process all operations in a single batch
+    for (const operation of this.pendingPhysicsOperations) {
+      operation();
     }
+    
+    // Clear the queue
+    this.pendingPhysicsOperations = [];
   }
 
   /**
@@ -279,7 +476,10 @@ export abstract class AbstractScene extends Phaser.Scene {
     // Clear collections
     this.monsters = [];
     this.npcs = [];
-    this.spatialGrid.clear();
+    this.quadTree.clear();
+    
+    // Clear pending physics operations
+    this.pendingPhysicsOperations = [];
     
     // Destroy physics colliders
     if (this.physics.world.colliders.getActive().length > 0) {
@@ -297,13 +497,24 @@ export abstract class AbstractScene extends Phaser.Scene {
     // Reset frame counter
     this.frameCounter = 0;
     
+    // Initialize quadtree covering the entire map (will be resized after map creation)
+    this.quadTree = new QuadTree(new Phaser.Geom.Rectangle(0, 0, 2000, 2000), QUADTREE.MAX_OBJECTS, QUADTREE.MAX_LEVELS);
+    
     this.createObjectPools();
     this.createMapWithLayers();
+    
+    // Resize quadtree to match map dimensions
+    this.quadTree = new QuadTree(
+      new Phaser.Geom.Rectangle(0, 0, this.map.widthInPixels, this.map.heightInPixels),
+      QUADTREE.MAX_OBJECTS,
+      QUADTREE.MAX_LEVELS
+    );
+    
     this.setupPhysicsWorld();
     this.initializePlayer(data);
     this.initializeNPCs();
     this.initializeMonsters();
-    this.updateSpatialGrid();
+    this.updateQuadTree();
     this.setupSceneTransitions();
     this.addColliders();
     this.initCamera();
@@ -371,24 +582,30 @@ export abstract class AbstractScene extends Phaser.Scene {
     const npcsMapObjects = this.map.objects.find(o => o.name === MAP_CONTENT_KEYS.objects.NPCS);
     const npcs = (npcsMapObjects?.objects || []) as unknown as CustomTilemapObject[];
     
-    // Only create NPCs that would be visible on screen
-    const cameraView = new Phaser.Geom.Rectangle(
+    // Create extended camera bounds for culling
+    const extendedBounds = new Phaser.Geom.Rectangle(
       0, 0, 
       this.cameras.main.width + MONSTER_UPDATE_DISTANCE*2, 
       this.cameras.main.height + MONSTER_UPDATE_DISTANCE*2
     );
     
-    this.npcs = npcs
+    // Batch NPC creation
+    const npcCreationOperations: Npc[] = [];
+    
+    npcs
       // Pre-filter NPCs by distance to camera to reduce object creation
-      .filter(npc => Phaser.Geom.Rectangle.Contains(cameraView, npc.x, npc.y))
-      .map(npc => {
-        return new Npc(
+      .filter(npc => Phaser.Geom.Rectangle.Contains(extendedBounds, npc.x, npc.y))
+      .forEach(npc => {
+        const newNpc = new Npc(
           this, 
           npc.x, 
           npc.y, 
           npc.properties.message || ''
         );
+        npcCreationOperations.push(newNpc);
       });
+    
+    this.npcs = npcCreationOperations;
   }
 
   /**
@@ -412,30 +629,35 @@ export abstract class AbstractScene extends Phaser.Scene {
       }
     };
 
-    // Create monsters with immediate distance check to avoid creating unnecessary objects
-    this.monsters = monsters
-      .map((monster: CustomTilemapObject): Monster | null => {
-        // Early skip for invalid types
-        if (!monster.name || !(monster.name in MONSTERS)) {
-          return null;
-        }
-        
-        // Create the monster instance
-        return createMonster(monster.name, monster.x, monster.y);
-      })
-      .filter((monster): monster is Monster => monster !== null);
+    // Batch monster creation
+    const monsterCreationOperations: Monster[] = [];
+    
+    monsters.forEach((monster: CustomTilemapObject) => {
+      // Skip invalid monsters
+      if (!monster.name || !(monster.name in MONSTERS)) {
+        return;
+      }
+      
+      const newMonster = createMonster(monster.name, monster.x, monster.y);
+      if (newMonster) {
+        monsterCreationOperations.push(newMonster);
+      }
+    });
+    
+    this.monsters = monsterCreationOperations.filter(Boolean);
       
     // Initially deactivate monsters that are far from player
     const playerX = this.player.x;
     const playerY = this.player.y;
     
     this.monsters.forEach(monster => {
-      const distance = Phaser.Math.Distance.Between(
-        playerX, playerY, monster.x, monster.y
-      );
+      // Efficient squared distance check
+      const dx = monster.x - playerX;
+      const dy = monster.y - playerY;
+      const distanceSq = dx * dx + dy * dy;
       
       // Set initial active state based on distance
-      if (distance > MONSTER_UPDATE_DISTANCE * 1.5) {
+      if (distanceSq > MONSTER_UPDATE_DISTANCE_SQ * 2.25) { // 1.5^2 = 2.25
         monster.setActive(false);
         if (monster instanceof Phaser.GameObjects.Sprite) {
           monster.setVisible(false);
@@ -465,11 +687,15 @@ export abstract class AbstractScene extends Phaser.Scene {
         
         // Create overlap handler with debounce mechanism to prevent multiple triggers
         let canTransition = true;
-        this.physics.add.overlap(zone, this.player, () => {
-          if (canTransition) {
-            canTransition = false;
-            this.scene.start(zone.getData('targetScene'), { comesFrom: this.scene.key });
-          }
+        
+        // Queue the overlap check instead of creating it immediately
+        this.queuePhysicsOperation(() => {
+          this.physics.add.overlap(zone, this.player, () => {
+            if (canTransition) {
+              canTransition = false;
+              this.scene.start(zone.getData('targetScene'), { comesFrom: this.scene.key });
+            }
+          });
         });
         
         return zone;
@@ -533,55 +759,84 @@ export abstract class AbstractScene extends Phaser.Scene {
     // Create composite collider for solid world objects
     const solidLayers = [this.layers.terrain, this.layers.deco];
     
-    // Add colliders for solid layers - use collider optimization
+    // Queue all colliders for batch processing
     solidLayers.forEach(layer => {
       // Add collider for player
-      this.physics.add.collider(this.player, layer);
+      this.queuePhysicsOperation(() => {
+        this.physics.add.collider(this.player, layer);
+      });
       
       // Add collider for all monsters
-      this.physics.add.collider(this.monsterGroup, layer);
+      this.queuePhysicsOperation(() => {
+        this.physics.add.collider(this.monsterGroup, layer);
+      });
       
       // Add collider for NPCs
-      this.physics.add.collider(npcGroup, layer);
+      this.queuePhysicsOperation(() => {
+        this.physics.add.collider(npcGroup, layer);
+      });
     });
     
     // Entity collisions - use a single collider with a callback
     // Optimize by using a processing callback to early-exit unnecessary collision checks
-    this.physics.add.collider(
-      this.monsterGroup, 
-      this.player, 
-      // Collision callback
-      (_player: Player, monster: Monster) => {
-        monster.attack();
-      },
-      // Process callback for early filtering
-      (_player: Player, monster: Monster) => {
-        // Only process collision if monster is active and close enough
-        return monster.active && Phaser.Math.Distance.Between(
-          _player.x, _player.y, monster.x, monster.y
-        ) < monster.body.width * 1.5;
-      }
-    );
+    this.queuePhysicsOperation(() => {
+      this.physics.add.collider(
+        this.monsterGroup, 
+        this.player, 
+        // Collision callback
+        (_player: Player, monster: Monster) => {
+          monster.attack();
+        },
+        // Process callback for early filtering
+        (_player: Player, monster: Monster) => {
+          // Only process collision if monster is active
+          if (!monster.active) return false;
+          
+          // Efficient squared distance check
+          const dx = _player.x - monster.x;
+          const dy = _player.y - monster.y;
+          const distanceSq = dx * dx + dy * dy;
+          
+          // Quick body width calculation
+          const radiusSum = monster.body.width * 0.75; // Half width * 1.5
+          const radiusSumSq = radiusSum * radiusSum;
+          
+          return distanceSq <= radiusSumSq;
+        }
+      );
+    });
     
     // NPC collisions
-    this.physics.add.collider(npcGroup, npcGroup);
-    this.physics.add.collider(npcGroup, this.player);
+    this.queuePhysicsOperation(() => {
+      this.physics.add.collider(npcGroup, npcGroup);
+    });
+    
+    this.queuePhysicsOperation(() => {
+      this.physics.add.collider(npcGroup, this.player);
+    });
     
     // NPC interactions - use a single overlap handler for all NPCs with process callback
-    this.physics.add.overlap(
-      npcGroup, 
-      this.player, 
-      (_player: Player, npc: Npc) => {
-        npc.talk();
-      },
-      // Process callback to check if player is facing the NPC
-      (_player: Player, npc: Npc) => {
-        // Check if close enough to interact
-        return Phaser.Math.Distance.Between(
-          _player.x, _player.y, npc.x, npc.y
-        ) < 40; // Interaction distance
-      }
-    );
+    this.queuePhysicsOperation(() => {
+      this.physics.add.overlap(
+        npcGroup, 
+        this.player, 
+        (_player: Player, npc: Npc) => {
+          npc.talk();
+        },
+        // Process callback to check if player is facing the NPC
+        (_player: Player, npc: Npc) => {
+          // Efficient squared distance check for interaction
+          const dx = _player.x - npc.x;
+          const dy = _player.y - npc.y;
+          const distanceSq = dx * dx + dy * dy;
+          
+          return distanceSq < 1600; // 40^2
+        }
+      );
+    });
+    
+    // Process all the batched physics operations at once
+    this.processBatchedPhysics();
   }
 
   /**
