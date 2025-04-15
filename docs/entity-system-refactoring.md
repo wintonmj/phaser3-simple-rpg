@@ -229,15 +229,18 @@ export class NonPlayerEntity extends Character {
 1. Create behavior interfaces in `/src/behaviors/interfaces.ts`
    - Define IMovementBehavior, ICombatBehavior, IInteractionBehavior, IAnimationBehavior
    - Create base IBehavior interface
+   - Dependencies: `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/game-objects/Character.ts`, `/src/types/entities/entity-interfaces.ts`
 
 2. Update entity constants
    - Create `/src/constants/entities.ts` with organized entity types
    - Create backward compatibility with existing monster constants
+   - Dependencies: `/src/constants/entities.ts`, `/src/game-objects/enemies/Treant.ts`, `/src/game-objects/enemies/Mole.ts`
 
 3. Refactor NonPlayerEntity class
    - Convert to behavior composition pattern
    - Add constructor that accepts behavior components
    - Create delegate methods that forward to appropriate behaviors
+   - Dependencies: `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/types/entities/entity-interfaces.ts`, `/src/behaviors/interfaces.ts`
 
 ### Phase 2: Implement Core Behaviors
 
@@ -246,66 +249,74 @@ export class NonPlayerEntity extends Character {
    - Create WanderMovement (random movement)
    - Create ChaseMovement (follows target when in range)
    - Create PatrolMovement (moves between set points)
+   - Dependencies: `/src/behaviors/interfaces.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/game-objects/Character.ts`
 
 2. Combat Behaviors (`/src/behaviors/combat/`)
    - Create PassiveBehavior (default, no combat)
    - Create MeleeCombat (short-range attacks)
    - Create RangedCombat (projectile attacks)
+   - Dependencies: `/src/behaviors/interfaces.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/managers/PhysicsManager.ts`
 
-3. Interaction Behaviors (`/src/behaviors/interaction/`)
-   - Create NoInteraction (default)
-   - Create DialogInteraction (displays dialog when player interacts)
-   - Create ShopInteraction (opens shop interface)
-
-4. Animation Behaviors (`/src/behaviors/animation/`)
+3. Animation Behaviors (`/src/behaviors/animation/`)
    - Create SimpleAnimation (basic animations)
    - Create HumanoidAnimation (NPC animations)
    - Create MonsterAnimation (enemy animations)
+   - Dependencies: `/src/behaviors/interfaces.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/game-objects/Character.ts`
 
 ### Phase 3: Refactor Existing Entities
 
 1. Create EntityFactory class
    - Create factory methods for different entity types
    - Implement configurable creation with behavior options
+   - Dependencies: `/src/constants/entities.ts`, `/src/behaviors/interfaces.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`
 
 2. Refactor Treant implementation
    - Convert to use composition with ChaseMovement, RangedCombat, etc.
    - Ensure backward compatibility with existing functionality
+   - Dependencies: `/src/game-objects/enemies/Treant.ts`, `/src/behaviors/movement/ChaseMovement.ts`, `/src/behaviors/combat/RangedCombat.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`
 
 3. Refactor Mole implementation
    - Convert to use composition with ChaseMovement, MeleeCombat, etc.
    - Ensure backward compatibility with existing functionality
+   - Dependencies: `/src/game-objects/enemies/Mole.ts`, `/src/behaviors/movement/ChaseMovement.ts`, `/src/behaviors/combat/MeleeCombat.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`
 
 4. Implement NPCs with behavior components
    - Create Villager, Shopkeeper, and other NPC types
+   - Dependencies: `/src/constants/entities.ts`, `/src/behaviors/movement/WanderMovement.ts`, `/src/behaviors/movement/StationaryMovement.ts`, `/src/behaviors/interaction/DialogInteraction.ts`, `/src/behaviors/interaction/ShopInteraction.ts`
 
 ### Phase 4: Update Managers
 
 1. Update EntityManager
    - Use EntityFactory to create entities
    - Support different entity types with appropriate behaviors
+   - Dependencies: `/src/managers/EntityManager.ts`, `/src/constants/entities.ts`, `/src/behaviors/interfaces.ts`
 
 2. Update PhysicsManager
    - Handle collisions based on entity behavior types
    - Implement interaction zones for interactable entities
+   - Dependencies: `/src/managers/PhysicsManager.ts`, `/src/types/entities/entity-interfaces.ts`, `/src/behaviors/interfaces.ts`
 
 3. Update SpatialManager
    - Handle all entity types in the quadtree
    - Use behavior type to determine update behavior
+   - Dependencies: `/src/managers/SpatialManager.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/types/entities/entity-interfaces.ts`
 
 ### Phase 5: Testing and Documentation
 
 1. Create comprehensive tests for behavior components
    - Test each behavior component individually
    - Test combinations of behaviors
+   - Dependencies: `/src/behaviors/interfaces.ts`, `/src/behaviors/movement/`, `/src/behaviors/combat/`, `/src/behaviors/interaction/`, `/src/behaviors/animation/`
 
 2. Document behavior interfaces and implementations
    - Create usage examples for new entity creation
    - Document behavior composition patterns
+   - Dependencies: `/src/behaviors/interfaces.ts`, `docs/entity-system-refactoring.md`
 
 3. Create end-to-end tests for entity interactions
    - Test player-entity interactions
    - Test entity-entity interactions
+   - Dependencies: `/src/game-objects/Player.ts`, `/src/game-objects/entities/NonPlayerEntity.ts`, `/src/managers/EntityManager.ts`, `/src/managers/PhysicsManager.ts`
 
 ## Benefits of Composition Approach
 
