@@ -11,7 +11,18 @@ import { InterSceneData, MapLayers } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 
-// Manager imports
+// Interface imports
+import { 
+  IMapManager, 
+  IEntityManager, 
+  ISpatialManager, 
+  IPhysicsManager, 
+  IInputManager, 
+  ICameraManager, 
+  ISceneFlowManager 
+} from '../types/manager-interfaces';
+
+// Implementation imports (needed for instantiation)
 import { MapManager } from '../managers/MapManager';
 import { EntityManager } from '../managers/EntityManager';
 import { SpatialManager } from '../managers/SpatialManager';
@@ -26,19 +37,19 @@ import { SceneFlowManager } from '../managers/SceneFlowManager';
  */
 export abstract class AbstractScene extends Phaser.Scene {
   /** Map for the scene */
-  private mapManager: MapManager;
+  private mapManager: IMapManager;
   /** Entity management (player, NPCs, monsters) */
-  private entityManager: EntityManager;
+  private entityManager: IEntityManager;
   /** Spatial partitioning and entity culling */
-  private spatialManager: SpatialManager;
+  private spatialManager: ISpatialManager;
   /** Physics and collision handling */
-  private physicsManager: PhysicsManager;
+  private physicsManager: IPhysicsManager;
   /** Input processing */
-  private inputManager: InputManager;
+  private inputManager: IInputManager;
   /** Camera management */
-  private cameraManager: CameraManager;
+  private cameraManager: ICameraManager;
   /** Scene transitions and flow */
-  private sceneFlowManager: SceneFlowManager;
+  private sceneFlowManager: ISceneFlowManager;
   
   /** Map key for the scene */
   public mapKey: string;
@@ -165,6 +176,7 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Create manager instances
    */
   private initializeManagers(): void {
+    // Create concrete instances but store as interface types
     this.mapManager = new MapManager(this);
     this.entityManager = new EntityManager(this);
     this.spatialManager = new SpatialManager(this);
@@ -172,12 +184,25 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.inputManager = new InputManager(this);
     this.cameraManager = new CameraManager(this);
     this.sceneFlowManager = new SceneFlowManager(this);
+    
+    // Set up cross-manager references
+    const entityManager = this.entityManager as EntityManager;
+    const spatialManager = this.spatialManager as SpatialManager;
+    const objectPoolManager = (this.entityManager as EntityManager).getObjectPoolManager();
+    
+    // Provide each manager with references to commonly used managers
+    if (entityManager && spatialManager && objectPoolManager) {
+      entityManager.setSpatialManager(spatialManager);
+      entityManager.setObjectPoolManager(objectPoolManager);
+      
+      // Additional references can be set here as needed
+    }
   }
 
   /**
    * Get the input manager instance
    */
-  public getInputManager(): InputManager {
+  public getInputManager(): IInputManager {
     return this.inputManager;
   }
 }
