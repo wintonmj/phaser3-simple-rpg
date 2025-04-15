@@ -1,0 +1,206 @@
+{
+  "bodyTypeName": "male",
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_light&head=Human_male_gaunt_light&sex=male&beard=Winter_Beard_white&wrinkes=Wrinkles_light&eyebrows=Thick_Eyebrows_platinum&nose=Elderly_nose_light&hat=Celestial_Wizard_Hat_blue&hat_overlay=none_Bicorne_Athwart_Skull&hat_trim=Celestial_Wizard_Hat_Second_Color_blue&facial_eyes=none_Round_Glasses&neck=none_Scarf&clothes=Longsleeve_navy&overalls=Overalls_navy&jacket=none_Tabard&cape=Solid_navy&apron=none_Apron&shoes=Rimmed_Boots_blue&weapon=none_Simple_staff&weapon_magic_crystal=none_Crystal",
+  "spritesheets": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/spritesheets/",
+  "version": 1,
+  "datetime": "16/04/2025, 07:00:33",
+  "credits": [
+    {
+      "fileName": "body/bodies/male/light.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,JaidynReiman,Benjamin K. Smith (BenCreating),Evert,Eliza Wyatt (ElizaWy),TheraHedwig,MuffinElZangano,Durrani,Johannes Sjölund (wulax),Stephen Challener (Redshrike)",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-male-jumping-animation-by-durrani,https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle,https://opengameart.org/content/lpc-revised-character-basics,https://opengameart.org/content/lpc-be-seated,https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads,https://opengameart.org/content/lpc-jump-expanded,https://opengameart.org/content/lpc-character-bases",
+      "notes": "see details at https://opengameart.org/content/lpc-character-bases; 'Thick' Male Revised Run/Climb by JaidynReiman (based on ElizaWy's LPC Revised)"
+    },
+    {
+      "fileName": "head/heads/human/male_gaunt/light.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "Stephen Challener (Redshrike),bluecarrot16",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-folk",
+      "notes": "original head by Redshrike, gaunt version by bluecarrot16"
+    },
+    {
+      "fileName": "head/nose/elderly/adult/light.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy",
+      "urls": "https://opengameart.org/content/lpc-revised-elders",
+      "notes": ""
+    },
+    {
+      "fileName": "eyes/eyebrows/thick/adult/platinum.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Hair,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "head/wrinkles/light.png",
+      "licenses": "CC0",
+      "authors": "bluecarrot16",
+      "urls": "",
+      "notes": ""
+    },
+    {
+      "fileName": "beards/beard/winter/male/white.png",
+      "licenses": "CC0",
+      "authors": "bluecarrot16",
+      "urls": "https://opengameart.org/content/lpc-santa",
+      "notes": ""
+    },
+    {
+      "fileName": "hat/magic/celestial/adult/blue.png",
+      "licenses": "CC-BY 3.0",
+      "authors": "Napsio,Michael Whitlock (bigbeargames),Tracy",
+      "urls": "https://opengameart.org/content/lpc-celestial-wizard-hats,https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+      "notes": "Original by Tracy, Adapted to ULPC by Big Bear Games, reduced colors by Napsio"
+    },
+    {
+      "fileName": "hat/magic/celestial/trim/adult/blue.png",
+      "licenses": "CC-BY 3.0",
+      "authors": "JaidynReiman,Napsio,Michael Whitlock (bigbeargames),Tracy",
+      "urls": "https://opengameart.org/content/lpc-celestial-wizard-hats,https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+      "notes": "Original by Tracy, Adapted to ULPC by Big Bear Games, reduced colors by Napsio, second color layer by JaidynReiman"
+    },
+    {
+      "fileName": "torso/clothes/longsleeve/longsleeve/male/navy.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "JaidynReiman,Johannes Sjölund (wulax)",
+      "urls": "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates",
+      "notes": "original by wulax, recolors and cleanup by JaidynReiman, further recolors by bluecarrot16"
+    },
+    {
+      "fileName": "torso/aprons/overalls/male/navy.png",
+      "licenses": "OGA-BY 3.0,GPL 3.0",
+      "authors": "ElizaWy,bluecarrot16,JaidynReiman",
+      "urls": "https://opengameart.org/content/lpc-revised-character-basics,http://opengameart.org/content/lpc-clothing-updates",
+      "notes": "original overalls by ElizaWy, extended to all animation frames, adapted from teen to male base, and edited for v3 bases by bluecarrot16; extended to combat animations by JaidynReiman"
+    },
+    {
+      "fileName": "cape/solid/female/navy.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,JaidynReiman",
+      "urls": "https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor,http://opengameart.org/content/lpc-clothing-updates",
+      "notes": ""
+    },
+    {
+      "fileName": "cape/solid_behind/navy.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "Nila122,JaidynReiman",
+      "urls": "https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor",
+      "notes": ""
+    },
+    {
+      "fileName": "feet/boots/rimmed/male/blue.png",
+      "licenses": "OGA-BY 3.0+,CC-BY 3.0+,GPL 3.0",
+      "authors": "JaidynReiman",
+      "urls": "https://opengameart.org/content/lpc-kimono-relm,https://opengameart.org/content/lpc-expanded-socks-shoes",
+      "notes": ""
+    }
+  ],
+  "layers": [
+    {
+      "fileName": "cape/solid_behind/navy.png",
+      "zPos": 5,
+      "parentName": "cape",
+      "name": "Solid",
+      "variant": "navy",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "body/bodies/male/light.png",
+      "zPos": 10,
+      "parentName": "body",
+      "name": "Body_color",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "feet/boots/rimmed/male/blue.png",
+      "zPos": 25,
+      "parentName": "shoes",
+      "name": "Rimmed_Boots",
+      "variant": "blue",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "torso/clothes/longsleeve/longsleeve/male/navy.png",
+      "zPos": 35,
+      "parentName": "clothes",
+      "name": "Longsleeve",
+      "variant": "navy",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "torso/aprons/overalls/male/navy.png",
+      "zPos": 38,
+      "parentName": "overalls",
+      "name": "Overalls",
+      "variant": "navy",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "cape/solid/female/navy.png",
+      "zPos": 85,
+      "parentName": "cape",
+      "name": "Solid",
+      "variant": "navy",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "head/heads/human/male_gaunt/light.png",
+      "zPos": 100,
+      "parentName": "head",
+      "name": "Human_male_gaunt",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "head/wrinkles/light.png",
+      "zPos": 102,
+      "parentName": "wrinkes",
+      "name": "Wrinkles",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "head/nose/elderly/adult/light.png",
+      "zPos": 105,
+      "parentName": "nose",
+      "name": "Elderly_nose",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "eyes/eyebrows/thick/adult/platinum.png",
+      "zPos": 106,
+      "parentName": "eyebrows",
+      "name": "Thick_Eyebrows",
+      "variant": "platinum",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "beards/beard/winter/male/white.png",
+      "zPos": 110,
+      "parentName": "beard",
+      "name": "Winter_Beard",
+      "variant": "white",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "hat/magic/celestial/adult/blue.png",
+      "zPos": 130,
+      "parentName": "hat",
+      "name": "Celestial_Wizard_Hat",
+      "variant": "blue",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "hat/magic/celestial/trim/adult/blue.png",
+      "zPos": 131,
+      "parentName": "hat_trim",
+      "name": "Celestial_Wizard_Hat_Second_Color",
+      "variant": "blue",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    }
+  ]
+}
