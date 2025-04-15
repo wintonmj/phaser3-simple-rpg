@@ -34,6 +34,15 @@ const PLAYER_INITIAL_POSITION = {
 /** Distance to shift player when transitioning between scenes */
 const SCENE_TRANSITION_SHIFT = 50;
 
+/** Distance threshold for monster updates (in pixels) */
+const MONSTER_UPDATE_DISTANCE = 400;
+
+/** Object pool sizes */
+const POOL_SIZES = {
+  PARTICLES: 50,
+  PROJECTILES: 20,
+};
+
 /**
  * Abstract base class for all game scenes.
  * Provides common functionality for map creation, player initialization, and game mechanics.
@@ -55,8 +64,27 @@ export abstract class AbstractScene extends Phaser.Scene {
   public layers: MapLayers;
   /** Key for the map asset */
   public mapKey: string;
-  /** Keyboard event handlers for easy cleanup */
-  private keyboardListeners: Phaser.Events.EventEmitter[] = [];
+  /** Keyboard state */
+  private keyState: KeyState = {
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+    space: false,
+    shift: false,
+  };
+  /** Scene transition zones */
+  private transitionZones: Phaser.GameObjects.Zone[] = [];
+  /** Single keyboard handler */
+  private keyboardHandler: (event: KeyboardEvent) => void;
+  /** Spatial grid for monster culling */
+  private spatialGrid: Map<string, Monster[]> = new Map();
+  /** Grid cell size for spatial partitioning */
+  private gridCellSize = MONSTER_UPDATE_DISTANCE;
+  /** Object pools */
+  protected objectPools: Record<string, Phaser.GameObjects.Group> = {};
+  /** Last known player grid position */
+  private lastPlayerGridPos = { x: 0, y: 0 };
 
   /**
    * Creates an instance of AbstractScene.
@@ -72,59 +100,135 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Main update loop
    */
   public update(): void {
-    const keyState = this.getKeyState();
-    this.updateMonsters();
-    this.player.updatePlayer(keyState);
+    this.updateKeyState();
+    
+    // Only recalculate spatial grid when player moves to a new grid cell
+    const gridX = Math.floor(this.player.x / this.gridCellSize);
+    const gridY = Math.floor(this.player.y / this.gridCellSize);
+    
+    if (gridX !== this.lastPlayerGridPos.x || gridY !== this.lastPlayerGridPos.y) {
+      this.lastPlayerGridPos = { x: gridX, y: gridY };
+      this.updateSpatialGrid();
+    }
+    
+    this.updateMonstersInRange();
+    this.player.updatePlayer(this.keyState);
   }
 
   /**
    * Get current keyboard state
    */
-  private getKeyState(): KeyState {
-    return {
-      left: this.cursors.left.isDown,
-      right: this.cursors.right.isDown,
-      up: this.cursors.up.isDown,
-      down: this.cursors.down.isDown,
-      space: this.cursors.space.isDown,
-      shift: this.cursors.shift.isDown,
-    };
+  private updateKeyState(): void {
+    this.keyState.left = this.cursors.left.isDown;
+    this.keyState.right = this.cursors.right.isDown;
+    this.keyState.up = this.cursors.up.isDown;
+    this.keyState.down = this.cursors.down.isDown;
+    this.keyState.space = this.cursors.space.isDown;
+    this.keyState.shift = this.cursors.shift.isDown;
   }
 
   /**
-   * Update all monsters in the scene
+   * Update spatial partitioning grid
    */
-  private updateMonsters(): void {
-    this.monsters.forEach(monster => monster.updateMonster());
+  private updateSpatialGrid(): void {
+    this.spatialGrid.clear();
+    
+    this.monsters.forEach(monster => {
+      const gridX = Math.floor(monster.x / this.gridCellSize);
+      const gridY = Math.floor(monster.y / this.gridCellSize);
+      const key = `${gridX},${gridY}`;
+      
+      if (!this.spatialGrid.has(key)) {
+        this.spatialGrid.set(key, []);
+      }
+      
+      this.spatialGrid.get(key).push(monster);
+    });
+  }
+
+  /**
+   * Update only monsters within range of the player
+   */
+  private updateMonstersInRange(): void {
+    // Get player's grid cell and adjacent cells
+    const playerGridX = Math.floor(this.player.x / this.gridCellSize);
+    const playerGridY = Math.floor(this.player.y / this.gridCellSize);
+    
+    // Check 3x3 grid of cells around player
+    for (let x = playerGridX - 1; x <= playerGridX + 1; x++) {
+      for (let y = playerGridY - 1; y <= playerGridY + 1; y++) {
+        const key = `${x},${y}`;
+        const monsters = this.spatialGrid.get(key) || [];
+        
+        monsters.forEach(monster => {
+          // Final distance check for monsters in adjacent cells
+          const distance = Phaser.Math.Distance.Between(
+            this.player.x, this.player.y, 
+            monster.x, monster.y
+          );
+          
+          if (distance <= MONSTER_UPDATE_DISTANCE) {
+            monster.updateMonster();
+          }
+        });
+      }
+    }
   }
 
   /**
    * Scene shutdown handler - performs cleanup
    */
   public shutdown(): void {
-    // Clean up keyboard listeners
-    this.keyboardListeners.forEach(emitter => emitter.removeAllListeners());
-    this.keyboardListeners = [];
+    // Remove keyboard event handler
+    if (this.keyboardHandler) {
+      this.input.keyboard.off('keydown', this.keyboardHandler, this, false);
+    }
     
     // Clean up physics
     if (this.monsterGroup) {
       this.monsterGroup.clear(true, true);
     }
+    
+    // Destroy transition zones
+    this.transitionZones.forEach(zone => {
+      zone.destroy();
+    });
+    
+    // Deactivate monsters instead of destroying
+    this.monsters.forEach(monster => {
+      if (monster.active) {
+        monster.setActive(false);
+      }
+    });
+    
+    // Clear arrays
+    this.monsters = [];
+    this.npcs.forEach(npc => npc.destroy());
+    this.npcs = [];
+    this.spatialGrid.clear();
+    
+    // Clear all colliders
+    this.physics.world.colliders.destroy();
+    
+    // Clear scene references
+    this.transitionZones = [];
   }
 
   /**
    * Initialize the scene
    */
   protected init(data: InterSceneData): void {
+    this.createObjectPools();
     this.createMapWithLayers();
     this.setupPhysicsWorld();
     this.initializePlayer(data);
     this.initializeNPCs();
     this.initializeMonsters();
+    this.updateSpatialGrid();
     this.setupSceneTransitions();
     this.addColliders();
     this.initCamera();
-    this.setupKeyboardShortcuts();
+    this.setupOptimizedKeyboardControls();
     this.cursors = this.input.keyboard.createCursorKeys();
   }
 
@@ -133,6 +237,11 @@ export abstract class AbstractScene extends Phaser.Scene {
    */
   private setupPhysicsWorld(): void {
     this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+    
+    // Set physics debug configuration if in development mode
+    if (process.env.NODE_ENV === 'development') {
+      this.physics.world.drawDebug = false; // Only enable when needed
+    }
   }
 
   /**
@@ -148,13 +257,7 @@ export abstract class AbstractScene extends Phaser.Scene {
       bridge: this.map.createLayer(MAP_CONTENT_KEYS.layers.BRIDGE, tileset, 0, 0),
     };
 
-    this.setupLayerCollisions();
-  }
-
-  /**
-   * Set up collisions for map layers
-   */
-  private setupLayerCollisions(): void {
+    // Optimize layer collision setup
     this.layers.terrain.setCollisionByProperty({ collides: true });
     this.layers.deco.setCollisionByProperty({ collides: true });
   }
@@ -188,7 +291,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Initialize monsters in the scene
+   * Initialize monsters in the scene with distance-based activation
    */
   private initializeMonsters(): void {
     const monstersMapObjects = this.map.objects.find(
@@ -217,14 +320,46 @@ export abstract class AbstractScene extends Phaser.Scene {
     );
 
     if (levelChangerObjectLayer) {
-      levelChangerObjectLayer.objects.forEach((o: any) => {
+      this.transitionZones = levelChangerObjectLayer.objects.map((o: any) => {
         const zone = this.add.zone(o.x, o.y, o.width, o.height);
         this.physics.add.existing(zone);
+        
+        // Store transition data on zone for reuse
+        zone.setData('targetScene', o.properties.scene);
+        
+        // Create overlap handler
         this.physics.add.overlap(zone, this.player, () => {
-          this.scene.start(o.properties.scene, { comesFrom: this.scene.key });
+          this.scene.start(zone.getData('targetScene'), { comesFrom: this.scene.key });
         });
+        
+        return zone;
       });
     }
+  }
+
+  /**
+   * Create object pools for frequently used objects
+   */
+  private createObjectPools(): void {
+    // Create pools for common objects
+    this.objectPools.particles = this.add.group({
+      maxSize: POOL_SIZES.PARTICLES,
+      active: false,
+      createCallback: (particle) => {
+        this.physics.world.enable(particle);
+        if (particle.body) {
+          (particle.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
+        }
+      }
+    });
+    
+    this.objectPools.projectiles = this.add.group({
+      maxSize: POOL_SIZES.PROJECTILES,
+      active: false,
+      createCallback: (projectile) => {
+        this.physics.world.enable(projectile);
+      }
+    });
   }
 
   /**
@@ -235,29 +370,36 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.monsterGroup = this.physics.add.group(this.monsters);
     const npcGroup = this.physics.add.group(this.npcs);
     
-    // Create solid world objects group for optimization
+    // Create composite collider for solid world objects
     const solidLayers = [this.layers.terrain, this.layers.deco];
-
-    // Add colliders for solid layers
+    
+    // Add colliders for solid layers - use collider optimization
     solidLayers.forEach(layer => {
-      this.physics.add.collider(this.monsterGroup, layer);
+      // Make sure to only add collision tiles to the physics world
+      layer.setCollisionByProperty({ collides: true });
       this.physics.add.collider(this.player, layer);
+      
+      // Add collider for all monsters
+      this.physics.add.collider(this.monsterGroup, layer);
+      
       this.physics.add.collider(npcGroup, layer);
     });
     
-    // Entity collisions
+    // Entity collisions - use a single collider with a callback
     this.physics.add.collider(this.monsterGroup, this.player, (_: Player, m: Monster) => {
       m.attack();
     });
     
+    // NPC collisions
     this.physics.add.collider(npcGroup, npcGroup);
     this.physics.add.collider(npcGroup, this.player);
     
-    // NPC interactions
-    this.npcs.forEach(npc => {
-      // Use overlap for interaction
-      this.physics.add.overlap(npc, this.player, npc.talk);
-    });
+    // NPC interactions - use a single overlap handler for all NPCs
+    const interactionHandler = (npc: Npc) => {
+      npc.talk();
+    };
+    
+    this.physics.add.overlap(npcGroup, this.player, interactionHandler);
   }
 
   /**
@@ -270,22 +412,32 @@ export abstract class AbstractScene extends Phaser.Scene {
   }
 
   /**
-   * Set up keyboard shortcuts for scene transitions
+   * Set up optimized keyboard controls with a single event handler
    */
-  private setupKeyboardShortcuts(): void {
-    const key1Handler = this.input.keyboard.on('keydown-ONE', () => {
-      if (this.scene.key !== SCENES.FIRST_LEVEL) {
-        this.scene.start(SCENES.FIRST_LEVEL, { comesFrom: this.scene.key });
+  private setupOptimizedKeyboardControls(): void {
+    // Create a key map to avoid switch statements in the handler
+    const keyActionMap: Record<string, () => void> = {
+      '1': () => {
+        if (this.scene.key !== SCENES.FIRST_LEVEL) {
+          this.scene.start(SCENES.FIRST_LEVEL, { comesFrom: this.scene.key });
+        }
+      },
+      '2': () => {
+        if (this.scene.key !== SCENES.SECOND_LEVEL) {
+          this.scene.start(SCENES.SECOND_LEVEL, { comesFrom: this.scene.key });
+        }
       }
-    });
-    this.keyboardListeners.push(key1Handler);
+    };
     
-    const key2Handler = this.input.keyboard.on('keydown-TWO', () => {
-      if (this.scene.key !== SCENES.SECOND_LEVEL) {
-        this.scene.start(SCENES.SECOND_LEVEL, { comesFrom: this.scene.key });
+    // Use a single keyboard handler for all shortcuts
+    this.keyboardHandler = (event: KeyboardEvent) => {
+      const action = keyActionMap[event.key];
+      if (action) {
+        action();
       }
-    });
-    this.keyboardListeners.push(key2Handler);
+    };
+    
+    this.input.keyboard.on('keydown', this.keyboardHandler);
   }
 
   /**
