@@ -11,6 +11,7 @@ import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { MONSTERS } from '../constants/monsters';
+import { AbstractScene } from '../scenes/AbstractScene';
 
 /** Distance threshold for monster updates (in pixels) */
 const MONSTER_UPDATE_DISTANCE = 400;
@@ -255,7 +256,12 @@ export class EntityManager implements IEntityManager {
    * Update entity states
    */
   public update(): void {
-    // Player updates are handled through the InputManager's keyState
+    // Get current key state from InputManager and update player
+    if (this.scene instanceof AbstractScene && this.player) {
+      const keyState = this.scene.getInputManager().getKeyState();
+      this.player.updatePlayer(keyState);
+    }
+    
     // Monster updates are handled by the SpatialManager
   }
 
