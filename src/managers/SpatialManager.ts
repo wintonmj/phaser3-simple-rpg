@@ -12,6 +12,12 @@ const ENTITY_UPDATE_DISTANCE = 400;
 /** Square of entity update distance for more efficient distance checks */
 const ENTITY_UPDATE_DISTANCE_SQ = ENTITY_UPDATE_DISTANCE * ENTITY_UPDATE_DISTANCE;
 
+// Type for entities with position properties
+type EntityWithPosition = Phaser.GameObjects.GameObject & {
+  x: number;
+  y: number;
+};
+
 /**
  * Manages spatial partitioning and entity culling
  */
@@ -19,19 +25,23 @@ export class SpatialManager implements ISpatialManager {
   private quadTree: QuadTree;
   private entities: Phaser.GameObjects.GameObject[] = [];
   private activeEntities: Set<Phaser.GameObjects.GameObject> = new Set();
+  private player: EntityWithPosition | null = null;
 
   /**
    * Create a new SpatialManager
    * 
-   * Note: scene parameter is required by interface but unused in this implementation
+   * Note: scene parameter is required by interface but not used directly
    */
-  constructor(_scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene) {
     // Initialize with a small default size, will be replaced in initialize()
     this.quadTree = new QuadTree(
       new Phaser.Geom.Rectangle(0, 0, 1000, 1000),
       QUADTREE.MAX_OBJECTS,
       QUADTREE.MAX_LEVELS
     );
+    
+    // Suppress unused parameter warning while keeping for interface compatibility
+    void scene;
   }
 
   /**
@@ -54,6 +64,51 @@ export class SpatialManager implements ISpatialManager {
    */
   public registerEntities(entities: Phaser.GameObjects.GameObject[]): void {
     this.entities = entities;
+    
+    // Extract player from entities (assuming first entity is player)
+    // We need to check if it has the required position properties
+    if (entities.length > 0 && this.hasPosition(entities[0])) {
+      this.player = entities[0] as EntityWithPosition;
+      
+      // Initialize entity active states based on distance from player
+      const playerPosition = new Phaser.Math.Vector2(this.player.x, this.player.y);
+      
+      // Deactivate entities that are far from player (excluding player itself)
+      entities.slice(1).forEach(entity => {
+        // Skip entities without position
+        if (!this.hasPosition(entity)) return;
+        
+        // Efficient squared distance check - using a larger initial distance
+        // to prevent entities from constantly activating/deactivating at the boundary
+        const entityWithPos = entity as EntityWithPosition;
+        const dx = entityWithPos.x - playerPosition.x;
+        const dy = entityWithPos.y - playerPosition.y;
+        const distanceSq = dx * dx + dy * dy;
+        
+        // Set initial active state based on distance
+        // Using slightly larger distance multiplier (2.25 = 1.5^2) for initial deactivation
+        // to prevent rapid activation/deactivation at boundaries
+        if (distanceSq > ENTITY_UPDATE_DISTANCE_SQ * 2.25) {
+          entity.setActive(false);
+          if (entity instanceof Phaser.GameObjects.Sprite) {
+            entity.setVisible(false);
+          }
+        }
+      });
+      
+      // Initial update of active entities
+      this.updateActiveEntities(playerPosition);
+    }
+  }
+
+  /**
+   * Type guard to check if an entity has position properties
+   */
+  private hasPosition(entity: Phaser.GameObjects.GameObject): entity is EntityWithPosition {
+    const positionEntity = entity as Partial<EntityWithPosition>;
+    return 'x' in entity && 'y' in entity && 
+           typeof positionEntity.x === 'number' && 
+           typeof positionEntity.y === 'number';
   }
 
   /**
@@ -75,7 +130,7 @@ export class SpatialManager implements ISpatialManager {
     
     // Only insert entities that are active and within expanded bounds
     this.entities.forEach(entity => {
-      if (!entity.active) return;
+      if (!entity.active || !this.hasPosition(entity)) return;
       
       // Only insert NonPlayerEntity types into the quadtree
       if (this.isNonPlayerEntity(entity)) {
@@ -118,9 +173,24 @@ export class SpatialManager implements ISpatialManager {
     
     // Final squared distance check and activate entities
     nearbyEntities.forEach(entity => {
-      if (!entity.active) return;
+      if (!this.hasPosition(entity)) return;
       
-      // Efficient squared distance check
+      if (!entity.active) {
+        // If entity is inactive but now in range, activate it
+        const dx = entity.x - playerPosition.x;
+        const dy = entity.y - playerPosition.y;
+        const distanceSq = dx * dx + dy * dy;
+        
+        if (distanceSq <= ENTITY_UPDATE_DISTANCE_SQ) {
+          entity.setActive(true);
+          if (entity instanceof Phaser.GameObjects.Sprite) {
+            entity.setVisible(true);
+          }
+        }
+        return;
+      }
+      
+      // Efficient squared distance check for active entities
       const dx = entity.x - playerPosition.x;
       const dy = entity.y - playerPosition.y;
       const distanceSq = dx * dx + dy * dy;
@@ -132,6 +202,12 @@ export class SpatialManager implements ISpatialManager {
         if (this.isNonPlayerEntity(entity)) {
           entity.updateEntity();
         }
+      } else {
+        // Deactivate entities that are now too far
+        entity.setActive(false);
+        if (entity instanceof Phaser.GameObjects.Sprite) {
+          entity.setVisible(false);
+        }
       }
     });
   }
@@ -141,7 +217,7 @@ export class SpatialManager implements ISpatialManager {
    * @returns Set of currently active entities
    */
   public getActiveEntities(_range?: number): Set<Phaser.GameObjects.GameObject> {
-    // Range parameter is ignored in this implementation
+    // Range parameter is provided for interface compatibility but not used
     return this.activeEntities;
   }
 

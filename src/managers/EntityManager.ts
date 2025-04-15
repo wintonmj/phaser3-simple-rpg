@@ -35,11 +35,6 @@ import { MONSTERS } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 
-/** Distance threshold for entity updates (in pixels) */
-const ENTITY_UPDATE_DISTANCE = 400;
-/** Square of entity update distance for more efficient distance checks */
-const ENTITY_UPDATE_DISTANCE_SQ = ENTITY_UPDATE_DISTANCE * ENTITY_UPDATE_DISTANCE;
-
 /** Default player position if no scene data is available */
 const DEFAULT_PLAYER_POSITION = {
   x: 50,
@@ -70,6 +65,7 @@ export class EntityManager implements IEntityManager {
    * 
    * Typed with INonPlayerEntity interface for type safety,
    * but contains instances of concrete classes like Treant and Mole
+   * that implements the interface
    */
   private monsters: INonPlayerEntity[] = [];
   
@@ -159,27 +155,8 @@ export class EntityManager implements IEntityManager {
     });
     
     this.monsters = monsterCreationOperations.filter(Boolean) as INonPlayerEntity[];
-      
-    // Initially deactivate monsters that are far from player
-    if (this.player) {
-      const playerX = this.player.x;
-      const playerY = this.player.y;
-      
-      this.monsters.forEach(monster => {
-        // Efficient squared distance check
-        const dx = monster.x - playerX;
-        const dy = monster.y - playerY;
-        const distanceSq = dx * dx + dy * dy;
-        
-        // Set initial active state based on distance
-        if (distanceSq > ENTITY_UPDATE_DISTANCE_SQ * 2.25) { // 1.5^2 = 2.25
-          monster.setActive(false);
-          if (monster instanceof Phaser.GameObjects.Sprite) {
-            monster.setVisible(false);
-          }
-        }
-      });
-    }
+    
+    // Note: Spatial activation of monsters is now handled by SpatialManager
   }
 
   /**
