@@ -15,7 +15,7 @@
       "require": true
     }
   },
-  "files": ["typings/typings.d.ts", "typings/phaser.d.ts", "typings/index.d.ts"],
+  "files": ["typings/typings.d.ts", "typings/phaser.d.ts", "typings/index.d.ts", "src/types/phaser-extensions.d.ts"],
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "bin"]
 }

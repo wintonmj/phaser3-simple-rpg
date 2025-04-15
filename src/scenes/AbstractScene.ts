@@ -1,5 +1,3 @@
-/// <reference path="../types/phaser-extensions.d.ts" />
-
 /**
  * @fileoverview Abstract base scene class that provides common functionality for all game scenes.
  * This class handles map creation, player initialization, camera setup, and basic game mechanics.
@@ -84,7 +82,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   /** Object pools */
   protected objectPools: Record<string, Phaser.GameObjects.Group> = {};
   /** Last known player grid position */
-  private lastPlayerGridPos = { x: 0, y: 0 };
+  private lastPlayerGridPos: { x: number; y: number } = { x: 0, y: 0 };
 
   /**
    * Creates an instance of AbstractScene.
@@ -142,7 +140,10 @@ export abstract class AbstractScene extends Phaser.Scene {
         this.spatialGrid.set(key, []);
       }
       
-      this.spatialGrid.get(key).push(monster);
+      const monsters = this.spatialGrid.get(key);
+      if (monsters) {
+        monsters.push(monster);
+      }
     });
   }
 
@@ -251,6 +252,11 @@ export abstract class AbstractScene extends Phaser.Scene {
     this.map = this.make.tilemap({ key: this.mapKey });
     const tileset = this.map.addTilesetImage(ASSETS.TILESET, ASSETS.IMAGES.TILES, 16, 16, 0, 0);
 
+    if (!tileset) {
+      console.error(`Failed to load tileset ${ASSETS.TILESET}`);
+      return;
+    }
+
     this.layers = {
       terrain: this.map.createLayer(MAP_CONTENT_KEYS.layers.BACKGROUND, tileset, 0, 0),
       deco: this.map.createLayer(MAP_CONTENT_KEYS.layers.DECORATION, tileset, 0, 0),
@@ -285,7 +291,7 @@ export abstract class AbstractScene extends Phaser.Scene {
         this, 
         npc.x, 
         npc.y, 
-        npc.properties.message
+        npc.properties.message || ''
       );
     });
   }
@@ -299,7 +305,7 @@ export abstract class AbstractScene extends Phaser.Scene {
     );
     const monsters = (monstersMapObjects?.objects || []) as unknown as CustomTilemapObject[];
 
-    this.monsters = monsters.map((monster: CustomTilemapObject): Monster => {
+    this.monsters = monsters.map((monster: CustomTilemapObject): Monster | null => {
       switch (monster.name) {
         case MONSTERS.treant:
           return new Treant(this, monster.x, monster.y);
@@ -308,7 +314,7 @@ export abstract class AbstractScene extends Phaser.Scene {
         default:
           return null;
       }
-    }).filter(Boolean);
+    }).filter((monster): monster is Monster => monster !== null);
   }
 
   /**
@@ -320,12 +326,13 @@ export abstract class AbstractScene extends Phaser.Scene {
     );
 
     if (levelChangerObjectLayer) {
-      this.transitionZones = levelChangerObjectLayer.objects.map((o: any) => {
-        const zone = this.add.zone(o.x, o.y, o.width, o.height);
+      this.transitionZones = levelChangerObjectLayer.objects.map((o) => {
+        const zoneObject = o as unknown as CustomTilemapObject;
+        const zone = this.add.zone(zoneObject.x, zoneObject.y, zoneObject.width, zoneObject.height);
         this.physics.add.existing(zone);
         
         // Store transition data on zone for reuse
-        zone.setData('targetScene', o.properties.scene);
+        zone.setData('targetScene', zoneObject.properties.scene);
         
         // Create overlap handler
         this.physics.add.overlap(zone, this.player, () => {
@@ -386,16 +393,20 @@ export abstract class AbstractScene extends Phaser.Scene {
     });
     
     // Entity collisions - use a single collider with a callback
-    this.physics.add.collider(this.monsterGroup, this.player, (_: Player, m: Monster) => {
-      m.attack();
-    });
+    this.physics.add.collider(
+      this.monsterGroup, 
+      this.player, 
+      (_player: Player, monster: Monster) => {
+        monster.attack();
+      }
+    );
     
     // NPC collisions
     this.physics.add.collider(npcGroup, npcGroup);
     this.physics.add.collider(npcGroup, this.player);
     
     // NPC interactions - use a single overlap handler for all NPCs
-    const interactionHandler = (npc: Npc) => {
+    const interactionHandler = (_player: Player, npc: Npc) => {
       npc.talk();
     };
     
@@ -444,7 +455,7 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Get the initial player position based on scene transition data
    */
   private getPlayerInitialPosition(
-    levelChangerObjectLayer: Phaser.Tilemaps.ObjectLayer,
+    levelChangerObjectLayer: Phaser.Tilemaps.ObjectLayer | undefined,
     data: InterSceneData,
   ): { x: number; y: number } {
     if (!data?.comesFrom || !levelChangerObjectLayer) {
@@ -459,7 +470,7 @@ export abstract class AbstractScene extends Phaser.Scene {
       return PLAYER_INITIAL_POSITION;
     }
 
-    const shift = this.calculateTransitionShift(levelChanger.properties.comesBackFrom);
+    const shift = this.calculateTransitionShift(levelChanger.properties.comesBackFrom || Orientation.Down);
     
     return {
       x: levelChanger.x + levelChanger.width / 2 + shift.x,
