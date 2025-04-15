@@ -2,6 +2,28 @@
  * @fileoverview Entity manager for player, NPCs, and monsters
  */
 
+/**
+ * Import section for EntityManager
+ * 
+ * Interfaces:
+ * - {@link IEntityManager} - The manager interface this class implements
+ * - {@link INonPlayerEntity} - Interface for non-player entities (used for typing)
+ * 
+ * Game objects:
+ * - {@link Player} - Player character constructor
+ * - {@link NonPlayerEntity} - Base class for all non-player entities
+ * 
+ * Enemy types:
+ * - {@link Treant} - Concrete implementation of tree monster
+ * - {@link Mole} - Concrete implementation of mole monster
+ * 
+ * Constants:
+ * - {@link MAP_CONTENT_KEYS} - Keys for map content objects
+ * - {@link MONSTERS} - Dictionary of monster types (needed for monster creation)
+ * 
+ * Scene classes:
+ * - {@link AbstractScene} - Base scene class
+ */
 import { IEntityManager } from '../types/manager-interfaces';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
@@ -42,7 +64,15 @@ export class EntityManager implements IEntityManager {
   private scene: SceneType;
   private map: Phaser.Tilemaps.Tilemap;
   private player: Player;
+  
+  /** 
+   * Collection of all monster entities
+   * 
+   * Typed with INonPlayerEntity interface for type safety,
+   * but contains instances of concrete classes like Treant and Mole
+   */
   private monsters: INonPlayerEntity[] = [];
+  
   private objectPools: Record<string, Phaser.GameObjects.Group> = {};
 
   /**
@@ -90,7 +120,17 @@ export class EntityManager implements IEntityManager {
     );
     const monsters = (monstersMapObjects?.objects || []) as unknown as CustomTilemapObject[];
 
-    // Object pooling factory function to reuse monster instances
+    /**
+     * Factory function to create monster instances
+     * 
+     * This requires importing concrete monster classes (Treant, Mole)
+     * even though we're typing with INonPlayerEntity interface.
+     * 
+     * @param {string} type - Monster type from MONSTERS constant
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @returns {NonPlayerEntity|null} The created monster or null
+     */
     const createMonster = (type: string, x: number, y: number): NonPlayerEntity | null => {
       // Using type casting for compatibility during refactoring
       switch (type) {
@@ -196,6 +236,10 @@ export class EntityManager implements IEntityManager {
 
   /**
    * Get all monsters in the scene
+   * 
+   * @returns {INonPlayerEntity[]} Array of monsters typed as the interface,
+   * though each element is an instance of a concrete class (Treant, Mole)
+   * that implements the interface
    */
   public getMonsters(): INonPlayerEntity[] {
     return this.monsters;
