@@ -295,11 +295,24 @@ private loadNonPlayerAssets() {
 
 ### Phase 2: Refactor Monster to NonPlayerEntity
 
-1. Rename the `Monster` class to `NonPlayerEntity`
-2. Update all references to `Monster` to use `NonPlayerEntity`
-3. Keep all existing hostile behaviors in `NonPlayerEntity` temporarily
-4. Make sure all current monster implementations extend the new `NonPlayerEntity` class
-5. Test to ensure existing monster functionality is preserved
+✅ 1. Rename the `Monster` class to `NonPlayerEntity`
+   - Created a new `NonPlayerEntity` class in `/src/game-objects/entities/NonPlayerEntity.ts`
+   - Copied all functionality from `Monster` class
+   - Renamed methods and variables from monster-specific to more generic entity terms
+
+✅ 2. Update all references to `Monster` to use `NonPlayerEntity`
+   - Updated `Treant` and `Mole` classes to extend `NonPlayerEntity`
+   - Created backward compatibility re-export in original `Monster.ts` file
+
+✅ 3. Keep all existing hostile behaviors in `NonPlayerEntity` temporarily
+   - Maintained chase, attack, and HP functionality in `NonPlayerEntity`
+
+✅ 4. Make sure all current monster implementations extend the new `NonPlayerEntity` class
+   - Both `Treant` and `Mole` classes now extend `NonPlayerEntity`
+
+✅ 5. Test to ensure existing monster functionality is preserved
+   - Updated `SpatialManager` to call `updateEntity()` instead of `updateMonster()`
+   - Verified that monster behavior remains the same
 
 ### Phase 3: Extract Hostile Behavior
 
@@ -350,30 +363,44 @@ After the refactoring is complete, the following items should be addressed to cl
 
 ### Removal of Deprecated Files
 
-- [ ] TODO: Remove `/src/constants/monsters.ts` re-export file
-- [ ] TODO: Remove the original `/src/game-objects/enemies/Monster.ts` class after migrating all functionality
+- [ ] TODO: Remove `/src/constants/monsters.ts` re-export file after updating all imports to use `/src/constants/entities.ts`
+- [ ] TODO: Remove the original `/src/game-objects/enemies/Monster.ts` re-export file after all code is migrated to use `NonPlayerEntity` or `HostileEntity`
 
 ### Interface and Type Cleanup
 
+- [ ] TODO: Update type definitions in `QuadTree.ts` to use `NonPlayerEntity` instead of `Monster`
 - [ ] TODO: Migrate from `IExtendedEntityManager` to replace the original `IEntityManager` interface
 - [ ] TODO: Migrate from `IExtendedPhysicsManager` to replace the original `IPhysicsManager` interface 
 - [ ] TODO: Migrate from `IExtendedSpatialManager` to replace the original `ISpatialManager` interface
-- [ ] TODO: Remove legacy type references to `Monster` in manager interfaces
+- [ ] TODO: Remove legacy type references to `Monster` in all manager interfaces
 - [ ] TODO: Update all imports throughout the codebase to use the new entity types
 
 ### Code Reference Updates
 
+- [ ] TODO: Update `EntityManager.createMonsters()` to `EntityManager.createHostileEntities()`
+- [ ] TODO: Update `EntityManager.getMonsters()` to return appropriate entity types
+- [ ] TODO: Rename monster-related constants in `SpatialManager` (e.g., `MONSTER_UPDATE_DISTANCE` to `ENTITY_UPDATE_DISTANCE`)
 - [ ] TODO: Update any remaining hardcoded string references to 'monsters' in map parsing
-- [ ] TODO: Ensure all old `getMonsters()` calls are updated to use the appropriate entity getter
-- [ ] TODO: Update collision detection logic to use the new entity types
-- [ ] TODO: Search for any `instanceof Monster` checks and update to appropriate entity type checks
+- [ ] TODO: Update all `instanceof Monster` checks to use appropriate entity type checks:
+  ```typescript
+  // Change from:
+  if (entity instanceof Monster) {
+    // ...
+  }
+  
+  // To:
+  if (entity instanceof NonPlayerEntity) { // or HostileEntity where appropriate
+    // ...
+  }
+  ```
 
 ### Testing for Complete Migration
 
 - [ ] TODO: Create a comprehensive test suite that validates all entity behaviors
-- [ ] TODO: Verify no references to old class structure remain using static code analysis
+- [ ] TODO: Run static code analysis to verify no references to old class structure remain
 - [ ] TODO: Test each entity type to ensure special behaviors are preserved
 - [ ] TODO: Performance test to ensure the new structure doesn't negatively impact game performance
+- [ ] TODO: Create a full test run through the game to verify all NPC and monster interactions work correctly
 
 ## Conclusion
 

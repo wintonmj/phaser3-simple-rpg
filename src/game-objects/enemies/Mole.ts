@@ -1,7 +1,7 @@
-import { Monster } from './Monster';
+import { NonPlayerEntity } from '../entities/NonPlayerEntity';
 import { ASSETS } from '../../constants/assets';
 
-export class Mole extends Monster {
+export class Mole extends NonPlayerEntity {
   protected WALK_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },

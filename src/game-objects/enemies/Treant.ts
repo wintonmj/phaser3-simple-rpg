@@ -1,8 +1,8 @@
-import { Monster } from './Monster';
+import { NonPlayerEntity } from '../entities/NonPlayerEntity';
 import { ASSETS } from '../../constants/assets';
 import { Log } from '../projectiles/Log';
 
-export class Treant extends Monster {
+export class Treant extends NonPlayerEntity {
   protected WALK_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },

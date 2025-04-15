@@ -123,7 +123,7 @@ export class SpatialManager implements ISpatialManager {
         
         // If the entity is a monster, update it
         if (entity instanceof Monster) {
-          entity.updateMonster();
+          entity.updateEntity();
         }
       }
     });
