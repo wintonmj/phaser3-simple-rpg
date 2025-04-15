@@ -1,7 +1,10 @@
 import { NonPlayerEntity } from '../entities/NonPlayerEntity';
 import { ASSETS } from '../../constants/assets';
+import { ENTITIES, EntityType } from '../../constants/entities';
 
 export class Mole extends NonPlayerEntity {
+  public readonly entityType: EntityType = ENTITIES.HOSTILE.MOLE;
+  
   protected WALK_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },

@@ -4,8 +4,8 @@
 
 import { InterSceneData } from './scene-types';
 import { Player } from '../game-objects/Player';
-import { Monster } from '../game-objects/enemies/Monster';
-import { IFriendlyEntity, IHostileEntity } from './entities/entity-interfaces';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
+import { INonPlayerEntity } from './entities/entity-interfaces';
 
 /**
  * Extended interface for entity management with new entity hierarchy
@@ -53,17 +53,17 @@ export interface IExtendedEntityManager {
   /**
    * Get all friendly entities (NPCs) in the scene
    */
-  getFriendlyEntities(): IFriendlyEntity[];
+  getFriendlyEntities(): INonPlayerEntity[];
 
   /**
    * Get all hostile entities (monsters) in the scene
    */
-  getHostileEntities(): IHostileEntity[];
+  getHostileEntities(): INonPlayerEntity[];
 
   /**
    * Get all monsters in the scene (backwards compatibility)
    */
-  getMonsters(): Monster[];
+  getMonsters(): NonPlayerEntity[];
 
   /**
    * Get an object pool by name

@@ -5,7 +5,7 @@
 import { Orientation } from '../geometry/orientation';
 import { InterSceneData, MapLayers, KeyState } from './scene-types';
 import { Player } from '../game-objects/Player';
-import { Monster } from '../game-objects/enemies/Monster';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 import { QuadTree } from '../utils/QuadTree';
 
 /**
@@ -76,7 +76,7 @@ export interface IEntityManager {
   /**
    * Get all monsters in the scene
    */
-  getMonsters(): Monster[];
+  getMonsters(): NonPlayerEntity[];
 
   /**
    * Get an object pool by name
@@ -156,7 +156,7 @@ export interface IPhysicsManager {
   setupColliders(
     player: Player,
     layers: MapLayers,
-    monsters: Monster[]
+    monsters: NonPlayerEntity[]
   ): void;
 
   /**

@@ -296,23 +296,28 @@ private loadNonPlayerAssets() {
 ### Phase 2: Refactor Monster to NonPlayerEntity
 
 ✅ 1. Rename the `Monster` class to `NonPlayerEntity`
-   - Created a new `NonPlayerEntity` class in `/src/game-objects/entities/NonPlayerEntity.ts`
-   - Copied all functionality from `Monster` class
-   - Renamed methods and variables from monster-specific to more generic entity terms
+
+- Created a new `NonPlayerEntity` class in `/src/game-objects/entities/NonPlayerEntity.ts`
+- Copied all functionality from `Monster` class
+- Renamed methods and variables from monster-specific to more generic entity terms
 
 ✅ 2. Update all references to `Monster` to use `NonPlayerEntity`
-   - Updated `Treant` and `Mole` classes to extend `NonPlayerEntity`
-   - Created backward compatibility re-export in original `Monster.ts` file
+
+- Updated `Treant` and `Mole` classes to extend `NonPlayerEntity`
+- Created backward compatibility re-export in original `Monster.ts` file
 
 ✅ 3. Keep all existing hostile behaviors in `NonPlayerEntity` temporarily
-   - Maintained chase, attack, and HP functionality in `NonPlayerEntity`
+
+- Maintained chase, attack, and HP functionality in `NonPlayerEntity`
 
 ✅ 4. Make sure all current monster implementations extend the new `NonPlayerEntity` class
-   - Both `Treant` and `Mole` classes now extend `NonPlayerEntity`
+
+- Both `Treant` and `Mole` classes now extend `NonPlayerEntity`
 
 ✅ 5. Test to ensure existing monster functionality is preserved
-   - Updated `SpatialManager` to call `updateEntity()` instead of `updateMonster()`
-   - Verified that monster behavior remains the same
+
+- Updated `SpatialManager` to call `upd ateEntity()` instead of `updateMonster()`
+- Verified that monster behavior remains the same
 
 ### Phase 3: Extract Hostile Behavior
 

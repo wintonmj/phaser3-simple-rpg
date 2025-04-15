@@ -5,7 +5,7 @@
 import { IPhysicsManager } from '../types/manager-interfaces';
 import { MapLayers } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
-import { Monster } from '../game-objects/enemies/Monster';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 
 /**
  * Manages physics operations and collision handling
@@ -52,7 +52,7 @@ export class PhysicsManager implements IPhysicsManager {
   public setupColliders(
     player: Player,
     layers: MapLayers,
-    monsters: Monster[]
+    monsters: NonPlayerEntity[]
   ): void {
     // Create groups once and reuse
     const monsterGroup = this.createGroup(monsters);
@@ -80,11 +80,11 @@ export class PhysicsManager implements IPhysicsManager {
         monsterGroup, 
         player, 
         // Collision callback
-        (_player: Player, monster: Monster) => {
+        (_player: Player, monster: NonPlayerEntity) => {
           monster.attack();
         },
         // Process callback for early filtering
-        (_player: Player, monster: Monster) => {
+        (_player: Player, monster: NonPlayerEntity) => {
           // Only process collision if monster is active
           if (!monster.active) return false;
           

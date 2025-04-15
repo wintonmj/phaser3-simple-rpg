@@ -5,17 +5,17 @@
 import { IEntityManager } from '../types/manager-interfaces';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
-import { Monster } from '../game-objects/enemies/Monster';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { MONSTERS } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
 
-/** Distance threshold for monster updates (in pixels) */
-const MONSTER_UPDATE_DISTANCE = 400;
-/** Square of monster update distance for more efficient distance checks */
-const MONSTER_UPDATE_DISTANCE_SQ = MONSTER_UPDATE_DISTANCE * MONSTER_UPDATE_DISTANCE;
+/** Distance threshold for entity updates (in pixels) */
+const ENTITY_UPDATE_DISTANCE = 400;
+/** Square of entity update distance for more efficient distance checks */
+const ENTITY_UPDATE_DISTANCE_SQ = ENTITY_UPDATE_DISTANCE * ENTITY_UPDATE_DISTANCE;
 
 /** Default player position if no scene data is available */
 const DEFAULT_PLAYER_POSITION = {
@@ -41,7 +41,7 @@ export class EntityManager implements IEntityManager {
   private scene: SceneType;
   private map: Phaser.Tilemaps.Tilemap;
   private player: Player;
-  private monsters: Monster[] = [];
+  private monsters: NonPlayerEntity[] = [];
   private objectPools: Record<string, Phaser.GameObjects.Group> = {};
 
   /**
@@ -90,7 +90,7 @@ export class EntityManager implements IEntityManager {
     const monsters = (monstersMapObjects?.objects || []) as unknown as CustomTilemapObject[];
 
     // Object pooling factory function to reuse monster instances
-    const createMonster = (type: string, x: number, y: number): Monster | null => {
+    const createMonster = (type: string, x: number, y: number): NonPlayerEntity | null => {
       // Using type casting for compatibility during refactoring
       switch (type) {
         case MONSTERS.treant:
@@ -103,7 +103,7 @@ export class EntityManager implements IEntityManager {
     };
 
     // Batch monster creation
-    const monsterCreationOperations: Monster[] = [];
+    const monsterCreationOperations: NonPlayerEntity[] = [];
     
     monsters.forEach((monster: CustomTilemapObject) => {
       // Skip invalid monsters
@@ -131,7 +131,7 @@ export class EntityManager implements IEntityManager {
         const distanceSq = dx * dx + dy * dy;
         
         // Set initial active state based on distance
-        if (distanceSq > MONSTER_UPDATE_DISTANCE_SQ * 2.25) { // 1.5^2 = 2.25
+        if (distanceSq > ENTITY_UPDATE_DISTANCE_SQ * 2.25) { // 1.5^2 = 2.25
           monster.setActive(false);
           if (monster instanceof Phaser.GameObjects.Sprite) {
             monster.setVisible(false);
@@ -196,7 +196,7 @@ export class EntityManager implements IEntityManager {
   /**
    * Get all monsters in the scene
    */
-  public getMonsters(): Monster[] {
+  public getMonsters(): NonPlayerEntity[] {
     return this.monsters;
   }
 

@@ -1,8 +1,11 @@
 import { NonPlayerEntity } from '../entities/NonPlayerEntity';
 import { ASSETS } from '../../constants/assets';
 import { Log } from '../projectiles/Log';
+import { ENTITIES, EntityType } from '../../constants/entities';
 
 export class Treant extends NonPlayerEntity {
+  public readonly entityType: EntityType = ENTITIES.HOSTILE.TREANT;
+  
   protected WALK_ANIMATION = {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },

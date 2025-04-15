@@ -2,7 +2,7 @@
  * @fileoverview Interfaces for entity class hierarchy
  */
 
-import { EntityType, FriendlyEntityType, HostileEntityType } from '../../constants/entities';
+import { EntityType } from '../../constants/entities';
 
 /**
  * Interface for non-player entities
@@ -19,38 +19,22 @@ export interface INonPlayerEntity {
   
   /** Activates or deactivates the entity */
   setActive(active: boolean): void;
-}
-
-/**
- * Interface for friendly entities (NPCs)
- */
-export interface IFriendlyEntity extends INonPlayerEntity {
-  /** Friendly entity type identifier */
-  readonly entityType: FriendlyEntityType;
   
-  /** Dialog key for conversation system */
+  /** Dialog key for conversation system (for friendly entities) */
   readonly dialogKey?: string;
   
-  /** Handles player interaction with the entity */
-  interact(): void;
-}
-
-/**
- * Interface for hostile entities (monsters)
- */
-export interface IHostileEntity extends INonPlayerEntity {
-  /** Hostile entity type identifier */
-  readonly entityType: HostileEntityType;
+  /** Handles player interaction with the entity (for friendly entities) */
+  interact?(): void;
   
-  /** Current health points */
-  readonly hp: number;
+  /** Current health points (for hostile entities) */
+  readonly hp?: number;
   
-  /** Attack damage value */
-  readonly attackDamage: number;
+  /** Attack damage value (for hostile entities) */
+  readonly attackDamage?: number;
   
-  /** Enemy performs attack */
-  attack(): void;
+  /** Enemy performs attack (for hostile entities) */
+  attack?(): void;
   
-  /** Enemy loses health points */
-  loseHp(damage: number): void;
+  /** Enemy loses health points (for hostile entities) */
+  loseHp?(damage: number): void;
 } 

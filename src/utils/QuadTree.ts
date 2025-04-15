@@ -3,7 +3,7 @@
  * Used for optimizing entity culling and collision detection
  */
 
-import { Monster } from '../game-objects/enemies/Monster';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 
 /** QuadTree configuration */
 export const QUADTREE = {
@@ -20,7 +20,7 @@ export class QuadTree {
   private maxObjects: number;
   private maxLevels: number;
   private level: number;
-  private objects: Monster[];
+  private objects: NonPlayerEntity[];
   private nodes: QuadTree[];
 
   /**
@@ -96,18 +96,18 @@ export class QuadTree {
   /**
    * Determine which node the object belongs to
    */
-  getIndex(monster: Monster): number {
+  getIndex(entity: NonPlayerEntity): number {
     let index = -1;
     const verticalMidpoint = this.bounds.x + (this.bounds.width / 2);
     const horizontalMidpoint = this.bounds.y + (this.bounds.height / 2);
 
     // Object can completely fit within the top quadrants
-    const topQuadrant = (monster.y < horizontalMidpoint);
+    const topQuadrant = (entity.y < horizontalMidpoint);
     // Object can completely fit within the bottom quadrants
-    const bottomQuadrant = (monster.y >= horizontalMidpoint);
+    const bottomQuadrant = (entity.y >= horizontalMidpoint);
 
     // Object can completely fit within the left quadrants
-    if (monster.x < verticalMidpoint) {
+    if (entity.x < verticalMidpoint) {
       if (topQuadrant) {
         index = 1;
       } else if (bottomQuadrant) {
@@ -115,7 +115,7 @@ export class QuadTree {
       }
     }
     // Object can completely fit within the right quadrants
-    else if (monster.x >= verticalMidpoint) {
+    else if (entity.x >= verticalMidpoint) {
       if (topQuadrant) {
         index = 0;
       } else if (bottomQuadrant) {
@@ -129,19 +129,19 @@ export class QuadTree {
   /**
    * Insert an object into the quadtree
    */
-  insert(monster: Monster): void {
+  insert(entity: NonPlayerEntity): void {
     // If we have subnodes, try to insert there
     if (this.nodes.length) {
-      const index = this.getIndex(monster);
+      const index = this.getIndex(entity);
 
       if (index !== -1) {
-        this.nodes[index].insert(monster);
+        this.nodes[index].insert(entity);
         return;
       }
     }
 
     // If we don't have subnodes or object doesn't fit in one, add to this node
-    this.objects.push(monster);
+    this.objects.push(entity);
 
     // Check if we need to split after inserting
     if (this.objects.length > this.maxObjects && this.level < this.maxLevels) {
@@ -165,19 +165,19 @@ export class QuadTree {
   /**
    * Return all objects that could collide with the given object
    */
-  retrieve(monster: Monster): Monster[] {
-    const index = this.getIndex(monster);
+  retrieve(entity: NonPlayerEntity): NonPlayerEntity[] {
+    const index = this.getIndex(entity);
     let returnObjects = this.objects;
 
     // If we have subnodes
     if (this.nodes.length) {
       // If object fits in a specific node, check that node
       if (index !== -1) {
-        returnObjects = returnObjects.concat(this.nodes[index].retrieve(monster));
+        returnObjects = returnObjects.concat(this.nodes[index].retrieve(entity));
       } else {
         // If object overlaps multiple nodes, check all nodes
         for (let i = 0; i < this.nodes.length; i++) {
-          returnObjects = returnObjects.concat(this.nodes[i].retrieve(monster));
+          returnObjects = returnObjects.concat(this.nodes[i].retrieve(entity));
         }
       }
     }
@@ -188,7 +188,7 @@ export class QuadTree {
   /**
    * Return all objects that are within a given area
    */
-  retrieveInBounds(bounds: Phaser.Geom.Rectangle): Monster[] {
+  retrieveInBounds(bounds: Phaser.Geom.Rectangle): NonPlayerEntity[] {
     let returnObjects = this.objects;
 
     // If we have subnodes and the bounds intersect with this node

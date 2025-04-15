@@ -6,6 +6,8 @@
 import { Orientation } from '../../geometry/orientation';
 import { Character, CharacterAnimation } from '../Character';
 import { ASSETS } from '../../constants/assets';
+import { INonPlayerEntity } from '../../types/entities/entity-interfaces';
+import { EntityType } from '../../constants/entities';
 
 /**
  * Abstract base class for all non-player entities in the game.
@@ -14,8 +16,9 @@ import { ASSETS } from '../../constants/assets';
  * @abstract
  * @class NonPlayerEntity
  * @extends {Character}
+ * @implements {INonPlayerEntity}
  */
-export abstract class NonPlayerEntity extends Character {
+export abstract class NonPlayerEntity extends Character implements INonPlayerEntity {
   // Constants
   private static readonly WANDER_DELAY = () => 1000 + 1000 * Math.random();
   private static readonly WANDER_LENGTH = () => 1000 + 5000 * Math.random();
@@ -26,11 +29,15 @@ export abstract class NonPlayerEntity extends Character {
   protected abstract WALK_ANIMATION: CharacterAnimation;
   protected abstract MONSTER_IDLE_DOWN: CharacterAnimation;
 
+  // Required by INonPlayerEntity interface
+  public abstract readonly entityType: EntityType;
+  public readonly attackDamage: number = 1;
+  public hp: number = 0;
+
   // Configurable properties
   protected MONSTER_SPEED = 20;
   protected MONSTER_HIT_DELAY = 100;
   protected CHASING_DISTANCE = 100;
-  protected hp: number;
 
   // State tracking
   private chasingPlayerTimerEvent: Phaser.Time.TimerEvent | null = null;
@@ -46,6 +53,21 @@ export abstract class NonPlayerEntity extends Character {
   }
 
   /**
+   * Returns if the entity is active
+   */
+  public isActive(): boolean {
+    return this.active;
+  }
+
+  /**
+   * Activates or deactivates the entity
+   * @returns this game object
+   */
+  public setActive(active: boolean): Phaser.GameObjects.GameObject {
+    return super.setActive(active);
+  }
+
+  /**
    * Attacks the player if they can be hit
    */
   public attack(): void {
@@ -58,10 +80,17 @@ export abstract class NonPlayerEntity extends Character {
   /**
    * Reduces entity's HP when hit by a projectile
    * 
-   * @param {Phaser.Physics.Arcade.Sprite} projectile - The projectile that hit the entity
+   * @param {number | Phaser.Physics.Arcade.Sprite} damage - The damage amount or projectile that hit the entity
    */
-  public loseHp(projectile: Phaser.Physics.Arcade.Sprite): void {
-    this.hp--;
+  public loseHp(damage: number | Phaser.Physics.Arcade.Sprite): void {
+    if (typeof damage === 'number') {
+      this.hp -= damage;
+    } else {
+      // Legacy behavior when receiving a projectile
+      this.hp--;
+      damage.destroy();
+    }
+    
     this.isStartled = true;
     this.setTint(0xff0000);
     
@@ -70,8 +99,6 @@ export abstract class NonPlayerEntity extends Character {
       callback: () => this.clearTint(),
       callbackScope: this,
     });
-    
-    projectile.destroy();
     
     if (this.hp <= 0) {
       this.die();

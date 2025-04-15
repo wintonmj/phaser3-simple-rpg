@@ -4,12 +4,12 @@
 
 import { ISpatialManager } from '../types/manager-interfaces';
 import { QuadTree, QUADTREE } from '../utils/QuadTree';
-import { Monster } from '../game-objects/enemies/Monster';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 
-/** Distance threshold for monster updates (in pixels) */
-const MONSTER_UPDATE_DISTANCE = 400;
-/** Square of monster update distance for more efficient distance checks */
-const MONSTER_UPDATE_DISTANCE_SQ = MONSTER_UPDATE_DISTANCE * MONSTER_UPDATE_DISTANCE;
+/** Distance threshold for entity updates (in pixels) */
+const ENTITY_UPDATE_DISTANCE = 400;
+/** Square of entity update distance for more efficient distance checks */
+const ENTITY_UPDATE_DISTANCE_SQ = ENTITY_UPDATE_DISTANCE * ENTITY_UPDATE_DISTANCE;
 
 /**
  * Manages spatial partitioning and entity culling
@@ -65,20 +65,20 @@ export class SpatialManager implements ISpatialManager {
     // Clear existing quadtree
     this.quadTree.clear();
     
-    // Get expanded bounds to include monsters just outside the camera view
+    // Get expanded bounds to include entities just outside the camera view
     const expandedBounds = new Phaser.Geom.Rectangle(
-      cameraBounds.x - MONSTER_UPDATE_DISTANCE,
-      cameraBounds.y - MONSTER_UPDATE_DISTANCE,
-      cameraBounds.width + MONSTER_UPDATE_DISTANCE * 2,
-      cameraBounds.height + MONSTER_UPDATE_DISTANCE * 2
+      cameraBounds.x - ENTITY_UPDATE_DISTANCE,
+      cameraBounds.y - ENTITY_UPDATE_DISTANCE,
+      cameraBounds.width + ENTITY_UPDATE_DISTANCE * 2,
+      cameraBounds.height + ENTITY_UPDATE_DISTANCE * 2
     );
     
-    // Only insert monsters that are active and within expanded bounds
+    // Only insert entities that are active and within expanded bounds
     this.entities.forEach(entity => {
       if (!entity.active) return;
       
-      // Only insert Monster types into the quadtree
-      if (entity instanceof Monster) {
+      // Only insert NonPlayerEntity types into the quadtree
+      if (entity instanceof NonPlayerEntity) {
         // Use rectangle contains for faster boundary check
         if (Phaser.Geom.Rectangle.Contains(expandedBounds, entity.x, entity.y)) {
           this.quadTree.insert(entity);
@@ -98,18 +98,18 @@ export class SpatialManager implements ISpatialManager {
     // Clear previous active set
     this.activeEntities.clear();
     
-    // Get query area around player for monster activation
+    // Get query area around player for entity activation
     const playerQueryArea = new Phaser.Geom.Rectangle(
-      playerPosition.x - MONSTER_UPDATE_DISTANCE,
-      playerPosition.y - MONSTER_UPDATE_DISTANCE,
-      MONSTER_UPDATE_DISTANCE * 2,
-      MONSTER_UPDATE_DISTANCE * 2
+      playerPosition.x - ENTITY_UPDATE_DISTANCE,
+      playerPosition.y - ENTITY_UPDATE_DISTANCE,
+      ENTITY_UPDATE_DISTANCE * 2,
+      ENTITY_UPDATE_DISTANCE * 2
     );
     
-    // Query quadtree for monsters in range
+    // Query quadtree for entities in range
     const nearbyEntities = this.quadTree.retrieveInBounds(playerQueryArea);
     
-    // Final squared distance check and activate monsters
+    // Final squared distance check and activate entities
     nearbyEntities.forEach(entity => {
       if (!entity.active) return;
       
@@ -118,11 +118,11 @@ export class SpatialManager implements ISpatialManager {
       const dy = entity.y - playerPosition.y;
       const distanceSq = dx * dx + dy * dy;
       
-      if (distanceSq <= MONSTER_UPDATE_DISTANCE_SQ) {
+      if (distanceSq <= ENTITY_UPDATE_DISTANCE_SQ) {
         this.activeEntities.add(entity);
         
-        // If the entity is a monster, update it
-        if (entity instanceof Monster) {
+        // If the entity is a non-player entity, update it
+        if (entity instanceof NonPlayerEntity) {
           entity.updateEntity();
         }
       }

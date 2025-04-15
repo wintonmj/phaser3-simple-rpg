@@ -9,7 +9,7 @@ import { InterSceneData, MapLayers } from '../types/scene-types';
 
 // Game object imports
 import { Player } from '../game-objects/Player';
-import { Monster } from '../game-objects/enemies/Monster';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
 
 // Manager imports
 import { MapManager } from '../managers/MapManager';
@@ -48,7 +48,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   public cursors: CursorKeys;
   public map: Phaser.Tilemaps.Tilemap;
   public layers: MapLayers;
-  public monsters: Monster[] = [];
+  public monsters: NonPlayerEntity[] = [];
   public monsterGroup: Phaser.Physics.Arcade.Group;
 
   /**

@@ -4,7 +4,7 @@
 
 import { MapLayers } from './scene-types';
 import { Player } from '../game-objects/Player';
-import { IFriendlyEntity, IHostileEntity } from './entities/entity-interfaces';
+import { INonPlayerEntity } from './entities/entity-interfaces';
 
 /**
  * Extended interface for physics and collision management with new entity hierarchy
@@ -28,8 +28,8 @@ export interface IExtendedPhysicsManager {
   setupColliders(
     player: Player,
     layers: MapLayers,
-    friendlyEntities: IFriendlyEntity[],
-    hostileEntities: IHostileEntity[]
+    friendlyEntities: INonPlayerEntity[],
+    hostileEntities: INonPlayerEntity[]
   ): void;
 
   /**
