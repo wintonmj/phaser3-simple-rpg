@@ -15,7 +15,6 @@ import { MONSTERS } from '../constants/monsters';
 // Game object imports
 import { Player } from '../game-objects/Player';
 import { Npc } from '../game-objects/Npc';
-import { AnimatedNpc } from '../game-objects/AnimatedNpc';
 import { Monster } from '../game-objects/enemies/Monster';
 import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
@@ -45,7 +44,7 @@ export abstract class AbstractScene extends Phaser.Scene {
   /** Keyboard input controls */
   public cursors: CursorKeys;
   /** Array of NPCs in the scene */
-  public npcs: (Npc | AnimatedNpc)[];
+  public npcs: Npc[];
   /** Array of monsters in the scene */
   public monsters: Monster[];
   /** The tilemap for the scene */
@@ -116,11 +115,8 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Update all NPCs in the scene
    */
   private updateNPCs(): void {
-    this.npcs.forEach(npc => {
-      if (npc instanceof AnimatedNpc) {
-        npc.update();
-      }
-    });
+    // Remove animated NPC update logic since we're only using basic NPCs
+    // NPCs don't have an update method in the current implementation
   }
 
   /**
@@ -189,19 +185,13 @@ export abstract class AbstractScene extends Phaser.Scene {
     const npcs = (npcsMapObjects?.objects || []) as unknown as CustomTilemapObject[];
     
     this.npcs = npcs.map(npc => {
-      // Check if this should be an animated NPC
-      if (npc.properties.type === 'animated') {
-        return new AnimatedNpc(
-          this, 
-          npc.x, 
-          npc.y, 
-          npc.properties.message,
-          npc.properties.shouldWander === 'true', 
-          npc.properties.combatMode === 'true'
-        );
-      }
-      // Regular NPC
-      return new Npc(this, npc.x, npc.y, npc.properties.message);
+      // Create standard NPC with message only
+      return new Npc(
+        this, 
+        npc.x, 
+        npc.y, 
+        npc.properties.message
+      );
     });
   }
 
@@ -270,7 +260,9 @@ export abstract class AbstractScene extends Phaser.Scene {
     
     // Individual NPC-player collisions for talk functionality
     this.npcs.forEach(npc => {
-      this.physics.add.collider(npc, this.player, npc.talk);
+      // Use overlap for interaction but still collide physically
+      this.physics.add.overlap(npc, this.player, npc.talk);
+      this.physics.add.collider(npc, this.player);
     });
   }
 

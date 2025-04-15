@@ -26,7 +26,7 @@ const PLAYER_RELOAD = 500;
  */
 export class Player extends Character {
   /** Maximum health points for the player */
-  public static MAX_HP = 3;
+  public static MAX_HP = 100;
 
   /** Animation configurations for player movement in different directions */
   private static MOVE_ANIMATION = {
