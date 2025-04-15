@@ -65,6 +65,7 @@ export interface IEntityManager {
 
   /**
    * Create object pools for reusable game objects
+   * @deprecated This method is deprecated. Object pools are now managed by ObjectPoolManager
    */
   createObjectPools(): void;
 
@@ -276,6 +277,22 @@ export interface ISceneFlowManager {
 
   /**
    * Clean up transition zones and resources
+   */
+  shutdown(): void;
+}
+
+/**
+ * Interface for object pool management
+ */
+export interface IObjectPoolManager {
+  /**
+   * Get an object pool by name
+   * @param poolName - The name of the object pool
+   */
+  getObjectPool(poolName: string): Phaser.GameObjects.Group | undefined;
+
+  /**
+   * Clean up object pools when scene is shutdown
    */
   shutdown(): void;
 } 

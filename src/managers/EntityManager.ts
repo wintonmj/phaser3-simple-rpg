@@ -23,6 +23,9 @@
  * 
  * Scene classes:
  * - {@link AbstractScene} - Base scene class
+ * 
+ * Managers:
+ * - {@link ObjectPoolManager} - Manager for object pools
  */
 import { IEntityManager } from '../types/manager-interfaces';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
@@ -34,17 +37,12 @@ import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
 import { MONSTERS } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
+import { ObjectPoolManager } from './ObjectPoolManager';
 
 /** Default player position if no scene data is available */
 const DEFAULT_PLAYER_POSITION = {
   x: 50,
   y: 200
-};
-
-/** Object pool sizes */
-const POOL_SIZES = {
-  PARTICLES: 50,
-  PROJECTILES: 20,
 };
 
 // Type for our necessary scene functionality, without requiring AbstractScene
@@ -69,7 +67,8 @@ export class EntityManager implements IEntityManager {
    */
   private monsters: INonPlayerEntity[] = [];
   
-  private objectPools: Record<string, Phaser.GameObjects.Group> = {};
+  /** Object pool manager for reusable game objects */
+  private objectPoolManager: ObjectPoolManager;
 
   /**
    * Create a new EntityManager
@@ -77,6 +76,7 @@ export class EntityManager implements IEntityManager {
    */
   constructor(scene: Phaser.Scene) {
     this.scene = scene as SceneType;
+    this.objectPoolManager = new ObjectPoolManager(scene);
   }
 
   /**
@@ -86,7 +86,6 @@ export class EntityManager implements IEntityManager {
    */
   public initialize(map: Phaser.Tilemaps.Tilemap, sceneData: InterSceneData): void {
     this.map = map;
-    this.createObjectPools();
     this.createPlayer(sceneData);
     this.createMonsters();
   }
@@ -161,47 +160,12 @@ export class EntityManager implements IEntityManager {
 
   /**
    * Create object pools for reusable game objects
+   * @deprecated This method is kept for compatibility but delegates to ObjectPoolManager
    */
   public createObjectPools(): void {
-    // Create pools with specific recycling behavior
-    this.objectPools.particles = this.scene.add.group({
-      maxSize: POOL_SIZES.PARTICLES,
-      active: false,
-      createCallback: (particle) => {
-        this.scene.physics.world.enable(particle);
-        if (particle.body) {
-          (particle.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
-        }
-      },
-      removeCallback: (particle) => {
-        // Reset particle state when removed from active use
-        particle.setActive(false);
-        if (particle instanceof Phaser.GameObjects.Sprite) {
-          particle.setVisible(false);
-        }
-        if (particle.body) {
-          (particle.body as Phaser.Physics.Arcade.Body).reset(0, 0);
-        }
-      }
-    });
-    
-    this.objectPools.projectiles = this.scene.add.group({
-      maxSize: POOL_SIZES.PROJECTILES,
-      active: false,
-      createCallback: (projectile) => {
-        this.scene.physics.world.enable(projectile);
-      },
-      removeCallback: (projectile) => {
-        // Reset projectile state when removed from active use
-        projectile.setActive(false);
-        if (projectile instanceof Phaser.GameObjects.Sprite) {
-          projectile.setVisible(false);
-        }
-        if (projectile.body) {
-          (projectile.body as Phaser.Physics.Arcade.Body).reset(0, 0);
-        }
-      }
-    });
+    // This method is maintained for backwards compatibility
+    // All object pool logic is now in ObjectPoolManager
+    console.warn('EntityManager.createObjectPools is deprecated. Object pools are managed automatically by ObjectPoolManager');
   }
 
   /**
@@ -227,7 +191,7 @@ export class EntityManager implements IEntityManager {
    * @param poolName - The name of the object pool
    */
   public getObjectPool(poolName: string): Phaser.GameObjects.Group | undefined {
-    return this.objectPools[poolName];
+    return this.objectPoolManager.getObjectPool(poolName);
   }
 
   /**
@@ -256,6 +220,9 @@ export class EntityManager implements IEntityManager {
         }
       }
     });
+    
+    // Clean up object pools
+    this.objectPoolManager.shutdown();
     
     // Clear collections
     this.monsters = [];

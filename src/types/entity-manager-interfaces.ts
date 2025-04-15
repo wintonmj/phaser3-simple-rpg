@@ -42,6 +42,7 @@ export interface IExtendedEntityManager {
 
   /**
    * Create object pools for reusable game objects
+   * @deprecated This method is deprecated. Object pools are now managed by ObjectPoolManager
    */
   createObjectPools(): void;
 
