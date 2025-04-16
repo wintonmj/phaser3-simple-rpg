@@ -6,53 +6,44 @@ import { ChaseMovement } from '../../behaviors/movement/ChaseMovement';
 import { RangedCombat } from '../../behaviors/combat/RangedCombat';
 import { NoInteraction } from '../../behaviors/interaction/NoInteraction';
 import { BaseEntityAnimation } from '../../behaviors/animation/BaseEntityAnimation';
-import { CharacterAnimation } from '../Character';
 import { AbstractScene } from '../../scenes/AbstractScene';
+import { TREANT_ANIMATIONS } from '../../constants/animation-configs';
 
 export class Treant extends NonPlayerEntity {
   public readonly entityType: EntityType = ENTITIES.TREANT;
   
-  // Keep animations as static so they can be referenced easily
-  private static readonly WALK_ANIMATION: CharacterAnimation = {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-  };
-  
-  private static readonly IDLE_ANIMATION: CharacterAnimation = {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-  };
-
-  constructor(scene, x = 400, y = 400) {
-    // Create a projectile generator function for ranged combat
-    const createProjectile = (scene: AbstractScene, x: number, y: number) => {
-      new Log(scene, x, y);
-    };
-    
-    // Create behavior components
+  constructor(scene: AbstractScene, x = 400, y = 400) {
+    // Create behavior components that don't reference 'this'
     const movementBehavior = new ChaseMovement(100);
-    const combatBehavior = new RangedCombat(createProjectile);
     const interactionBehavior = new NoInteraction();
     const animationBehavior = new BaseEntityAnimation(
-      Treant.WALK_ANIMATION, 
-      Treant.IDLE_ANIMATION
+      TREANT_ANIMATIONS.WALK, 
+      TREANT_ANIMATIONS.IDLE
     );
     
     // Call parent constructor with behaviors
     super(scene, x, y, ASSETS.IMAGES.TREANT_IDLE_DOWN, ENTITIES.TREANT, {
       movement: movementBehavior,
-      combat: combatBehavior,
+      combat: null, // Set later after 'this' is available
       interaction: interactionBehavior,
       animation: animationBehavior,
-      hp: 3
+      hp: 5
     });
 
+    // Now we can use 'this' to create the combat behavior
+    const combatBehavior = new RangedCombat(() => {
+      return new Log(scene, this.x, this.y);
+    });
+    
+    // Update the combat behavior
+    this.setCombatBehavior(combatBehavior);
+    
     this.setDepth(5);
     this.setCollideWorldBounds(true);
     this.setImmovable(true);
+  }
+
+  protected animateAttack() {
+    return undefined;
   }
 }

@@ -10,6 +10,7 @@ import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 import { IInputBehavior } from '../behaviors/interfaces';
 import { ActionState } from '../constants/action-states';
+import { PLAYER_ANIMATIONS } from '../constants/animation-configs';
 
 /** Reload time for shooting in milliseconds */
 const PLAYER_RELOAD = 500;
@@ -49,39 +50,8 @@ export class Player extends Character {
     this.setDepth(10);
     this.moveSpeed = 120;
 
-    // Set up animation sets
-    this.setupAnimations({
-      [CharacterState.IDLE]: {
-        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
-        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
-        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-      },
-      [CharacterState.MOVE]: {
-        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN },
-        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_UP },
-        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_LEFT },
-        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT },
-      },
-      [CharacterState.ATTACK]: {
-        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN },
-        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_UP },
-        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
-        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
-      },
-      [CharacterState.HIT]: {
-        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN },
-        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP },
-        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
-        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
-      },
-      [CharacterState.DEATH]: {
-        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
-        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
-        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-      }
-    });
+    // Set up animation sets using shared configs
+    this.setupAnimations(PLAYER_ANIMATIONS);
 
     this.on('animationrepeat', this.handleAnimationRepeat, this);
   }
