@@ -4,7 +4,7 @@ import { ENTITIES, EntityType } from '../../constants/entities';
 import { ChaseMovement } from '../../behaviors/movement/ChaseMovement';
 import { MeleeCombat } from '../../behaviors/combat/MeleeCombat';
 import { NoInteraction } from '../../behaviors/interaction/NoInteraction';
-import { MonsterAnimation } from '../../behaviors/animation/MonsterAnimation';
+import { BaseEntityAnimation } from '../../behaviors/animation/BaseEntityAnimation';
 import { CharacterAnimation } from '../Character';
 
 export class Mole extends NonPlayerEntity {
@@ -30,7 +30,7 @@ export class Mole extends NonPlayerEntity {
     const movementBehavior = new ChaseMovement(100);
     const combatBehavior = new MeleeCombat();
     const interactionBehavior = new NoInteraction();
-    const animationBehavior = new MonsterAnimation(
+    const animationBehavior = new BaseEntityAnimation(
       Mole.WALK_ANIMATION, 
       Mole.IDLE_ANIMATION
     );

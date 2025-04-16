@@ -5,7 +5,7 @@ import { ENTITIES, EntityType } from '../../constants/entities';
 import { ChaseMovement } from '../../behaviors/movement/ChaseMovement';
 import { RangedCombat } from '../../behaviors/combat/RangedCombat';
 import { NoInteraction } from '../../behaviors/interaction/NoInteraction';
-import { MonsterAnimation } from '../../behaviors/animation/MonsterAnimation';
+import { BaseEntityAnimation } from '../../behaviors/animation/BaseEntityAnimation';
 import { CharacterAnimation } from '../Character';
 import { AbstractScene } from '../../scenes/AbstractScene';
 
@@ -37,7 +37,7 @@ export class Treant extends NonPlayerEntity {
     const movementBehavior = new ChaseMovement(100);
     const combatBehavior = new RangedCombat(createProjectile);
     const interactionBehavior = new NoInteraction();
-    const animationBehavior = new MonsterAnimation(
+    const animationBehavior = new BaseEntityAnimation(
       Treant.WALK_ANIMATION, 
       Treant.IDLE_ANIMATION
     );

@@ -1,5 +1,5 @@
 /**
- * @fileoverview MonsterAnimation behavior for monster entities
+ * @fileoverview BaseEntityAnimation behavior for non-player entities
  */
 
 import { IAnimationBehavior } from '../interfaces';
@@ -8,10 +8,10 @@ import { Orientation } from '../../geometry/orientation';
 import { CharacterAnimation } from '../../game-objects/Character';
 
 /**
- * MonsterAnimation behavior for monster entities
- * This is a placeholder implementation that handles monster animations
+ * BaseEntityAnimation behavior for non-player entities
+ * Provides standard walk and idle animations for any entity
  */
-export class MonsterAnimation implements IAnimationBehavior {
+export class BaseEntityAnimation implements IAnimationBehavior {
   private walkAnimation: CharacterAnimation;
   private idleAnimation: CharacterAnimation;
 
