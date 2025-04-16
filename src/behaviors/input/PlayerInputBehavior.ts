@@ -7,7 +7,7 @@ import { IInputBehavior } from '../interfaces';
 import { KeyState } from '../../types/scene-types';
 import { Player } from '../../game-objects/Player';
 import { Orientation } from '../../geometry/orientation';
-import { CharacterState } from '../../game-objects/Character';
+import { CharacterState } from '../../constants/character-states';
 
 /**
  * Handles player input and movement controls

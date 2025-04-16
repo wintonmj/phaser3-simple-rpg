@@ -3,7 +3,8 @@
  * Handles player movement, combat, and animations.
  */
 
-import { Character, CharacterState } from './Character';
+import { Character } from './Character';
+import { CharacterState } from '../constants/character-states';
 import { Arrow } from './projectiles/Arrow';
 import { NonPlayerEntity } from './entities/NonPlayerEntity';
 import { AbstractScene } from '../scenes/AbstractScene';

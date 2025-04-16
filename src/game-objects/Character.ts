@@ -7,10 +7,10 @@ import { Orientation } from '../geometry/orientation';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { SCENES } from '../constants/scenes';
 import { GameManager } from '../scenes/GameManager';
+import { CharacterState } from '../constants/character-states';
 
 /**
- * Type definition for character animations in different orientations
- * @typedef {Object} CharacterAnimation
+ * Character animation configuration for each orientation
  */
 export type CharacterAnimation = {
   [K in Orientation]: {
@@ -18,25 +18,6 @@ export type CharacterAnimation = {
     anim: string;
   };
 };
-
-/**
- * Character states for animation and behavior
- */
-export enum CharacterState {
-  // Base states
-  IDLE = 'idle',
-  MOVE = 'move',
-  DEATH = 'death',
-  
-  // Combat states
-  ATTACK = 'attack',
-  HIT = 'hit',
-  
-  // Weapon states
-  RELOADING = 'reloading',
-  SHOOTING = 'shooting',
-  PUNCHING = 'punching'
-}
 
 /**
  * Abstract base class for all characters in the game.

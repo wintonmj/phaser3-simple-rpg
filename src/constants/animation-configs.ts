@@ -4,7 +4,7 @@
  */
 
 import { CharacterAnimation } from '../game-objects/Character';
-import { CharacterState } from '../game-objects/Character';
+import { CharacterState } from './character-states';
 import { ASSETS } from './assets';
 
 /**

@@ -5,7 +5,8 @@
 import { IAnimationBehavior } from '../interfaces';
 import { NonPlayerEntity } from '../../game-objects/entities/NonPlayerEntity';
 import { Orientation } from '../../geometry/orientation';
-import { CharacterAnimation, CharacterState } from '../../game-objects/Character';
+import { CharacterAnimation } from '../../game-objects/Character';
+import { CharacterState } from '../../constants/character-states';
 
 /**
  * BaseEntityAnimation behavior for non-player entities
