@@ -5,6 +5,7 @@
 import { Orientation } from '../geometry/orientation';
 import { Player } from '../game-objects/Player';
 import { Character } from '../game-objects/Character';
+import { KeyState } from '../types/scene-types';
 
 // Forward reference to avoid circular dependency
 // The actual class will be imported by implementations
@@ -95,4 +96,21 @@ export interface IAnimationBehavior extends IBehavior {
    * @param entity The entity to set up animations for
    */
   setupAnimations(entity: NonPlayerEntity): void;
+}
+
+/**
+ * Input behavior interface for the player
+ */
+export interface IInputBehavior {
+  /**
+   * Update method called each frame for this behavior
+   * @param entity The player this behavior is attached to
+   */
+  update(entity: Player): void;
+  
+  /**
+   * Set the current key state for processing in the next update
+   * @param keyState The current keyboard input state
+   */
+  setKeyState(keyState: KeyState): void;
 } 

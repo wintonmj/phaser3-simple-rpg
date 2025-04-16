@@ -38,6 +38,7 @@ import { MONSTERS } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 import { BaseManager } from './BaseManager';
+import { PlayerInputBehavior } from '../behaviors/input/PlayerInputBehavior';
 
 /** Default player position if no scene data is available */
 const DEFAULT_PLAYER_POSITION = {
@@ -77,6 +78,8 @@ export class EntityManager extends BaseManager implements IEntityManager {
   /** Injected manager dependencies */
   protected inputManager: IInputManager;
   protected spatialManager: ISpatialManager;
+
+  private playerInputBehavior: PlayerInputBehavior;
 
   /**
    * Create a new EntityManager
@@ -124,20 +127,29 @@ export class EntityManager extends BaseManager implements IEntityManager {
    * @param sceneData - Data from the previous scene
    */
   public createPlayer(sceneData: InterSceneData): Player {
-    // In a real implementation, we would use sceneData for more sophisticated positioning
-    const position = sceneData?.comesFrom 
-      ? { x: 50, y: 200 } // Using default position but acknowledging sceneData
-      : DEFAULT_PLAYER_POSITION;
-
-    // Create player instance
-    if (this.scene instanceof AbstractScene) {
-      this.player = new Player(this.scene, position.x, position.y);
-    } else {
-      // Fallback for non-AbstractScene (should not happen in practice)
-      // Using unknown as intermediate type to avoid direct any usage
-      this.player = new Player(this.scene as unknown as AbstractScene, position.x, position.y);
-      console.warn('EntityManager: Creating player with non-AbstractScene');
+    if (this.player) {
+      console.warn('EntityManager.createPlayer: Player already exists');
+      return this.player;
     }
+    
+    // Calculate player position from scene transition or use default
+    const playerX = DEFAULT_PLAYER_POSITION.x;
+    const playerY = DEFAULT_PLAYER_POSITION.y;
+    
+    // If we have scene data with a previous scene, we can use that for position
+    if (sceneData && sceneData.comesFrom) {
+      // In a real implementation, we would calculate position based on transition
+      console.log(`Player transitioning from ${sceneData.comesFrom}`);
+      
+      // For now, just using default position
+    }
+    
+    // Create player at the appropriate position
+    this.player = new Player(this.scene as AbstractScene, playerX, playerY);
+    
+    // Create the input behavior for the player
+    this.playerInputBehavior = new PlayerInputBehavior();
+    this.player.setInputBehavior(this.playerInputBehavior);
     
     return this.player;
   }
@@ -236,8 +248,11 @@ export class EntityManager extends BaseManager implements IEntityManager {
     // Get current input state for the frame
     const keyState = this.inputManager.getKeyState();
     
-    // Update player with input
-    this.player.updatePlayer(keyState);
+    // Update player input behavior with the current key state
+    this.playerInputBehavior.setKeyState(keyState);
+    
+    // Trigger the player's update method to process input
+    this.player.update();
     
     // SpatialManager maintains a set of active entities based on position
     // We retrieve only the active entities within player range

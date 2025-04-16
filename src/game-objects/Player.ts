@@ -9,6 +9,7 @@ import { Arrow } from './projectiles/Arrow';
 import { NonPlayerEntity } from './entities/NonPlayerEntity';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
+import { IInputBehavior } from '../behaviors/interfaces';
 
 /** Delay between hits in milliseconds */
 const HIT_DELAY = 500;
@@ -70,6 +71,8 @@ export class Player extends Character {
   private isShooting: boolean;
   /** Tomb sprite shown when player dies */
   private tomb: Phaser.GameObjects.Sprite;
+  /** Input behavior to handle player controls */
+  private inputBehavior: IInputBehavior;
 
   /**
    * Creates an instance of Player.
@@ -113,23 +116,28 @@ export class Player extends Character {
     );
   }
 
-  public updatePlayer(keyPressed) {
-    if (!this.active) {
-      return;
-    }
-    this.setVelocity(0);
-    this.handleMovement(keyPressed);
+  /**
+   * Sets the input behavior component for the player
+   * @param inputBehavior The input behavior to use
+   */
+  public setInputBehavior(inputBehavior: IInputBehavior): void {
+    this.inputBehavior = inputBehavior;
+  }
 
-    if (keyPressed.shift) {
-      this.punch();
+  /**
+   * Main update method called by the game loop.
+   * This overrides the base Sprite update method.
+   * 
+   * @override
+   */
+  public update(): void {
+    // Call parent class update if needed
+    super.update();
+    
+    // Process input via the input behavior if available
+    if (this.inputBehavior) {
+      this.inputBehavior.update(this);
     }
-
-    const noKeyPressed = Object.values(keyPressed).filter(x => x).length === 0;
-    if (noKeyPressed && !this.isLoading) {
-      this.beIdle();
-    }
-
-    this.handleShootKey(keyPressed);
   }
 
   public canGetHit() {
@@ -150,6 +158,58 @@ export class Player extends Character {
       this.tomb = this.scene.add.sprite(this.x, this.y, ASSETS.IMAGES.TOMB).setScale(0.1);
     }
     this.destroy();
+  }
+
+  /**
+   * Checks if player is currently loading/reloading
+   */
+  public isPlayerLoading(): boolean {
+    return this.isLoading;
+  }
+
+  /**
+   * Checks if player is currently shooting
+   */
+  public isPlayerShooting(): boolean {
+    return this.isShooting;
+  }
+
+  /**
+   * Reloads the player's weapon
+   */
+  public reloadWeapon(): void {
+    this.reload();
+  }
+
+  /**
+   * Performs a shooting action
+   */
+  public shootWeapon(): void {
+    this.shoot();
+  }
+
+  /**
+   * Sets player to idle animation state
+   */
+  public setToIdle(): void {
+    this.beIdle();
+  }
+
+  /**
+   * Performs a punch action
+   */
+  public performPunch(): void {
+    this.punch();
+  }
+
+  /**
+   * Moves the player in a specific direction
+   * 
+   * @param direction The direction to move
+   * @param shouldAnimate Whether to play animation
+   */
+  public moveInDirection(direction: Orientation, shouldAnimate = true): void {
+    this.go(direction, shouldAnimate);
   }
 
   private get hp() {
@@ -200,36 +260,6 @@ export class Player extends Character {
     this.animate(Player.MOVE_ANIMATION, this.orientation);
   }
 
-  private handleHorizontalMovement(keyPressed) {
-    const isUpDownPressed = keyPressed.up || keyPressed.down;
-
-    if (keyPressed.left) {
-      this.go(Orientation.Left, !isUpDownPressed);
-      return;
-    }
-
-    if (keyPressed.right) {
-      this.go(Orientation.Right, !isUpDownPressed);
-      return;
-    }
-  }
-
-  private handleVerticalMovement(keyPressed) {
-    if (keyPressed.up) {
-      this.go(Orientation.Up);
-    } else if (keyPressed.down) {
-      this.go(Orientation.Down);
-    }
-  }
-
-  private handleMovement(keyPressed) {
-    if (this.isShooting) {
-      return;
-    }
-    this.handleHorizontalMovement(keyPressed);
-    this.handleVerticalMovement(keyPressed);
-  }
-
   private punch() {
     this.animate(Player.PUNCH_ANIMATION, this.orientation);
   }
@@ -251,15 +281,5 @@ export class Player extends Character {
 
     this.animate(Player.SHOOT_ANIMATION, this.orientation);
     // Arrow will be spawned at the end of the animation
-  }
-
-  private handleShootKey(keyPressed) {
-    if (keyPressed.space) {
-      if (this.isLoading) {
-        return;
-      }
-      this.reload();
-      this.shoot();
-    }
   }
 }
