@@ -10,8 +10,6 @@ import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 import { IInputBehavior } from '../behaviors/interfaces';
 
-/** Delay between hits in milliseconds */
-const HIT_DELAY = 500;
 /** Reload time for shooting in milliseconds */
 const PLAYER_RELOAD = 500;
 
@@ -48,10 +46,6 @@ export class Player extends Character {
     // Set up player-specific properties
     this._maxHp = Player.MAX_HP;
     this.hp = this._maxHp;
-    // Note: using the default moveSpeed (80) inherited from Character
-    
-    this.setCollideWorldBounds(true);
-    this.setOrigin(0.5, 0.7);
     this.setSize(10, 10);
     this.setDepth(10);
     
@@ -123,7 +117,7 @@ export class Player extends Character {
    * @override
    */
   public override canGetHit(): boolean {
-    return super.canGetHit(HIT_DELAY);
+    return super.canGetHit(Character.HIT_DELAY);
   }
 
   /**

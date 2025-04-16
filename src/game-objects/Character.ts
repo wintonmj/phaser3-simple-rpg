@@ -30,9 +30,6 @@ export enum CharacterState {
   DEATH = 'death'
 }
 
-/** Delay between hits in milliseconds */
-export const DEFAULT_HIT_DELAY = 500;
-
 /**
  * Abstract base class for all characters in the game.
  * Provides common functionality for physics, animations, and scene integration.
@@ -42,6 +39,9 @@ export const DEFAULT_HIT_DELAY = 500;
  * @extends {Phaser.Physics.Arcade.Sprite}
  */
 export abstract class Character extends Phaser.Physics.Arcade.Sprite {
+  /** Delay between hits in milliseconds */
+  protected static readonly HIT_DELAY: number = 500;
+  
   /** Reference to the scene the character belongs to */
   protected scene: AbstractScene;
   /** Reference to the UI scene for game management */
@@ -161,7 +161,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Check if character can be hit (based on hit delay)
    * @param {number} hitDelay - Optional custom hit delay
    */
-  public canGetHit(hitDelay: number = DEFAULT_HIT_DELAY): boolean {
+  public canGetHit(hitDelay: number = Character.HIT_DELAY): boolean {
     return new Date().getTime() - this.lastTimeHit > hitDelay;
   }
   
