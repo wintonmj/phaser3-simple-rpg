@@ -25,8 +25,6 @@ export class Player extends Character {
   /** Maximum health points for the player */
   public static readonly MAX_HP = 10;
 
-  /** Current action state of the player */
-  private actionState: CharacterState = CharacterState.IDLE;
   /** Tomb sprite shown when player dies */
   private tomb: Phaser.GameObjects.Sprite = null;
   /** Input behavior to handle player controls */
@@ -96,30 +94,6 @@ export class Player extends Character {
       this.tomb = this.scene.add.sprite(this.x, this.y, ASSETS.IMAGES.TOMB).setScale(0.1);
     }
     this.destroy();
-  }
-
-  /**
-   * Checks if player is in a specific action state
-   * @param state The state to check against
-   */
-  public isActionState(state: CharacterState): boolean {
-    return this.actionState === state;
-  }
-
-  /**
-   * Checks if player is currently loading/reloading
-   * @deprecated Use isActionState(CharacterState.RELOADING) instead
-   */
-  public isPlayerLoading(): boolean {
-    return this.actionState === CharacterState.RELOADING;
-  }
-
-  /**
-   * Checks if player is currently shooting
-   * @deprecated Use isActionState(CharacterState.SHOOTING) instead
-   */
-  public isPlayerShooting(): boolean {
-    return this.actionState === CharacterState.SHOOTING;
   }
 
   /**

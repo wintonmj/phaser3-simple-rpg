@@ -68,6 +68,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   protected isPerformingAction: boolean = false;
   /** Animation sets for different character states */
   protected animationSets: Record<string, CharacterAnimation> = null;
+  /** Current action state of the character */
+  protected actionState: CharacterState = CharacterState.IDLE;
 
   /**
    * Creates an instance of Character.
@@ -266,6 +268,14 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     if (!this.isPerformingAction && this.animationSets) {
       this.playAnimation(CharacterState.IDLE);
     }
+  }
+  
+  /**
+   * Checks if character is in a specific action state
+   * @param state The state to check against
+   */
+  public isActionState(state: CharacterState): boolean {
+    return this.actionState === state;
   }
   
   /**
