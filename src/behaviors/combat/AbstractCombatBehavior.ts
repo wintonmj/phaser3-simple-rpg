@@ -60,7 +60,7 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
    * Entity takes damage
    */
   takeDamage(entity: NonPlayerEntity, amount: number): void {
-    entity.setHp(entity.getHp() - amount);
+    entity.hp = entity.hp - amount;
     entity.setTint(0xff0000);
     
     try {
@@ -77,7 +77,7 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
       setTimeout(() => entity.clearTint(), this.hitDelay);
     }
     
-    if (entity.getHp() <= 0) {
+    if (entity.hp <= 0) {
       this.die(entity);
     }
   }

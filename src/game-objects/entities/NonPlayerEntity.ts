@@ -73,7 +73,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
     this.animationBehavior = options.animation;
     
     // Set up entity state
-    this.setHp(options.hp ?? 1);
+    this.hp = options.hp ?? 1;
     this.dialogKey = options.dialogKey;
     
     if (options.attackDamage !== undefined) {

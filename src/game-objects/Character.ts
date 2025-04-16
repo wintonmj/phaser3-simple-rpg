@@ -88,20 +88,6 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   }
   
   /**
-   * Get character's current health
-   */
-  public getHp(): number {
-    return this._hp;
-  }
-  
-  /**
-   * Set character's health
-   */
-  public setHp(value: number): void {
-    this._hp = value;
-  }
-  
-  /**
    * Get character's health points using property accessor
    */
   public get hp(): number {
