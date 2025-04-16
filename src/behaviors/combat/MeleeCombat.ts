@@ -20,11 +20,16 @@ export class MeleeCombat extends AbstractCombatBehavior {
    * @override
    */
   protected doAttack(entity: NonPlayerEntity, target: Character): void {
+    // Get damage amount from the entity
+    const damage = entity.attackDamage || 1;
+    
     // Attempt to access player from target if it has a canGetHit method
     if ('canGetHit' in target && typeof target.canGetHit === 'function') {
       if (!target.canGetHit()) return;
+      
+      // Use loseHp which is properly implemented on Player
       if ('loseHp' in target && typeof target.loseHp === 'function') {
-        target.loseHp();
+        target.loseHp(damage);
       }
     }
 

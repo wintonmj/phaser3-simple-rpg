@@ -80,8 +80,9 @@ export class Player extends Character {
   constructor(scene: AbstractScene, x: number, y: number) {
     super(scene, x, y, ASSETS.IMAGES.PLAYER_IDLE_DOWN);
 
-    if (!this.hp) {
-      this.hp = Player.MAX_HP;
+    this._hp = Player.MAX_HP;
+    if (this.uiScene) {
+      this.uiScene.playerHp = this._hp;
     }
 
     this.setCollideWorldBounds(true);
@@ -146,11 +147,8 @@ export class Player extends Character {
    * Override the parent loseHp method for player-specific death behavior
    */
   public override loseHp(damage: number = 1): void {
-    // Call parent implementation first to check for hit invulnerability
     super.loseHp(damage);
-    
-    // Update UI - only happens if super.loseHp() actually applied damage
-    this.hp = this._hp;
+    this.uiScene.playerHp = this._hp; //UI update for hearts
   }
 
   /**
@@ -219,12 +217,15 @@ export class Player extends Character {
     this.go(direction, shouldAnimate);
   }
 
-  private get hp() {
-    return this.uiScene.playerHp;
+  public get hp(): number {
+    return this._hp;
   }
 
-  private set hp(newHp: number) {
-    this.uiScene.playerHp = newHp;
+  public set hp(value: number) {
+    this._hp = value;
+    if (this.uiScene) {
+      this.uiScene.playerHp = value;
+    }
   }
 
   private reload() {

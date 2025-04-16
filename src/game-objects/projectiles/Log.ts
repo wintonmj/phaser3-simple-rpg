@@ -37,7 +37,7 @@ export class Log extends Projectile {
         // Add collision with player
         this.scene.physics.add.collider(this, this.scene.player, () => {
             if (this.scene.player.canGetHit()) {
-                this.scene.player.loseHp();
+                this.scene.player.loseHp(this.damage);
                 this.destroy();
             }
         });
