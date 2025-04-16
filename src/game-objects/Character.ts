@@ -23,11 +23,19 @@ export type CharacterAnimation = {
  * Character states for animation and behavior
  */
 export enum CharacterState {
+  // Base states
   IDLE = 'idle',
   MOVE = 'move',
+  DEATH = 'death',
+  
+  // Combat states
   ATTACK = 'attack',
   HIT = 'hit',
-  DEATH = 'death'
+  
+  // Weapon states
+  RELOADING = 'reloading',
+  SHOOTING = 'shooting',
+  PUNCHING = 'punching'
 }
 
 /**

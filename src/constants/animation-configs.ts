@@ -40,6 +40,25 @@ export const PLAYER_ANIMATIONS: Record<string, CharacterAnimation> = {
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
     left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+  },
+  // New weapon states - using appropriate existing animations
+  [CharacterState.RELOADING]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+  },
+  [CharacterState.SHOOTING]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
+  },
+  [CharacterState.PUNCHING]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
   }
 };
 
