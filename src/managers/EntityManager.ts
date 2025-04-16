@@ -11,34 +11,30 @@
  * 
  * Game objects:
  * - {@link Player} - Player character constructor
- * - {@link NonPlayerEntity} - Base class for all non-player entities
- * 
- * Enemy types:
- * - {@link Treant} - Concrete implementation of tree monster
- * - {@link Mole} - Concrete implementation of mole monster
  * 
  * Constants:
  * - {@link MAP_CONTENT_KEYS} - Keys for map content objects
- * - {@link MONSTERS} - Dictionary of monster types (needed for monster creation)
+ * - {@link ENTITIES} - Dictionary of entity types
  * 
  * Scene classes:
  * - {@link AbstractScene} - Base scene class
  * 
  * Managers:
  * - {@link BaseManager} - Base manager class
+ * 
+ * Factories:
+ * - {@link EntityFactory} - Factory for creating game entities
  */
 import { IEntityManager, ISpatialManager, IInputManager } from '../types/manager-interfaces';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
-import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
-import { Treant } from '../game-objects/enemies/Treant';
-import { Mole } from '../game-objects/enemies/Mole';
 import { MAP_CONTENT_KEYS } from '../constants/map-content-keys';
-import { MONSTERS } from '../constants/entities';
+import { ENTITIES } from '../constants/entities';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 import { BaseManager } from './BaseManager';
 import { PlayerInputBehavior } from '../behaviors/input/PlayerInputBehavior';
+import { EntityFactory } from '../factories/EntityFactory';
 
 /** Default player position if no scene data is available */
 const DEFAULT_PLAYER_POSITION = {
@@ -58,6 +54,7 @@ const DEFAULT_PLAYER_POSITION = {
  * Collaborators:
  * - SpatialManager: Handles activation/deactivation of entities based on spatial partitioning
  * - InputManager: Provides input state for player controls
+ * - EntityFactory: Creates entity instances
  */
 export class EntityManager extends BaseManager implements IEntityManager {
   private map: Phaser.Tilemaps.Tilemap;
@@ -67,8 +64,7 @@ export class EntityManager extends BaseManager implements IEntityManager {
    * Collection of all non-player entities
    * 
    * Typed with INonPlayerEntity interface for type safety,
-   * but contains instances of concrete classes like Treant and Mole
-   * that implements the interface
+   * but contains instances of concrete classes that implement the interface
    * 
    * Note: EntityManager creates and stores non-player entities
    * SpatialManager handles their activation/deactivation based on position
@@ -80,6 +76,9 @@ export class EntityManager extends BaseManager implements IEntityManager {
   protected spatialManager: ISpatialManager;
 
   private playerInputBehavior: PlayerInputBehavior;
+  
+  /** Entity factory for creating game entities */
+  private entityFactory: EntityFactory;
 
   /**
    * Create a new EntityManager
@@ -96,6 +95,11 @@ export class EntityManager extends BaseManager implements IEntityManager {
     
     if (inputManager) this.inputManager = inputManager;
     if (spatialManager) this.spatialManager = spatialManager;
+    
+    // Initialize the entity factory if we have a proper scene
+    if (scene instanceof AbstractScene) {
+      this.entityFactory = new EntityFactory(scene);
+    }
   }
 
   /**
@@ -118,6 +122,12 @@ export class EntityManager extends BaseManager implements IEntityManager {
    */
   public initialize(map: Phaser.Tilemaps.Tilemap, sceneData: InterSceneData): void {
     this.map = map;
+    
+    // Ensure we have a entity factory
+    if (!this.entityFactory && this.scene instanceof AbstractScene) {
+      this.entityFactory = new EntityFactory(this.scene);
+    }
+    
     this.createPlayer(sceneData);
     this.createMonsters();
   }
@@ -144,8 +154,16 @@ export class EntityManager extends BaseManager implements IEntityManager {
       // For now, just using default position
     }
     
-    // Create player at the appropriate position
-    this.player = new Player(this.scene as AbstractScene, playerX, playerY);
+    // Create player at the appropriate position using the factory
+    if (this.entityFactory) {
+      this.player = this.entityFactory.createPlayer(playerX, playerY);
+    } else if (this.scene instanceof AbstractScene) {
+      // Fallback if factory isn't available
+      this.player = new Player(this.scene, playerX, playerY);
+    } else {
+      console.error('EntityManager: Cannot create player without AbstractScene');
+      return null;
+    }
     
     // Create the input behavior for the player
     this.playerInputBehavior = new PlayerInputBehavior();
@@ -167,49 +185,36 @@ export class EntityManager extends BaseManager implements IEntityManager {
     );
     const monsters = (monstersMapObjects?.objects || []) as unknown as CustomTilemapObject[];
 
-    /**
-     * Factory function to create monster instances
-     * 
-     * This requires importing concrete monster classes (Treant, Mole)
-     * even though we're typing with INonPlayerEntity interface.
-     * 
-     * @param {string} type - Monster type from MONSTERS constant
-     * @param {number} x - X position
-     * @param {number} y - Y position
-     * @returns {NonPlayerEntity|null} The created monster or null
-     */
-    const createMonster = (type: string, x: number, y: number): NonPlayerEntity | null => {
-      if (!(this.scene instanceof AbstractScene)) {
-        console.warn('EntityManager: Creating monster with non-AbstractScene');
-        return null;
-      }
-      
-      switch (type) {
-        case MONSTERS.treant:
-          return new Treant(this.scene, x, y);
-        case MONSTERS.mole:
-          return new Mole(this.scene, x, y);
-        default:
-          return null;
-      }
-    };
-
     // Batch monster creation
-    const monsterCreationOperations: NonPlayerEntity[] = [];
+    const monsterCreationOperations: INonPlayerEntity[] = [];
+    
+    // Define which entities are hostile (monsters)
+    const hostileEntityValues = [ENTITIES.TREANT, ENTITIES.MOLE];
     
     monsters.forEach((monster: CustomTilemapObject) => {
-      // Skip invalid monsters
-      if (!monster.name || !(monster.name in MONSTERS)) {
+      // Skip invalid entities
+      if (!monster.name) {
         return;
       }
       
-      const newMonster = createMonster(monster.name, monster.x, monster.y);
-      if (newMonster) {
-        monsterCreationOperations.push(newMonster);
+      // Check if this is a valid monster type
+      const monsterType = monster.name;
+      const isValidHostileEntity = hostileEntityValues.includes(monsterType as typeof ENTITIES.TREANT | typeof ENTITIES.MOLE);
+      
+      if (!isValidHostileEntity) {
+        return;
+      }
+      
+      // Use factory to create entity
+      if (this.entityFactory) {
+        const entity = this.entityFactory.createEntity(monsterType, monster.x, monster.y);
+        if (entity) {
+          monsterCreationOperations.push(entity);
+        }
       }
     });
     
-    this.nonPlayerEntities = monsterCreationOperations.filter(Boolean) as INonPlayerEntity[];
+    this.nonPlayerEntities = monsterCreationOperations;
   }
 
   /**
@@ -222,9 +227,7 @@ export class EntityManager extends BaseManager implements IEntityManager {
   /**
    * Get all non-player entities in the scene
    * 
-   * @returns {INonPlayerEntity[]} Array of non-player entities typed as the interface,
-   * though each element is an instance of a concrete class (Treant, Mole)
-   * that implements the interface
+   * @returns {INonPlayerEntity[]} Array of non-player entities typed as the interface
    */
   public getMonsters(): INonPlayerEntity[] {
     return this.nonPlayerEntities;
@@ -285,8 +288,8 @@ export class EntityManager extends BaseManager implements IEntityManager {
     this.nonPlayerEntities.forEach(entity => {
       if (entity.active) {
         entity.setActive(false);
-        if (entity instanceof Phaser.GameObjects.Sprite) {
-          entity.setVisible(false);
+        if ('visible' in entity) {
+          entity['setVisible'](false);
         }
       }
     });

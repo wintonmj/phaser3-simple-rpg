@@ -8,7 +8,7 @@ import { BaseEntityAnimation } from '../../behaviors/animation/BaseEntityAnimati
 import { CharacterAnimation } from '../Character';
 
 export class Mole extends NonPlayerEntity {
-  public readonly entityType: EntityType = ENTITIES.HOSTILE.MOLE;
+  public readonly entityType: EntityType = ENTITIES.MOLE;
   
   // Keep animations as static so they can be referenced easily
   private static readonly WALK_ANIMATION: CharacterAnimation = {
@@ -36,7 +36,7 @@ export class Mole extends NonPlayerEntity {
     );
     
     // Call parent constructor with behaviors
-    super(scene, x, y, ASSETS.IMAGES.MOLE_IDLE_DOWN, ENTITIES.HOSTILE.MOLE, {
+    super(scene, x, y, ASSETS.IMAGES.MOLE_IDLE_DOWN, ENTITIES.MOLE, {
       movement: movementBehavior,
       combat: combatBehavior,
       interaction: interactionBehavior,

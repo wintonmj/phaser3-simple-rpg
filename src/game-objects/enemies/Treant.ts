@@ -10,7 +10,7 @@ import { CharacterAnimation } from '../Character';
 import { AbstractScene } from '../../scenes/AbstractScene';
 
 export class Treant extends NonPlayerEntity {
-  public readonly entityType: EntityType = ENTITIES.HOSTILE.TREANT;
+  public readonly entityType: EntityType = ENTITIES.TREANT;
   
   // Keep animations as static so they can be referenced easily
   private static readonly WALK_ANIMATION: CharacterAnimation = {
@@ -43,7 +43,7 @@ export class Treant extends NonPlayerEntity {
     );
     
     // Call parent constructor with behaviors
-    super(scene, x, y, ASSETS.IMAGES.TREANT_IDLE_DOWN, ENTITIES.HOSTILE.TREANT, {
+    super(scene, x, y, ASSETS.IMAGES.TREANT_IDLE_DOWN, ENTITIES.TREANT, {
       movement: movementBehavior,
       combat: combatBehavior,
       interaction: interactionBehavior,
