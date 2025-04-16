@@ -25,11 +25,11 @@ export class Player extends Character {
   public static readonly MAX_HP = 10;
 
   /** Whether the player is currently reloading */
-  private isLoading: boolean;
+  private isLoading: boolean = false;
   /** Whether the player is currently shooting */
-  private isShooting: boolean;
+  private isShooting: boolean = false;
   /** Tomb sprite shown when player dies */
-  private tomb: Phaser.GameObjects.Sprite;
+  private tomb: Phaser.GameObjects.Sprite = null;
   /** Input behavior to handle player controls */
   private inputBehavior: IInputBehavior;
 
@@ -48,10 +48,6 @@ export class Player extends Character {
     this.hp = this._maxHp;
     this.setSize(10, 10);
     this.setDepth(10);
-    
-    this.isLoading = false;
-    this.isShooting = false;
-    this.tomb = null;
     this.moveSpeed = 120;
 
     // Set up animation sets
@@ -110,14 +106,6 @@ export class Player extends Character {
     if (this.inputBehavior) {
       this.inputBehavior.update(this);
     }
-  }
-
-  /**
-   * Override the default hit delay
-   * @override
-   */
-  public override canGetHit(): boolean {
-    return super.canGetHit(Character.HIT_DELAY);
   }
 
   /**
