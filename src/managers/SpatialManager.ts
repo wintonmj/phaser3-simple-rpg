@@ -149,7 +149,7 @@ export class SpatialManager extends BaseManager implements ISpatialManager {
    * Type guard to check if an entity is a NonPlayerEntity
    */
   private isNonPlayerEntity(entity: Phaser.GameObjects.GameObject): entity is Phaser.GameObjects.GameObject & INonPlayerEntity {
-    return 'updateEntity' in entity && 'entityType' in entity;
+    return 'update' in entity && 'entityType' in entity;
   }
 
   /**
@@ -200,7 +200,7 @@ export class SpatialManager extends BaseManager implements ISpatialManager {
         
         // If the entity is a non-player entity, update it
         if (this.isNonPlayerEntity(entity)) {
-          entity.updateEntity();
+          entity.update();
         }
       } else {
         // Deactivate entities that are now too far

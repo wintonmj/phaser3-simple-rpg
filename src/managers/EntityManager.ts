@@ -267,7 +267,7 @@ export class EntityManager extends BaseManager implements IEntityManager {
     this.monsters.forEach(monster => {
       // Process active monsters only
       if (monster.active && activeEntities.has(monster as unknown as Phaser.GameObjects.GameObject)) {
-        monster.updateEntity();
+        monster.update();
       }
     });
     

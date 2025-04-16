@@ -12,7 +12,7 @@ export interface INonPlayerEntity {
   readonly entityType: EntityType;
   
   /** Updates entity state and behavior */
-  updateEntity(): void;
+  update(): void;
   
   /** Returns if the entity is active */
   isActive(): boolean;

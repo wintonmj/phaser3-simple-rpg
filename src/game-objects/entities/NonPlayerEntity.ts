@@ -87,7 +87,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   /**
    * Main update method called by scene
    */
-  public updateEntity(): void {
+  public update(): void {
     if (!this.active) return;
     
     this.movementBehavior.update(this);
