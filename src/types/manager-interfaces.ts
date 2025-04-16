@@ -64,12 +64,6 @@ export interface IEntityManager {
   createMonsters(): void;
 
   /**
-   * Create object pools for reusable game objects
-   * @deprecated This method is deprecated. Object pools are now managed by ObjectPoolManager
-   */
-  createObjectPools(): void;
-
-  /**
    * Get the player instance
    */
   getPlayer(): Player;
@@ -78,12 +72,6 @@ export interface IEntityManager {
    * Get all monsters in the scene
    */
   getMonsters(): INonPlayerEntity[];
-
-  /**
-   * Get an object pool by name
-   * @param poolName - The name of the object pool
-   */
-  getObjectPool(poolName: string): Phaser.GameObjects.Group | undefined;
 
   /**
    * Update entity states

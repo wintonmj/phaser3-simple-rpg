@@ -27,7 +27,7 @@
  * Managers:
  * - {@link BaseManager} - Base manager class
  */
-import { IEntityManager } from '../types/manager-interfaces';
+import { IEntityManager, ISpatialManager, IInputManager } from '../types/manager-interfaces';
 import { InterSceneData, CustomTilemapObject } from '../types/scene-types';
 import { Player } from '../game-objects/Player';
 import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
@@ -48,9 +48,15 @@ const DEFAULT_PLAYER_POSITION = {
 /**
  * Manages game entities including player, NPCs, and monsters
  * 
- * Works in conjunction with:
- * - SpatialManager: Handles activation/deactivation and spatial operations for entities
- * - ObjectPoolManager: Manages reusable game objects
+ * Responsibilities:
+ * - Creating and storing entities (player, monsters)
+ * - Providing access to these entities
+ * - Basic entity lifecycle management
+ * - Updating the player entity
+ * 
+ * Collaborators:
+ * - SpatialManager: Handles activation/deactivation of entities based on spatial partitioning
+ * - InputManager: Provides input state for player controls
  */
 export class EntityManager extends BaseManager implements IEntityManager {
   private map: Phaser.Tilemaps.Tilemap;
@@ -63,16 +69,43 @@ export class EntityManager extends BaseManager implements IEntityManager {
    * but contains instances of concrete classes like Treant and Mole
    * that implements the interface
    * 
-   * Note: Active state of these entities is managed by SpatialManager
+   * Note: EntityManager creates and stores monsters
+   * SpatialManager handles their activation/deactivation based on position
    */
   private monsters: INonPlayerEntity[] = [];
+
+  /** Injected manager dependencies */
+  protected inputManager: IInputManager;
+  protected spatialManager: ISpatialManager;
 
   /**
    * Create a new EntityManager
    * @param scene - The scene this manager belongs to
+   * @param inputManager - The input manager for player controls
+   * @param spatialManager - The spatial manager for entity activation
    */
-  constructor(scene: Phaser.Scene) {
+  constructor(
+    scene: Phaser.Scene,
+    inputManager?: IInputManager,
+    spatialManager?: ISpatialManager
+  ) {
     super(scene);
+    
+    if (inputManager) this.inputManager = inputManager;
+    if (spatialManager) this.spatialManager = spatialManager;
+  }
+
+  /**
+   * Set the required dependencies directly
+   * @param inputManager - The input manager for player controls
+   * @param spatialManager - The spatial manager for entity activation
+   */
+  public setDependencies(
+    inputManager: IInputManager,
+    spatialManager: ISpatialManager
+  ): void {
+    this.inputManager = inputManager;
+    this.spatialManager = spatialManager;
   }
 
   /**
@@ -84,9 +117,6 @@ export class EntityManager extends BaseManager implements IEntityManager {
     this.map = map;
     this.createPlayer(sceneData);
     this.createMonsters();
-    
-    // Note: After creation, entities should be registered with SpatialManager
-    // in the AbstractScene.init method to manage their activation/deactivation
   }
 
   /**
@@ -115,8 +145,9 @@ export class EntityManager extends BaseManager implements IEntityManager {
   /**
    * Create monsters from map data
    * 
-   * Note: After creation, monsters need to be registered with SpatialManager
-   * for spatial partitioning and activation/deactivation
+   * EntityManager responsibility: Create and store monster entities
+   * SpatialManager responsibility: Register monsters for spatial partitioning
+   * and handle their activation/deactivation based on position
    */
   public createMonsters(): void {
     const monstersMapObjects = this.map.objects.find(
@@ -167,19 +198,6 @@ export class EntityManager extends BaseManager implements IEntityManager {
     });
     
     this.monsters = monsterCreationOperations.filter(Boolean) as INonPlayerEntity[];
-    
-    // Note: After creation, monsters need to be registered with SpatialManager
-    // This happens in AbstractScene.init() via spatialManager.registerEntities()
-  }
-
-  /**
-   * Create object pools for reusable game objects
-   * @deprecated This method is deprecated. Object pools are now managed by ObjectPoolManager
-   */
-  public createObjectPools(): void {
-    // This method is maintained for interface compatibility
-    // All object pool logic is now in ObjectPoolManager
-    console.warn('EntityManager.createObjectPools is deprecated. Object pools are managed automatically by ObjectPoolManager');
   }
 
   /**
@@ -201,40 +219,32 @@ export class EntityManager extends BaseManager implements IEntityManager {
   }
 
   /**
-   * Get an object pool by name
-   * @param poolName - The name of the object pool
-   */
-  public getObjectPool(poolName: string): Phaser.GameObjects.Group | undefined {
-    const objectPoolManager = this.getObjectPoolManager();
-    if (!objectPoolManager) {
-      console.warn('EntityManager.getObjectPool: No ObjectPoolManager available');
-      return undefined;
-    }
-    return objectPoolManager.getObjectPool(poolName);
-  }
-
-  /**
    * Update entity states
    * 
-   * Note: This only updates the player. Monster updates are handled by 
-   * the SpatialManager based on proximity to the player.
+   * EntityManager responsibility: Update the player based on input
+   * SpatialManager responsibility: Handle monster activation/deactivation and updates
    */
   public update(): void {
-    // Get current key state from InputManager and update player
-    if (this.scene instanceof AbstractScene && this.player) {
-      const keyState = this.scene.getInputManager().getKeyState();
-      this.player.updatePlayer(keyState);
+    // Check if the player and inputManager are available
+    if (!this.player || !this.inputManager) {
+      console.warn('EntityManager.update: Player or InputManager not available');
+      return;
     }
     
-    // Monster updates are handled by the SpatialManager in its update method
-    // See SpatialManager.updateActiveEntities() for entity update logic
+    // Get key state from InputManager and update player
+    const keyState = this.inputManager.getKeyState();
+    this.player.updatePlayer(keyState);
+    
+    // Note: Monster updates are handled by the SpatialManager in its update method
+    // SpatialManager determines which monsters are active based on position
+    // and only updates active monsters
   }
 
   /**
    * Clean up entities when scene is shutdown
    */
   public shutdown(): void {
-    // Return monsters to object pool instead of destroying
+    // Deactivate monsters
     this.monsters.forEach(monster => {
       if (monster.active) {
         monster.setActive(false);

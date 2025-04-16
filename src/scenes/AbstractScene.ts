@@ -176,27 +176,21 @@ export abstract class AbstractScene extends Phaser.Scene {
    * Create manager instances
    */
   private initializeManagers(): void {
-    // Create concrete instances but store as interface types
-    this.mapManager = new MapManager(this);
-    this.entityManager = new EntityManager(this);
-    this.spatialManager = new SpatialManager(this);
-    this.physicsManager = new PhysicsManager(this);
+    // Create managers that don't have dependencies first
     this.inputManager = new InputManager(this);
+    this.mapManager = new MapManager(this);
+    this.spatialManager = new SpatialManager(this);
+    
+    // Create managers that depend on other managers
+    this.entityManager = new EntityManager(
+      this,
+      this.inputManager,
+      this.spatialManager
+    );
+    
+    this.physicsManager = new PhysicsManager(this);
     this.cameraManager = new CameraManager(this);
     this.sceneFlowManager = new SceneFlowManager(this);
-    
-    // Set up cross-manager references
-    const entityManager = this.entityManager as EntityManager;
-    const spatialManager = this.spatialManager as SpatialManager;
-    const objectPoolManager = (this.entityManager as EntityManager).getObjectPoolManager();
-    
-    // Provide each manager with references to commonly used managers
-    if (entityManager && spatialManager && objectPoolManager) {
-      entityManager.setSpatialManager(spatialManager);
-      entityManager.setObjectPoolManager(objectPoolManager);
-      
-      // Additional references can be set here as needed
-    }
   }
 
   /**
