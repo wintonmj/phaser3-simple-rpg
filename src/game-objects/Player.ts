@@ -99,7 +99,16 @@ export class Player extends Character {
   }
 
   /**
+   * Checks if player is in a specific action state
+   * @param state The state to check against
+   */
+  public isActionState(state: CharacterState): boolean {
+    return this.actionState === state;
+  }
+
+  /**
    * Checks if player is currently loading/reloading
+   * @deprecated Use isActionState(CharacterState.RELOADING) instead
    */
   public isPlayerLoading(): boolean {
     return this.actionState === CharacterState.RELOADING;
@@ -107,6 +116,7 @@ export class Player extends Character {
 
   /**
    * Checks if player is currently shooting
+   * @deprecated Use isActionState(CharacterState.SHOOTING) instead
    */
   public isPlayerShooting(): boolean {
     return this.actionState === CharacterState.SHOOTING;

@@ -7,6 +7,7 @@ import { IInputBehavior } from '../interfaces';
 import { KeyState } from '../../types/scene-types';
 import { Player } from '../../game-objects/Player';
 import { Orientation } from '../../geometry/orientation';
+import { CharacterState } from '../../game-objects/Character';
 
 /**
  * Handles player input and movement controls
@@ -55,7 +56,7 @@ export class PlayerInputBehavior implements IInputBehavior {
     
     // Set to idle if no keys are pressed
     const noKeyPressed = Object.values(this.keyState).filter(x => x).length === 0;
-    if (noKeyPressed && !player.isPlayerLoading()) {
+    if (noKeyPressed && !player.isActionState(CharacterState.RELOADING)) {
       player.setToIdle();
     }
   }
@@ -65,7 +66,7 @@ export class PlayerInputBehavior implements IInputBehavior {
    * @param player The player to move
    */
   private handleMovement(player: Player): void {
-    if (player.isPlayerShooting()) {
+    if (player.isActionState(CharacterState.SHOOTING)) {
       return;
     }
     
@@ -111,7 +112,7 @@ export class PlayerInputBehavior implements IInputBehavior {
    */
   private handleShootKey(player: Player): void {
     if (this.keyState.space) {
-      if (player.isPlayerLoading()) {
+      if (player.isActionState(CharacterState.RELOADING)) {
         return;
       }
       player.reloadWeapon();
