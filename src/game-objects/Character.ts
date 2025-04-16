@@ -102,6 +102,20 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   }
   
   /**
+   * Get character's health points using property accessor
+   */
+  public get hp(): number {
+    return this._hp;
+  }
+  
+  /**
+   * Set character's health points using property accessor
+   */
+  public set hp(value: number) {
+    this._hp = value;
+  }
+  
+  /**
    * Check if character can be hit (based on hit delay)
    * @param {number} hitDelay - Optional custom hit delay
    */

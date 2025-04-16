@@ -80,11 +80,8 @@ export class Player extends Character {
   constructor(scene: AbstractScene, x: number, y: number) {
     super(scene, x, y, ASSETS.IMAGES.PLAYER_IDLE_DOWN);
 
-    this._hp = Player.MAX_HP;
-    if (this.uiScene) {
-      this.uiScene.playerHp = this._hp;
-    }
-
+    this.hp = Player.MAX_HP;
+    
     this.setCollideWorldBounds(true);
     this.setOrigin(0.5, 0.7);
     this.setSize(10, 10);
@@ -148,7 +145,9 @@ export class Player extends Character {
    */
   public override loseHp(damage: number = 1): void {
     super.loseHp(damage);
-    this.uiScene.playerHp = this._hp; //UI update for hearts
+    if (this.uiScene) {
+      this.uiScene.playerHp = this.hp;
+    }
   }
 
   /**
@@ -217,11 +216,17 @@ export class Player extends Character {
     this.go(direction, shouldAnimate);
   }
 
-  public get hp(): number {
+  /**
+   * Get the player's health points
+   */
+  public override get hp(): number {
     return this._hp;
   }
 
-  public set hp(value: number) {
+  /**
+   * Set the player's health points and update the UI
+   */
+  public override set hp(value: number) {
     this._hp = value;
     if (this.uiScene) {
       this.uiScene.playerHp = value;
