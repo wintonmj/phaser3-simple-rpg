@@ -61,10 +61,6 @@ export class Player extends Character {
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
   };
 
-  /** Current orientation of the player */
-  private orientation: Orientation;
-  /** Timestamp of the last hit taken */
-  private lastTimeHit: number;
   /** Whether the player is currently reloading */
   private isLoading: boolean;
   /** Whether the player is currently shooting */
@@ -88,8 +84,6 @@ export class Player extends Character {
       this.hp = Player.MAX_HP;
     }
 
-    this.orientation = Orientation.Down;
-    this.lastTimeHit = new Date().getTime();
     this.setCollideWorldBounds(true);
     this.setOrigin(0.5, 0.7);
     this.setSize(10, 10);
@@ -97,6 +91,7 @@ export class Player extends Character {
     this.isLoading = false;
     this.isShooting = false;
     this.tomb = null;
+    this.moveSpeed = PLAYER_SPEED;
 
     this.on(
       'animationrepeat',
@@ -140,19 +135,32 @@ export class Player extends Character {
     }
   }
 
-  public canGetHit() {
-    return new Date().getTime() - this.lastTimeHit > HIT_DELAY;
+  /**
+   * Override the parent canGetHit method to use our constant
+   */
+  public override canGetHit(): boolean {
+    return super.canGetHit(HIT_DELAY);
   }
 
-  public loseHp() {
-    this.hp--;
-
+  /**
+   * Override the parent loseHp method for player-specific death behavior
+   */
+  public override loseHp(damage: number = 1): void {
+    this._hp -= damage;
     this.lastTimeHit = new Date().getTime();
 
-    if (this.hp > 0) {
-      return;
-    }
+    // Update UI
+    this.hp = this._hp;
 
+    if (this._hp <= 0) {
+      this.onDeath();
+    }
+  }
+
+  /**
+   * Override the parent onDeath method for player-specific death behavior
+   */
+  protected override onDeath(): void {
     // Player dies
     if (!this.tomb) {
       this.tomb = this.scene.add.sprite(this.x, this.y, ASSETS.IMAGES.TOMB).setScale(0.1);
@@ -203,12 +211,15 @@ export class Player extends Character {
   }
 
   /**
-   * Moves the player in a specific direction
+   * Extends the parent moveInDirection to support animation control
    * 
    * @param direction The direction to move
-   * @param shouldAnimate Whether to play animation
+   * @param speed Optional speed value, used as animation flag in player
+   * @override
    */
-  public moveInDirection(direction: Orientation, shouldAnimate = true): void {
+  public override moveInDirection(direction: Orientation, speed?: number): void {
+    // In Player class, we use the speed parameter as a flag for animation
+    const shouldAnimate = speed !== 0; // If speed is 0, don't animate
     this.go(direction, shouldAnimate);
   }
 
@@ -234,28 +245,12 @@ export class Player extends Character {
   }
 
   private go(direction: Orientation, shouldAnimate = true) {
-    switch (direction) {
-      case Orientation.Left:
-        this.setVelocityX(-PLAYER_SPEED);
-        break;
-      case Orientation.Right:
-        this.setVelocityX(PLAYER_SPEED);
-        break;
-      case Orientation.Up:
-        this.setVelocityY(-PLAYER_SPEED);
-        break;
-      case Orientation.Down:
-        this.setVelocityY(PLAYER_SPEED);
-        break;
-      default:
-        break;
-    }
+    // Use parent class movement
+    super.moveInDirection(direction, PLAYER_SPEED);
 
     if (!shouldAnimate) {
       return;
     }
-
-    this.orientation = direction;
 
     this.animate(Player.MOVE_ANIMATION, this.orientation);
   }

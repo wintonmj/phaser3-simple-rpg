@@ -45,7 +45,7 @@ export class RangedCombat implements ICombatBehavior {
    * Entity takes damage
    */
   takeDamage(entity: NonPlayerEntity, amount: number): void {
-    entity.hp -= amount;
+    entity.setHp(entity.getHp() - amount);
     
     entity.setTint(0xff0000);
     
@@ -63,7 +63,7 @@ export class RangedCombat implements ICombatBehavior {
       setTimeout(() => entity.clearTint(), this.hitDelay);
     }
     
-    if (entity.hp <= 0) {
+    if (entity.getHp() <= 0) {
       this.die(entity);
     }
   }

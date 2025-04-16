@@ -28,7 +28,6 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   // Entity type and properties
   public readonly entityType: EntityType;
   public readonly dialogKey?: string;
-  public hp: number = 0;
   public readonly attackDamage: number = 1;
   
   // Behavior components
@@ -74,7 +73,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
     this.animationBehavior = options.animation;
     
     // Set up entity state
-    this.hp = options.hp ?? 1;
+    this.setHp(options.hp ?? 1);
     this.dialogKey = options.dialogKey;
     
     if (options.attackDamage !== undefined) {
@@ -125,7 +124,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   /**
    * Stop the entity's movement
    */
-  public stop(): void {
+  public override stop(): void {
     this.movementBehavior.stop(this);
   }
   
@@ -141,7 +140,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   /**
    * Entity takes damage
    */
-  public loseHp(damage: number | Phaser.Physics.Arcade.Sprite): void {
+  public override loseHp(damage: number | Phaser.Physics.Arcade.Sprite): void {
     // Handle legacy behavior when receiving a sprite projectile
     if (typeof damage !== 'number') {
       damage.destroy();
@@ -163,8 +162,10 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   /**
    * Check if player can interact with this entity
    */
-  public canInteract(player: Player): boolean {
-    return this.interactionBehavior.canInteract(this, player);
+  public canInteract(player: Character): boolean {
+    // Since we're calling this method with a Player instance,
+    // we need to make the parameter type compatible
+    return this.interactionBehavior.canInteract(this, player as Player);
   }
   
   /**

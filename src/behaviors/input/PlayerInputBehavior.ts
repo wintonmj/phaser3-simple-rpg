@@ -81,12 +81,14 @@ export class PlayerInputBehavior implements IInputBehavior {
     const isUpDownPressed = this.keyState.up || this.keyState.down;
     
     if (this.keyState.left) {
-      player.moveInDirection(Orientation.Left, !isUpDownPressed);
+      // Pass speed as normal, or 0 to disable animation
+      player.moveInDirection(Orientation.Left, isUpDownPressed ? 0 : undefined);
       return;
     }
     
     if (this.keyState.right) {
-      player.moveInDirection(Orientation.Right, !isUpDownPressed);
+      // Pass speed as normal, or 0 to disable animation
+      player.moveInDirection(Orientation.Right, isUpDownPressed ? 0 : undefined);
       return;
     }
   }
