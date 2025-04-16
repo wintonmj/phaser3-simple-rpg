@@ -12,6 +12,7 @@ import { ASSETS } from '../../constants/assets';
  */
 export abstract class AbstractCombatBehavior implements ICombatBehavior {
   protected hitDelay: number;
+  protected lastAttackTime: number = 0;
 
   constructor(hitDelay = 1000) {
     this.hitDelay = hitDelay;
@@ -26,10 +27,34 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
   }
 
   /**
-   * Entity performs an attack against a target
-   * To be implemented by derived classes
+   * Check if entity can attack (based on cooldown and target validity)
    */
-  abstract attack(entity: NonPlayerEntity, target: Character): void;
+  protected canAttack(target: Character): boolean {
+    if (!target) return false;
+    
+    // Check if enough time has passed since the last attack
+    const currentTime = new Date().getTime();
+    return currentTime - this.lastAttackTime >= this.hitDelay;
+  }
+
+  /**
+   * Entity performs an attack against a target
+   * Template method that calls doAttack if conditions are met
+   */
+  attack(entity: NonPlayerEntity, target: Character): void {
+    if (!this.canAttack(target)) return;
+    
+    // Perform the actual attack implementation
+    this.doAttack(entity, target);
+    
+    // Update last attack time
+    this.lastAttackTime = new Date().getTime();
+  }
+
+  /**
+   * Specific attack implementation to be provided by child classes
+   */
+  protected abstract doAttack(entity: NonPlayerEntity, target: Character): void;
 
   /**
    * Entity takes damage

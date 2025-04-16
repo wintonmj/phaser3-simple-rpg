@@ -16,11 +16,10 @@ export class MeleeCombat extends AbstractCombatBehavior {
   }
 
   /**
-   * Entity performs an attack against a target
+   * Implementation of the attack behavior for melee attacks
+   * @override
    */
-  attack(entity: NonPlayerEntity, target: Character): void {
-    if (!target) return;
-    
+  protected doAttack(entity: NonPlayerEntity, target: Character): void {
     // Attempt to access player from target if it has a canGetHit method
     if ('canGetHit' in target && typeof target.canGetHit === 'function') {
       if (!target.canGetHit()) return;
