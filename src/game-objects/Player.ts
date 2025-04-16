@@ -9,6 +9,7 @@ import { NonPlayerEntity } from './entities/NonPlayerEntity';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 import { IInputBehavior } from '../behaviors/interfaces';
+import { ActionState } from '../constants/action-states';
 
 /** Reload time for shooting in milliseconds */
 const PLAYER_RELOAD = 500;
@@ -24,10 +25,8 @@ export class Player extends Character {
   /** Maximum health points for the player */
   public static readonly MAX_HP = 10;
 
-  /** Whether the player is currently reloading */
-  private isLoading: boolean = false;
-  /** Whether the player is currently shooting */
-  private isShooting: boolean = false;
+  /** Current action state of the player */
+  private actionState: ActionState = ActionState.IDLE;
   /** Tomb sprite shown when player dies */
   private tomb: Phaser.GameObjects.Sprite = null;
   /** Input behavior to handle player controls */
@@ -134,21 +133,21 @@ export class Player extends Character {
    * Checks if player is currently loading/reloading
    */
   public isPlayerLoading(): boolean {
-    return this.isLoading;
+    return this.actionState === ActionState.RELOADING;
   }
 
   /**
    * Checks if player is currently shooting
    */
   public isPlayerShooting(): boolean {
-    return this.isShooting;
+    return this.actionState === ActionState.SHOOTING;
   }
 
   /**
    * Reloads the player's weapon
    */
   public reloadWeapon(): void {
-    this.isLoading = true;
+    this.actionState = ActionState.RELOADING;
     this.scene.time.addEvent({
       delay: PLAYER_RELOAD,
       callback: this.readyToFire,
@@ -160,14 +159,14 @@ export class Player extends Character {
    * Mark player as ready to fire
    */
   private readyToFire(): void {
-    this.isLoading = false;
+    this.actionState = ActionState.IDLE;
   }
 
   /**
    * Performs a shooting action
    */
   public shootWeapon(): void {
-    this.isShooting = true;
+    this.actionState = ActionState.SHOOTING;
     this.isPerformingAction = true;
     this.playAnimation(CharacterState.HIT);
     // Arrow will be spawned at the end of the animation
@@ -177,6 +176,7 @@ export class Player extends Character {
    * Performs a punch action
    */
   public performPunch(): void {
+    this.actionState = ActionState.PUNCHING;
     this.isPerformingAction = true;
     this.playAnimation(CharacterState.ATTACK);
   }
@@ -197,6 +197,7 @@ export class Player extends Character {
       case this.animationSets[CharacterState.ATTACK].right.anim:
       case this.animationSets[CharacterState.ATTACK].up.anim:
       case this.animationSets[CharacterState.ATTACK].down.anim:
+        this.actionState = ActionState.IDLE;
         this.isPerformingAction = false;
         break;
       default:
@@ -208,7 +209,7 @@ export class Player extends Character {
    * Finalize shooting action and spawn arrow
    */
   private concludeShoot(): void {
-    this.isShooting = false;
+    this.actionState = ActionState.IDLE;
     this.isPerformingAction = false;
     
     const arrow = new Arrow(this.scene, this.x, this.y, this.orientation);
