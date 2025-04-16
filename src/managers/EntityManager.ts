@@ -221,23 +221,45 @@ export class EntityManager extends BaseManager implements IEntityManager {
   /**
    * Update entity states
    * 
-   * EntityManager responsibility: Update the player based on input
-   * SpatialManager responsibility: Handle monster activation/deactivation and updates
+   * EntityManager provides a consistent approach to entity updates:
+   * - Processes player input
+   * - Delegates spatial activation/deactivation to SpatialManager
+   * - Updates both player and monsters in a uniform way
    */
   public update(): void {
-    // Check if the player and inputManager are available
-    if (!this.player || !this.inputManager) {
-      console.warn('EntityManager.update: Player or InputManager not available');
+    // Check if dependencies are available
+    if (!this.player || !this.inputManager || !this.spatialManager) {
+      console.warn('EntityManager.update: Required dependencies not available');
       return;
     }
     
-    // Get key state from InputManager and update player
+    // Get current input state for the frame
     const keyState = this.inputManager.getKeyState();
+    
+    // Update player with input
     this.player.updatePlayer(keyState);
     
-    // Note: Monster updates are handled by the SpatialManager in its update method
-    // SpatialManager determines which monsters are active based on position
-    // and only updates active monsters
+    // SpatialManager maintains a set of active entities based on position
+    // We retrieve only the active entities within player range
+    const ACTIVATION_RANGE = 300;
+    
+    // For performance, only update monsters that are within activation range
+    // SpatialManager filters the entities based on spatial criteria
+    const activeEntities = this.spatialManager.getActiveEntities(ACTIVATION_RANGE);
+    
+    // Filter our monsters to find those that are in the active set
+    // This avoids updating monsters that are far from player
+    this.monsters.forEach(monster => {
+      // Process active monsters only
+      if (monster.active && activeEntities.has(monster as unknown as Phaser.GameObjects.GameObject)) {
+        monster.updateEntity();
+      }
+    });
+    
+    // This approach is more consistent because:
+    // 1. SpatialManager determines which entities are active (spatial concern)
+    // 2. EntityManager updates only relevant entities (performance optimization)
+    // 3. Each entity type handles its own specific update logic
   }
 
   /**
