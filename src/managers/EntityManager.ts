@@ -64,16 +64,16 @@ export class EntityManager extends BaseManager implements IEntityManager {
   private player: Player;
   
   /** 
-   * Collection of all monster entities
+   * Collection of all non-player entities
    * 
    * Typed with INonPlayerEntity interface for type safety,
    * but contains instances of concrete classes like Treant and Mole
    * that implements the interface
    * 
-   * Note: EntityManager creates and stores monsters
+   * Note: EntityManager creates and stores non-player entities
    * SpatialManager handles their activation/deactivation based on position
    */
-  private monsters: INonPlayerEntity[] = [];
+  private nonPlayerEntities: INonPlayerEntity[] = [];
 
   /** Injected manager dependencies */
   protected inputManager: IInputManager;
@@ -157,8 +157,8 @@ export class EntityManager extends BaseManager implements IEntityManager {
   /**
    * Create monsters from map data
    * 
-   * EntityManager responsibility: Create and store monster entities
-   * SpatialManager responsibility: Register monsters for spatial partitioning
+   * EntityManager responsibility: Create and store non-player entities
+   * SpatialManager responsibility: Register non-player entities for spatial partitioning
    * and handle their activation/deactivation based on position
    */
   public createMonsters(): void {
@@ -209,7 +209,7 @@ export class EntityManager extends BaseManager implements IEntityManager {
       }
     });
     
-    this.monsters = monsterCreationOperations.filter(Boolean) as INonPlayerEntity[];
+    this.nonPlayerEntities = monsterCreationOperations.filter(Boolean) as INonPlayerEntity[];
   }
 
   /**
@@ -220,14 +220,14 @@ export class EntityManager extends BaseManager implements IEntityManager {
   }
 
   /**
-   * Get all monsters in the scene
+   * Get all non-player entities in the scene
    * 
-   * @returns {INonPlayerEntity[]} Array of monsters typed as the interface,
+   * @returns {INonPlayerEntity[]} Array of non-player entities typed as the interface,
    * though each element is an instance of a concrete class (Treant, Mole)
    * that implements the interface
    */
   public getMonsters(): INonPlayerEntity[] {
-    return this.monsters;
+    return this.nonPlayerEntities;
   }
 
   /**
@@ -236,7 +236,7 @@ export class EntityManager extends BaseManager implements IEntityManager {
    * EntityManager provides a consistent approach to entity updates:
    * - Processes player input
    * - Delegates spatial activation/deactivation to SpatialManager
-   * - Updates both player and monsters in a uniform way
+   * - Updates both player and non-player entities in a uniform way
    */
   public update(): void {
     // Check if dependencies are available
@@ -258,16 +258,16 @@ export class EntityManager extends BaseManager implements IEntityManager {
     // We retrieve only the active entities within player range
     const ACTIVATION_RANGE = 300;
     
-    // For performance, only update monsters that are within activation range
+    // For performance, only update non-player entities that are within activation range
     // SpatialManager filters the entities based on spatial criteria
     const activeEntities = this.spatialManager.getActiveEntities(ACTIVATION_RANGE);
     
-    // Filter our monsters to find those that are in the active set
-    // This avoids updating monsters that are far from player
-    this.monsters.forEach(monster => {
-      // Process active monsters only
-      if (monster.active && activeEntities.has(monster as unknown as Phaser.GameObjects.GameObject)) {
-        monster.update();
+    // Filter our non-player entities to find those that are in the active set
+    // This avoids updating entities that are far from player
+    this.nonPlayerEntities.forEach(entity => {
+      // Process active entities only
+      if (entity.active && activeEntities.has(entity as unknown as Phaser.GameObjects.GameObject)) {
+        entity.update();
       }
     });
     
@@ -281,17 +281,17 @@ export class EntityManager extends BaseManager implements IEntityManager {
    * Clean up entities when scene is shutdown
    */
   public shutdown(): void {
-    // Deactivate monsters
-    this.monsters.forEach(monster => {
-      if (monster.active) {
-        monster.setActive(false);
-        if (monster instanceof Phaser.GameObjects.Sprite) {
-          monster.setVisible(false);
+    // Deactivate non-player entities
+    this.nonPlayerEntities.forEach(entity => {
+      if (entity.active) {
+        entity.setActive(false);
+        if (entity instanceof Phaser.GameObjects.Sprite) {
+          entity.setVisible(false);
         }
       }
     });
     
     // Clear collections
-    this.monsters = [];
+    this.nonPlayerEntities = [];
   }
 } 
