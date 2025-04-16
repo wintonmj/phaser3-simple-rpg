@@ -3,8 +3,7 @@
  * Handles player movement, combat, and animations.
  */
 
-import { Orientation } from '../geometry/orientation';
-import { Character } from './Character';
+import { Character, CharacterState } from './Character';
 import { Arrow } from './projectiles/Arrow';
 import { NonPlayerEntity } from './entities/NonPlayerEntity';
 import { AbstractScene } from '../scenes/AbstractScene';
@@ -13,8 +12,6 @@ import { IInputBehavior } from '../behaviors/interfaces';
 
 /** Delay between hits in milliseconds */
 const HIT_DELAY = 500;
-/** Player movement speed */
-const PLAYER_SPEED = 80;
 /** Reload time for shooting in milliseconds */
 const PLAYER_RELOAD = 500;
 
@@ -27,39 +24,7 @@ const PLAYER_RELOAD = 500;
  */
 export class Player extends Character {
   /** Maximum health points for the player */
-  public static MAX_HP = 10;
-
-  /** Animation configurations for player movement in different directions */
-  private static MOVE_ANIMATION = {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_LEFT },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT },
-  };
-
-  /** Animation configurations for player punching in different directions */
-  private static PUNCH_ANIMATION = {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
-  };
-
-  /** Animation configurations for player idle state in different directions */
-  private static IDLE_ANIMATION = {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-  };
-
-  /** Animation configurations for player shooting in different directions */
-  private static SHOOT_ANIMATION = {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
-  };
+  public static readonly MAX_HP = 10;
 
   /** Whether the player is currently reloading */
   private isLoading: boolean;
@@ -80,33 +45,56 @@ export class Player extends Character {
   constructor(scene: AbstractScene, x: number, y: number) {
     super(scene, x, y, ASSETS.IMAGES.PLAYER_IDLE_DOWN);
 
-    this.hp = Player.MAX_HP;
+    // Set up player-specific properties
+    this._maxHp = Player.MAX_HP;
+    this.hp = this._maxHp;
+    // Note: using the default moveSpeed (80) inherited from Character
     
     this.setCollideWorldBounds(true);
     this.setOrigin(0.5, 0.7);
     this.setSize(10, 10);
     this.setDepth(10);
+    
     this.isLoading = false;
     this.isShooting = false;
     this.tomb = null;
-    this.moveSpeed = PLAYER_SPEED;
+    this.moveSpeed = 120;
 
-    this.on(
-      'animationrepeat',
-      event => {
-        switch (event.key) {
-          case Player.SHOOT_ANIMATION.left.anim:
-          case Player.SHOOT_ANIMATION.right.anim:
-          case Player.SHOOT_ANIMATION.up.anim:
-          case Player.SHOOT_ANIMATION.down.anim:
-            this.concludeShoot();
-            break;
-          default:
-            break;
-        }
+    // Set up animation sets
+    this.setupAnimations({
+      [CharacterState.IDLE]: {
+        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
+        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
+        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
       },
-      this,
-    );
+      [CharacterState.MOVE]: {
+        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN },
+        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_UP },
+        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_LEFT },
+        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT },
+      },
+      [CharacterState.ATTACK]: {
+        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_DOWN },
+        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_UP },
+        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
+        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_SIDE },
+      },
+      [CharacterState.HIT]: {
+        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN },
+        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP },
+        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
+        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
+      },
+      [CharacterState.DEATH]: {
+        down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
+        up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
+        left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+        right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+      }
+    });
+
+    this.on('animationrepeat', this.handleAnimationRepeat, this);
   }
 
   /**
@@ -119,12 +107,9 @@ export class Player extends Character {
 
   /**
    * Main update method called by the game loop.
-   * This overrides the base Sprite update method.
-   * 
    * @override
    */
-  public update(): void {
-    // Call parent class update if needed
+  public override update(): void {
     super.update();
     
     // Process input via the input behavior if available
@@ -134,24 +119,26 @@ export class Player extends Character {
   }
 
   /**
-   * Override the parent canGetHit method to use our constant
+   * Override the default hit delay
+   * @override
    */
   public override canGetHit(): boolean {
     return super.canGetHit(HIT_DELAY);
   }
 
   /**
-   * Override the parent loseHp method for player-specific death behavior
+   * Called when HP changes to update UI
+   * @override
    */
-  public override loseHp(damage: number = 1): void {
-    super.loseHp(damage);
+  protected override onHpChanged(): void {
     if (this.uiScene) {
       this.uiScene.playerHp = this.hp;
     }
   }
 
   /**
-   * Override the parent onDeath method for player-specific death behavior
+   * Handle player death
+   * @override
    */
   protected override onDeath(): void {
     // Player dies
@@ -179,61 +166,6 @@ export class Player extends Character {
    * Reloads the player's weapon
    */
   public reloadWeapon(): void {
-    this.reload();
-  }
-
-  /**
-   * Performs a shooting action
-   */
-  public shootWeapon(): void {
-    this.shoot();
-  }
-
-  /**
-   * Sets player to idle animation state
-   */
-  public setToIdle(): void {
-    this.beIdle();
-  }
-
-  /**
-   * Performs a punch action
-   */
-  public performPunch(): void {
-    this.punch();
-  }
-
-  /**
-   * Extends the parent moveInDirection to support animation control
-   * 
-   * @param direction The direction to move
-   * @param speed Optional speed value, used as animation flag in player
-   * @override
-   */
-  public override moveInDirection(direction: Orientation, speed?: number): void {
-    // In Player class, we use the speed parameter as a flag for animation
-    const shouldAnimate = speed !== 0; // If speed is 0, don't animate
-    this.go(direction, shouldAnimate);
-  }
-
-  /**
-   * Get the player's health points
-   */
-  public override get hp(): number {
-    return this._hp;
-  }
-
-  /**
-   * Set the player's health points and update the UI
-   */
-  public override set hp(value: number) {
-    this._hp = value;
-    if (this.uiScene) {
-      this.uiScene.playerHp = value;
-    }
-  }
-
-  private reload() {
     this.isLoading = true;
     this.scene.time.addEvent({
       delay: PLAYER_RELOAD,
@@ -242,41 +174,64 @@ export class Player extends Character {
     });
   }
 
-  private readyToFire() {
+  /**
+   * Mark player as ready to fire
+   */
+  private readyToFire(): void {
     this.isLoading = false;
   }
 
-  private go(direction: Orientation, shouldAnimate = true) {
-    // Use parent class movement
-    super.moveInDirection(direction, PLAYER_SPEED);
+  /**
+   * Performs a shooting action
+   */
+  public shootWeapon(): void {
+    this.isShooting = true;
+    this.isPerformingAction = true;
+    this.playAnimation(CharacterState.HIT);
+    // Arrow will be spawned at the end of the animation
+  }
 
-    if (!shouldAnimate) {
-      return;
+  /**
+   * Performs a punch action
+   */
+  public performPunch(): void {
+    this.isPerformingAction = true;
+    this.playAnimation(CharacterState.ATTACK);
+  }
+
+  /**
+   * Handle animation repeat events
+   */
+  private handleAnimationRepeat(event: {key: string}): void {
+    // Check which animation has repeated
+    switch (event.key) {
+      case this.animationSets[CharacterState.HIT].left.anim:
+      case this.animationSets[CharacterState.HIT].right.anim:
+      case this.animationSets[CharacterState.HIT].up.anim:
+      case this.animationSets[CharacterState.HIT].down.anim:
+        this.concludeShoot();
+        break;
+      case this.animationSets[CharacterState.ATTACK].left.anim:
+      case this.animationSets[CharacterState.ATTACK].right.anim:
+      case this.animationSets[CharacterState.ATTACK].up.anim:
+      case this.animationSets[CharacterState.ATTACK].down.anim:
+        this.isPerformingAction = false;
+        break;
+      default:
+        break;
     }
-
-    this.animate(Player.MOVE_ANIMATION, this.orientation);
   }
 
-  private punch() {
-    this.animate(Player.PUNCH_ANIMATION, this.orientation);
-  }
-
-  private beIdle() {
-    this.animate(Player.IDLE_ANIMATION, this.orientation);
-  }
-
-  private concludeShoot = () => {
+  /**
+   * Finalize shooting action and spawn arrow
+   */
+  private concludeShoot(): void {
     this.isShooting = false;
+    this.isPerformingAction = false;
+    
     const arrow = new Arrow(this.scene, this.x, this.y, this.orientation);
     this.scene.physics.add.collider(arrow, this.scene.monsterGroup, (a: Arrow, m: NonPlayerEntity) => {
       m.loseHp(a);
     });
-  };
-
-  private shoot() {
-    this.isShooting = true;
-
-    this.animate(Player.SHOOT_ANIMATION, this.orientation);
-    // Arrow will be spawned at the end of the animation
   }
 }

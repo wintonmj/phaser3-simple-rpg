@@ -48,12 +48,18 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   protected uiScene: GameManager;
   /** Character's health points */
   protected _hp: number = 1;
+  /** Maximum health points */
+  protected _maxHp: number = 1;
   /** Timestamp of the last hit taken */
   protected lastTimeHit: number = 0;
   /** Current orientation of the character */
   protected orientation: Orientation = Orientation.Down;
   /** Movement speed of the character */
   protected moveSpeed: number = 80;
+  /** Whether the character is performing an action */
+  protected isPerformingAction: boolean = false;
+  /** Animation sets for different character states */
+  protected animationSets: Record<string, CharacterAnimation> = null;
 
   /**
    * Creates an instance of Character.
@@ -73,6 +79,33 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     this.uiScene = uiScene;
     
     this.lastTimeHit = new Date().getTime();
+    
+    this.setCollideWorldBounds(true);
+    this.setOrigin(0.5, 0.7);
+  }
+
+  /**
+   * Sets up animation sets for different character states
+   * @param animSets Record of animation sets for different states
+   */
+  protected setupAnimations(animSets: Record<string, CharacterAnimation>): void {
+    this.animationSets = animSets;
+  }
+
+  /**
+   * Plays the appropriate animation based on character state and orientation
+   * Maintains backward compatibility with subclasses
+   * 
+   * @param {string | CharacterState} state - The character state
+   * @param {Orientation} [orientation] - Optional orientation override
+   */
+  protected playAnimation(state: string | CharacterState, orientation?: Orientation): void {
+    if (!this.animationSets || !this.animationSets[state]) {
+      return;
+    }
+    
+    const useOrientation = orientation || this.orientation;
+    this.animate(this.animationSets[state], useOrientation);
   }
 
   /**
@@ -98,7 +131,30 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Set character's health points using property accessor
    */
   public set hp(value: number) {
-    this._hp = value;
+    this._hp = Math.min(value, this._maxHp);
+    this.onHpChanged();
+  }
+  
+  /**
+   * Get character's maximum health points
+   */
+  public get maxHp(): number {
+    return this._maxHp;
+  }
+  
+  /**
+   * Set character's maximum health points
+   */
+  public set maxHp(value: number) {
+    this._maxHp = value;
+  }
+  
+  /**
+   * Called when HP changes
+   * Override in subclasses for specific behavior (like UI updates)
+   */
+  protected onHpChanged(): void {
+    // Base implementation - can be overridden
   }
   
   /**
@@ -121,6 +177,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     this._hp -= damage;
     this.lastTimeHit = new Date().getTime();
     
+    this.onHpChanged();
+    
     if (this._hp <= 0) {
       this.onDeath();
     }
@@ -139,8 +197,9 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Move the character in a specific direction
    * @param {Orientation} direction - The direction to move
    * @param {number} speed - Optional custom speed
+   * @param {boolean} shouldAnimate - Whether to play the move animation
    */
-  public moveInDirection(direction: Orientation, speed?: number): void {
+  public moveInDirection(direction: Orientation, speed?: number, shouldAnimate: boolean = true): void {
     const moveSpeed = speed || this.moveSpeed;
     this.orientation = direction;
     
@@ -161,13 +220,21 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
         this.setVelocityY(moveSpeed);
         break;
     }
+    
+    if (shouldAnimate && !this.isPerformingAction && this.animationSets) {
+      this.playAnimation(CharacterState.MOVE);
+    }
   }
   
   /**
-   * Stop character movement
+   * Stop character movement and set to idle animation
    */
   public stop(): void {
     this.setVelocity(0, 0);
+    
+    if (!this.isPerformingAction && this.animationSets) {
+      this.playAnimation(CharacterState.IDLE);
+    }
   }
   
   /**
@@ -182,6 +249,15 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    */
   public setOrientation(orientation: Orientation): void {
     this.orientation = orientation;
+  }
+
+  /**
+   * Set character to idle state with appropriate animation
+   */
+  public setToIdle(): void {
+    if (!this.isPerformingAction && this.animationSets) {
+      this.playAnimation(CharacterState.IDLE);
+    }
   }
   
   /**
