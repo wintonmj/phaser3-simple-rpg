@@ -146,15 +146,11 @@ export class Player extends Character {
    * Override the parent loseHp method for player-specific death behavior
    */
   public override loseHp(damage: number = 1): void {
-    this._hp -= damage;
-    this.lastTimeHit = new Date().getTime();
-
-    // Update UI
+    // Call parent implementation first to check for hit invulnerability
+    super.loseHp(damage);
+    
+    // Update UI - only happens if super.loseHp() actually applied damage
     this.hp = this._hp;
-
-    if (this._hp <= 0) {
-      this.onDeath();
-    }
   }
 
   /**

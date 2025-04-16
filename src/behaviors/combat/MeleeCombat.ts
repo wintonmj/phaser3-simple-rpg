@@ -11,7 +11,7 @@ import { Character } from '../../game-objects/Character';
  * This is a temporary placeholder implementation that mimics the previous built-in behavior
  */
 export class MeleeCombat extends AbstractCombatBehavior {
-  constructor(hitDelay = 100) {
+  constructor(hitDelay = 1000) {
     super(hitDelay);
   }
 

@@ -16,7 +16,7 @@ export class RangedCombat extends AbstractCombatBehavior {
 
   constructor(
     projectileGenerator?: (scene: AbstractScene, x: number, y: number) => void, 
-    hitDelay = 100
+    hitDelay = 1000
   ) {
     super(hitDelay);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

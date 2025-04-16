@@ -13,7 +13,7 @@ import { ASSETS } from '../../constants/assets';
 export abstract class AbstractCombatBehavior implements ICombatBehavior {
   protected hitDelay: number;
 
-  constructor(hitDelay = 100) {
+  constructor(hitDelay = 1000) {
     this.hitDelay = hitDelay;
   }
 
@@ -36,7 +36,6 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
    */
   takeDamage(entity: NonPlayerEntity, amount: number): void {
     entity.setHp(entity.getHp() - amount);
-    
     entity.setTint(0xff0000);
     
     try {
