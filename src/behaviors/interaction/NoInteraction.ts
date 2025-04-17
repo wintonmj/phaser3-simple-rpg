@@ -3,7 +3,7 @@
  */
 
 import { IInteractionBehavior } from '../interfaces';
-import { NonPlayerEntity } from '../../game-objects/entities/NonPlayerEntity';
+import { Character } from '../../game-objects/Character';
 import { Player } from '../../game-objects/Player';
 
 /**
@@ -15,7 +15,7 @@ export class NoInteraction implements IInteractionBehavior {
    * Update method called every frame
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(_entity: NonPlayerEntity): void {
+  update(_character: Character): void {
     // No update needed for no interaction behavior
   }
 
@@ -23,7 +23,7 @@ export class NoInteraction implements IInteractionBehavior {
    * Entity interacts with the player (does nothing)
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interact(_entity: NonPlayerEntity, _player: Player): void {
+  interact(_character: Character, _player: Player): void {
     // No interaction functionality
   }
 
@@ -31,7 +31,7 @@ export class NoInteraction implements IInteractionBehavior {
    * Check if entity can be interacted with (always false)
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  canInteract(_entity: NonPlayerEntity, _player: Player): boolean {
+  canInteract(_character: Character, _player: Player): boolean {
     return false;
   }
 } 

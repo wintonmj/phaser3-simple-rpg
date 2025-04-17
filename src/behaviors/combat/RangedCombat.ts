@@ -29,10 +29,14 @@ export class RangedCombat extends AbstractCombatBehavior {
    * Implementation of the attack behavior for ranged attacks
    * @override
    */
-  protected doAttack(entity: NonPlayerEntity, target: Character): void {
+  protected doAttack(attacker: Character, target: Character): void {
     // Create animation and projectile
-    this.animateAttack(entity);
-    this.generateProjectile(entity, target);
+    this.animateAttack(attacker);
+    
+    // Only proceed if attacker is a NonPlayerEntity
+    if (attacker instanceof NonPlayerEntity) {
+      this.generateProjectile(attacker, target);
+    }
   }
 
   /**

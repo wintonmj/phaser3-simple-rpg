@@ -8,19 +8,15 @@ import { Character } from '../game-objects/Character';
 import { KeyState } from '../types/scene-types';
 import { CharacterState } from '../constants/character-states';
 
-// Forward reference to avoid circular dependency
-// The actual class will be imported by implementations
-class NonPlayerEntity extends Character {}
-
 /**
  * Base behavior interface for all entity behaviors
  */
 export interface IBehavior {
   /**
    * Update method called each frame for this behavior
-   * @param entity The entity this behavior is attached to
+   * @param character The character this behavior is attached to
    */
-  update(entity: NonPlayerEntity): void;
+  update(character: Character): void;
 }
 
 /**
@@ -28,17 +24,17 @@ export interface IBehavior {
  */
 export interface IMovementBehavior extends IBehavior {
   /**
-   * Move the entity in a specific direction or toward a target
-   * @param entity The entity to move
+   * Move the character in a specific direction or toward a target
+   * @param character The character to move
    * @param target Optional target position to move toward
    */
-  move(entity: NonPlayerEntity, target?: Phaser.Math.Vector2): void;
+  move(character: Character, target?: Phaser.Math.Vector2): void;
   
   /**
-   * Stop the entity's movement
-   * @param entity The entity to stop
+   * Stop the character's movement
+   * @param character The character to stop
    */
-  stop(entity: NonPlayerEntity): void;
+  stop(character: Character): void;
 }
 
 /**
@@ -46,18 +42,18 @@ export interface IMovementBehavior extends IBehavior {
  */
 export interface ICombatBehavior extends IBehavior {
   /**
-   * Entity performs an attack against a target
-   * @param entity The entity performing the attack
+   * Character performs an attack against a target
+   * @param character The character performing the attack
    * @param target The character being attacked
    */
-  attack(entity: NonPlayerEntity, target: Character): void;
+  attack(character: Character, target: Character): void;
   
   /**
-   * Entity takes damage
-   * @param entity The entity taking damage
+   * Character takes damage
+   * @param character The character taking damage
    * @param amount The amount of damage taken
    */
-  takeDamage(entity: NonPlayerEntity, amount: number): void;
+  takeDamage(character: Character, amount: number): void;
 }
 
 /**
@@ -65,19 +61,19 @@ export interface ICombatBehavior extends IBehavior {
  */
 export interface IInteractionBehavior extends IBehavior {
   /**
-   * Entity interacts with the player
-   * @param entity The entity being interacted with
+   * Character interacts with the player
+   * @param character The character being interacted with
    * @param player The player initiating the interaction
    */
-  interact(entity: NonPlayerEntity, player: Player): void;
+  interact(character: Character, player: Player): void;
   
   /**
-   * Check if the entity can be interacted with
-   * @param entity The entity to check interaction with
+   * Check if the character can be interacted with
+   * @param character The character to check interaction with
    * @param player The player attempting to interact
    * @returns Whether interaction is possible
    */
-  canInteract(entity: NonPlayerEntity, player: Player): boolean;
+  canInteract(character: Character, player: Player): boolean;
 }
 
 /**
@@ -86,17 +82,17 @@ export interface IInteractionBehavior extends IBehavior {
 export interface IAnimationBehavior extends IBehavior {
   /**
    * Play an animation for a given state and orientation
-   * @param entity The entity to animate
+   * @param character The character to animate
    * @param state The animation state (idle, walk, attack, etc.)
-   * @param orientation The direction the entity is facing
+   * @param orientation The direction the character is facing
    */
-  playAnimation(entity: NonPlayerEntity, state: CharacterState, orientation: Orientation): void;
+  playAnimation(character: Character, state: CharacterState, orientation: Orientation): void;
   
   /**
-   * Set up all animations for this entity
-   * @param entity The entity to set up animations for
+   * Set up all animations for this character
+   * @param character The character to set up animations for
    */
-  setupAnimations(entity: NonPlayerEntity): void;
+  setupAnimations(character: Character): void;
 }
 
 /**
@@ -105,9 +101,9 @@ export interface IAnimationBehavior extends IBehavior {
 export interface IInputBehavior {
   /**
    * Update method called each frame for this behavior
-   * @param entity The player this behavior is attached to
+   * @param player The player this behavior is attached to
    */
-  update(entity: Player): void;
+  update(player: Player): void;
   
   /**
    * Set the current key state for processing in the next update

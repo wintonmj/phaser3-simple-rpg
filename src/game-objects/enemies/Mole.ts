@@ -43,9 +43,12 @@ export class Mole extends NonPlayerEntity {
         super(1000); // Default hit delay
       }
       
-      protected doAttack(entity: NonPlayerEntity, target: Character): void {
+      protected doAttack(attacker: Character, target: Character): void {
+        // Only proceed if attacker is a NonPlayerEntity
+        if (!(attacker instanceof NonPlayerEntity)) return;
+        
         // Basic implementation of melee attack
-        const damage = entity.attackDamage || 1;
+        const damage = attacker.attackDamage || 1;
         
         if ('canGetHit' in target && typeof target.canGetHit === 'function') {
           if (!target.canGetHit()) return;
@@ -55,7 +58,7 @@ export class Mole extends NonPlayerEntity {
           }
         }
         
-        this.animateAttack(entity);
+        this.animateAttack(attacker);
       }
     }();
   }

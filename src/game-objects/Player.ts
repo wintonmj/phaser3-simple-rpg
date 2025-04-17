@@ -11,6 +11,8 @@ import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 import { IInputBehavior } from '../behaviors/interfaces';
 import { PLAYER_ANIMATIONS } from '../constants/animation-configs';
+import { BaseEntityAnimation } from '../behaviors/animation/BaseEntityAnimation';
+import { Orientation } from '../geometry/orientation';
 
 /** Reload time for shooting in milliseconds */
 const PLAYER_RELOAD = 500;
@@ -48,8 +50,9 @@ export class Player extends Character {
     this.setDepth(10);
     this.moveSpeed = 120;
 
-    // Set up animation sets using shared configs
-    this.setupAnimations(PLAYER_ANIMATIONS);
+    // Set up animation behavior using the player animations
+    const animationBehavior = new BaseEntityAnimation(PLAYER_ANIMATIONS);
+    this.setAnimationBehavior(animationBehavior);
 
     this.on('animationrepeat', this.handleAnimationRepeat, this);
   }
@@ -122,8 +125,7 @@ export class Player extends Character {
   public shootWeapon(): void {
     this.actionState = CharacterState.SHOOTING;
     this.isPerformingAction = true;
-    this.playAnimation(CharacterState.HIT);
-    // Arrow will be spawned at the end of the animation
+    this.animationBehavior.playHit(this, this.orientation);
   }
 
   /**
@@ -132,7 +134,16 @@ export class Player extends Character {
   public performPunch(): void {
     this.actionState = CharacterState.PUNCHING;
     this.isPerformingAction = true;
-    this.playAnimation(CharacterState.ATTACK);
+    this.animationBehavior.playAttack(this, this.orientation);
+  }
+
+  /**
+   * Helper to get animation name for a given state and orientation
+   */
+  private getAnimationKey(state: CharacterState, orientation: Orientation): string {
+    const animSets = this.animationBehavior.getAnimationSets();
+    if (!animSets || !animSets[state]) return '';
+    return animSets[state][orientation].anim;
   }
 
   /**
@@ -140,17 +151,27 @@ export class Player extends Character {
    */
   private handleAnimationRepeat(event: {key: string}): void {
     // Check which animation has repeated
+    const hitAnimLeft = this.getAnimationKey(CharacterState.HIT, Orientation.Left);
+    const hitAnimRight = this.getAnimationKey(CharacterState.HIT, Orientation.Right);
+    const hitAnimUp = this.getAnimationKey(CharacterState.HIT, Orientation.Up);
+    const hitAnimDown = this.getAnimationKey(CharacterState.HIT, Orientation.Down);
+    
+    const attackAnimLeft = this.getAnimationKey(CharacterState.ATTACK, Orientation.Left);
+    const attackAnimRight = this.getAnimationKey(CharacterState.ATTACK, Orientation.Right);
+    const attackAnimUp = this.getAnimationKey(CharacterState.ATTACK, Orientation.Up);
+    const attackAnimDown = this.getAnimationKey(CharacterState.ATTACK, Orientation.Down);
+    
     switch (event.key) {
-      case this.animationSets[CharacterState.HIT].left.anim:
-      case this.animationSets[CharacterState.HIT].right.anim:
-      case this.animationSets[CharacterState.HIT].up.anim:
-      case this.animationSets[CharacterState.HIT].down.anim:
+      case hitAnimLeft:
+      case hitAnimRight:
+      case hitAnimUp:
+      case hitAnimDown:
         this.concludeShoot();
         break;
-      case this.animationSets[CharacterState.ATTACK].left.anim:
-      case this.animationSets[CharacterState.ATTACK].right.anim:
-      case this.animationSets[CharacterState.ATTACK].up.anim:
-      case this.animationSets[CharacterState.ATTACK].down.anim:
+      case attackAnimLeft:
+      case attackAnimRight:
+      case attackAnimUp:
+      case attackAnimDown:
         this.actionState = CharacterState.IDLE;
         this.isPerformingAction = false;
         break;

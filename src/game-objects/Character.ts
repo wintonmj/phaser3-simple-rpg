@@ -8,6 +8,7 @@ import { AbstractScene } from '../scenes/AbstractScene';
 import { SCENES } from '../constants/scenes';
 import { GameManager } from '../scenes/GameManager';
 import { CharacterState } from '../constants/character-states';
+import { BaseEntityAnimation } from '../behaviors/animation/BaseEntityAnimation';
 
 /**
  * Character animation configuration for each orientation
@@ -47,10 +48,10 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   protected moveSpeed: number = 80;
   /** Whether the character is performing an action */
   protected isPerformingAction: boolean = false;
-  /** Animation sets for different character states */
-  protected animationSets: Partial<Record<CharacterState, CharacterAnimation>> = null;
   /** Current action state of the character */
   protected actionState: CharacterState = CharacterState.IDLE;
+  /** Animation behavior component */
+  protected animationBehavior: BaseEntityAnimation;
 
   /**
    * Creates an instance of Character.
@@ -76,40 +77,15 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
-   * Sets up animation sets for different character states
-   * @param animSets Record of animation sets for different states
+   * Sets the animation behavior component for this character
+   * @param animationBehavior The animation behavior to use
    */
-  protected setupAnimations(animSets: Partial<Record<CharacterState, CharacterAnimation>>): void {
-    this.animationSets = animSets;
+  public setAnimationBehavior(animationBehavior: BaseEntityAnimation): void {
+    this.animationBehavior = animationBehavior;
+    // Set up animations through the behavior
+    this.animationBehavior.setupAnimations(this);
   }
 
-  /**
-   * Plays the appropriate animation based on character state and orientation
-   * 
-   * @param {CharacterState} state - The character state
-   * @param {Orientation} [orientation] - Optional orientation override
-   */
-  protected playAnimation(state: CharacterState, orientation?: Orientation): void {
-    if (!this.animationSets || !this.animationSets[state]) {
-      return;
-    }
-    
-    const useOrientation = orientation || this.orientation;
-    this.animate(this.animationSets[state], useOrientation);
-  }
-
-  /**
-   * Plays the appropriate animation based on the character's orientation
-   * 
-   * @param {CharacterAnimation} animationKeys - Animation configuration for different orientations
-   * @param {Orientation} orientation - Current orientation of the character
-   */
-  protected animate(animationKeys: CharacterAnimation, orientation: Orientation) {
-    const { flip, anim } = animationKeys[orientation];
-    this.setFlipX(flip);
-    this.play(anim, true);
-  }
-  
   /**
    * Get character's health points using property accessor
    */
@@ -169,6 +145,11 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     
     this.onHpChanged();
     
+    // Play hit animation if animation behavior is set
+    if (this.animationBehavior) {
+      this.animationBehavior.playHit(this, this.orientation);
+    }
+    
     if (this._hp <= 0) {
       this.onDeath();
     }
@@ -179,7 +160,12 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Override in subclasses for specific death behavior
    */
   protected onDeath(): void {
-    // Base implementation - can be overridden
+    // Play death animation if animation behavior is set
+    if (this.animationBehavior) {
+      this.animationBehavior.playDeath(this, this.orientation);
+    }
+    
+    // Default behavior after animation would be to destroy
     this.destroy();
   }
   
@@ -211,8 +197,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
         break;
     }
     
-    if (shouldAnimate && !this.isPerformingAction && this.animationSets) {
-      this.playAnimation(CharacterState.MOVE);
+    if (shouldAnimate && !this.isPerformingAction && this.animationBehavior) {
+      this.animationBehavior.playMove(this, this.orientation);
     }
   }
   
@@ -222,8 +208,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   public stop(): void {
     this.setVelocity(0, 0);
     
-    if (!this.isPerformingAction && this.animationSets) {
-      this.playAnimation(CharacterState.IDLE);
+    if (!this.isPerformingAction && this.animationBehavior) {
+      this.animationBehavior.playIdle(this, this.orientation);
     }
   }
   
@@ -245,8 +231,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Set character to idle state with appropriate animation
    */
   public setToIdle(): void {
-    if (!this.isPerformingAction && this.animationSets) {
-      this.playAnimation(CharacterState.IDLE);
+    if (!this.isPerformingAction && this.animationBehavior) {
+      this.animationBehavior.playIdle(this, this.orientation);
     }
   }
   
@@ -264,5 +250,21 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    */
   public update(): void {
     // Base implementation - to be overridden
+  }
+
+  /**
+   * Get the character's scene
+   * This provides access to the protected scene property for behavior components
+   */
+  public getScene(): Phaser.Scene {
+    return this.scene;
+  }
+
+  /**
+   * Get the character's animation behavior
+   * This provides access to the protected animationBehavior property for behavior components
+   */
+  public getAnimationBehavior(): BaseEntityAnimation {
+    return this.animationBehavior;
   }
 }

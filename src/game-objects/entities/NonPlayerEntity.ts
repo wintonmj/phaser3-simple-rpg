@@ -6,7 +6,6 @@
 import { Character } from '../Character';
 import { EntityType } from '../../constants/entities';
 import { INonPlayerEntity } from '../../types/entities/entity-interfaces';
-import { Orientation } from '../../geometry/orientation';
 import { Player } from '../Player';
 import { 
   IMovementBehavior, 
@@ -15,7 +14,7 @@ import {
   IAnimationBehavior 
 } from '../../behaviors/interfaces';
 import { AbstractScene } from '../../scenes/AbstractScene';
-import { CharacterState } from '../../constants/character-states';
+import { BaseEntityAnimation } from '../../behaviors/animation/BaseEntityAnimation';
 
 /**
  * NonPlayerEntity class that acts as a container for behavior components.
@@ -35,7 +34,8 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   private movementBehavior: IMovementBehavior;
   private combatBehavior: ICombatBehavior;
   private interactionBehavior: IInteractionBehavior;
-  private animationBehavior: IAnimationBehavior;
+  // Change from private to protected to match Character class
+  // protected animationBehavior: BaseEntityAnimation; // This is inherited from Character
 
   /**
    * Creates an instance of NonPlayerEntity with composed behaviors
@@ -71,7 +71,10 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
     this.movementBehavior = options.movement;
     this.combatBehavior = options.combat;
     this.interactionBehavior = options.interaction;
-    this.animationBehavior = options.animation;
+    
+    // Use the setAnimationBehavior method from Character class
+    // The animation must be a BaseEntityAnimation instance
+    this.setAnimationBehavior(options.animation as BaseEntityAnimation);
     
     // Set up entity state
     this.hp = options.hp ?? 1;
@@ -80,9 +83,6 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
     if (options.attackDamage !== undefined) {
       this.attackDamage = options.attackDamage;
     }
-    
-    // Initialize animations
-    this.animationBehavior.setupAnimations(this);
   }
   
   /**
@@ -101,7 +101,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
    * Returns the entity's scene safely
    */
   public getScene(): AbstractScene {
-    return this.scene;
+    return this.scene as AbstractScene;
   }
   
   /**
@@ -127,6 +127,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
    */
   public override stop(): void {
     this.movementBehavior.stop(this);
+    super.stop(); // Call the parent stop method which handles animation
   }
   
   /**
@@ -170,13 +171,6 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   }
   
   /**
-   * Play an animation for a given state and orientation
-   */
-  public playAnimation(state: CharacterState, orientation: Orientation): void {
-    this.animationBehavior.playAnimation(this, state, orientation);
-  }
-  
-  /**
    * Behavior getters/setters
    */
   public getMovementBehavior(): IMovementBehavior {
@@ -203,11 +197,14 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
     this.interactionBehavior = behavior;
   }
   
-  public getAnimationBehavior(): IAnimationBehavior {
-    return this.animationBehavior;
+  /**
+   * Override getAnimationBehavior to ensure it returns BaseEntityAnimation
+   */
+  public override getAnimationBehavior(): BaseEntityAnimation {
+    return super.getAnimationBehavior();
   }
   
-  public setAnimationBehavior(behavior: IAnimationBehavior): void {
-    this.animationBehavior = behavior;
+  public setAnimationBehavior(behavior: BaseEntityAnimation): void {
+    super.setAnimationBehavior(behavior);
   }
 } 

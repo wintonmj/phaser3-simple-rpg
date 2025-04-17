@@ -19,9 +19,12 @@ export class MeleeCombat extends AbstractCombatBehavior {
    * Implementation of the attack behavior for melee attacks
    * @override
    */
-  protected doAttack(entity: NonPlayerEntity, target: Character): void {
+  protected doAttack(attacker: Character, target: Character): void {
+    // Only NonPlayerEntity instances have attackDamage property
+    if (!(attacker instanceof NonPlayerEntity)) return;
+    
     // Get damage amount from the entity
-    const damage = entity.attackDamage || 1;
+    const damage = attacker.attackDamage || 1;
     
     // Attempt to access player from target if it has a canGetHit method
     if ('canGetHit' in target && typeof target.canGetHit === 'function') {
@@ -33,6 +36,6 @@ export class MeleeCombat extends AbstractCombatBehavior {
       }
     }
 
-    this.animateAttack(entity);
+    this.animateAttack(attacker);
   }
 } 
