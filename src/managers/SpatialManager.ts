@@ -235,4 +235,17 @@ export class SpatialManager extends BaseManager implements ISpatialManager {
     this.activeEntities.clear();
     this.entities = [];
   }
+
+  /**
+   * Retrieves all entities within a specified area
+   * @param area - The rectangular area to check for entities
+   * @returns Array of entities within the specified area
+   */
+  public getEntitiesInArea(area: Phaser.Geom.Rectangle): Phaser.GameObjects.GameObject[] {
+    // Leverage the existing QuadTree for efficient spatial queries
+    const entitiesInArea = this.quadTree.retrieveInBounds(area);
+    
+    // Filter to only return active entities
+    return entitiesInArea.filter(entity => entity.active);
+  }
 } 

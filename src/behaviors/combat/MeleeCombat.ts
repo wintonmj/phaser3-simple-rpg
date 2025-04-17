@@ -1,39 +1,36 @@
 /**
- * @fileoverview MeleeCombat behavior for entities that can attack in melee range
+ * @fileoverview MeleeCombat behavior for entities that attack at close range
  */
 
 import { AbstractCombatBehavior } from './AbstractCombatBehavior';
-import { NonPlayerEntity } from '../../game-objects/entities/NonPlayerEntity';
 import { Character } from '../../game-objects/Character';
+import { CharacterState } from '../../constants/character-states';
 
 /**
- * MeleeCombat behavior for hostile entities
- * This is a temporary placeholder implementation that mimics the previous built-in behavior
+ * MeleeCombat behavior for close-range attacks
  */
 export class MeleeCombat extends AbstractCombatBehavior {
-  constructor(hitDelay = 1000) {
+  private baseDamage: number;
+
+  constructor(baseDamage = 1, hitDelay = 500) {
     super(hitDelay);
+    this.baseDamage = baseDamage;
   }
 
   /**
-   * Implementation of the attack behavior for melee attacks
+   * Implementation of the melee attack behavior
    * @override
    */
-  protected doAttack(attacker: Character, target: Character): void {
-    // Only NonPlayerEntity instances have attackDamage property
-    if (!(attacker instanceof NonPlayerEntity)) return;
-    
-    // Get damage amount from the entity
-    const damage = attacker.attackDamage || 1;
-    
-    // Attempt to access player from target if it has a canGetHit method
-    if ('canGetHit' in target && typeof target.canGetHit === 'function') {
-      if (!target.canGetHit()) return;
-      
-      // Use loseHp which is properly implemented on Player
-      if ('loseHp' in target && typeof target.loseHp === 'function') {
-        target.loseHp(damage);
-      }
-    }
+  protected doAttack(_attacker: Character, target: Character): void {
+    // Direct damage application for melee attacks
+    target.loseHp(this.baseDamage);
+  }
+
+  /**
+   * Override to return the punch animation state for melee attacks
+   * @override
+   */
+  protected getAttackState(): CharacterState {
+    return CharacterState.PUNCHING;
   }
 } 

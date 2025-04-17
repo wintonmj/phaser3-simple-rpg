@@ -9,6 +9,8 @@ import { SCENES } from '../constants/scenes';
 import { GameManager } from '../scenes/GameManager';
 import { CharacterState } from '../constants/character-states';
 import { BaseEntityAnimation } from '../behaviors/animation/BaseEntityAnimation';
+import { Weapon } from './weapons/Weapon';
+import { AttackContext } from '../types/AttackContext';
 
 /**
  * Character animation configuration for each orientation
@@ -57,6 +59,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   protected actionState: CharacterState = CharacterState.IDLE;
   /** Animation behavior component */
   protected animationBehavior: BaseEntityAnimation;
+  /** Currently equipped weapon */
+  protected equippedWeapon: Weapon | null = null;
 
   /**
    * Creates an instance of Character.
@@ -370,5 +374,49 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     }
     
     return true;
+  }
+
+  /**
+   * Equip a weapon for this character
+   * @param weapon The weapon to equip
+   */
+  public equipWeapon(weapon: Weapon): void {
+    this.equippedWeapon = weapon;
+  }
+  
+  /**
+   * Get the currently equipped weapon
+   * @returns The currently equipped weapon or null if none
+   */
+  public getEquippedWeapon(): Weapon | null {
+    return this.equippedWeapon;
+  }
+
+  /**
+   * Character performs an attack using equipped weapon
+   * @param target Optional specific target for the attack
+   */
+  public performAttack(target?: Character): void {
+    // If no weapon is equipped or attack is on cooldown, do nothing
+    if (!this.equippedWeapon || !this.isOffCooldown('attack', this.equippedWeapon.getAttackCooldown())) {
+      return;
+    }
+    
+    // Set state based on weapon type
+    this.setState(this.equippedWeapon.getAttackState());
+    
+    // Create attack context with all necessary information
+    const attackContext: AttackContext = {
+      source: this,
+      direction: this.orientation,
+      scene: this.scene,
+      target: target
+    };
+    
+    // Execute attack with context
+    this.equippedWeapon.attack(attackContext);
+    
+    // Start cooldown
+    this.startCooldown('attack');
   }
 }

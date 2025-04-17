@@ -9,6 +9,7 @@ import { InterSceneData, MapLayers } from '../types/scene-types';
 
 // Game object imports
 import { Player } from '../game-objects/Player';
+import { Character } from '../game-objects/Character';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
 
 // Interface imports
@@ -198,5 +199,20 @@ export abstract class AbstractScene extends Phaser.Scene {
    */
   public getInputManager(): IInputManager {
     return this.inputManager;
+  }
+
+  /**
+   * Retrieves all enemy characters within a specified area
+   * @param area - The rectangular area to check for enemies
+   * @returns Array of Character instances that are enemies
+   */
+  public getEnemiesInArea(area: Phaser.Geom.Rectangle): Character[] {
+    // Get all entities in the area using SpatialManager
+    const entitiesInArea = this.spatialManager.getEntitiesInArea(area);
+    
+    // Filter to only include Character entities that are enemies (not the player)
+    return entitiesInArea
+      .filter(entity => entity !== this.player && entity.active)
+      .map(entity => entity as unknown as Character);
   }
 }

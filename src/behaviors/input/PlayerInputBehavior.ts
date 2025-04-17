@@ -123,12 +123,8 @@ export class PlayerInputBehavior implements IInputBehavior {
    * @param player The player performing the attack
    */
   private attack(player: Player): void {
-    // Set state to shooting
-    player.setState(CharacterState.SHOOTING);
-    
-    // TODO: Implement actual projectile generation
-    // This would typically involve player's combat behavior
-    // or dispatching the attack to the scene's combat system
+    // Delegate attack logic to the player's weapon system
+    player.performAttack();
   }
 
   /**
