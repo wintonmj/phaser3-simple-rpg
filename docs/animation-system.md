@@ -2,171 +2,134 @@
 
 ## Overview
 
-The animation system in the Phaser3 Simple RPG game is built around a centralized asset management approach. All animation keys and sprite references are defined in `src/constants/assets.ts` and are managed through the `src/scenes/Preloader.ts` scene.
+The animation system has been refactored to provide a clear, centralized approach to managing entity animations. This document describes the architecture, components, and how to use them.
 
-## Asset Management
+## Key Components
 
-### Assets Structure
+### 1. Entity Animation Mapping (`entity-animations.ts`)
 
-The `src/constants/assets.ts` file contains two main sections:
+This file serves as the central hub connecting entity types to their animations and dimensions:
 
-- `IMAGES`: Contains keys for all sprite assets
-- `ANIMATIONS`: Contains keys for all animation configurations
+- `ENTITY_DIMENSIONS`: Maps entity types to their sprite dimensions (width and height)
+- `ENTITY_ANIMATIONS`: Maps entity types to their animation configurations
+- Utility functions:
+  - `getAnimationsForEntity()`: Returns animation configurations for a specific entity type
+  - `getDimensionsForEntity()`: Returns sprite dimensions for a specific entity type
 
-Example from `src/constants/assets.ts`:
+### 2. Character States (`character-states.ts`)
 
-```typescript
-export const ASSETS = {
-  IMAGES: {
-    PLAYER_IDLE_DOWN: 'player-idle-down',
-    PLAYER_WALK_DOWN: 'player-walk-down',
-    // ... more image keys
-  },
-  ANIMATIONS: {
-    PLAYER_MOVE_LEFT: 'player-move-left',
-    PLAYER_MOVE_RIGHT: 'player-move-right',
-    // ... more animation keys
-  }
-} as const;
-```
+Provides a single source of truth for character state enums:
 
-### Asset File Locations
+- `CharacterState`: Enum defining all possible character states (IDLE, MOVE, ATTACK, etc.)
+- Used as keys in animation configurations for consistency
 
-The actual asset files are stored in the `assets` directory of the project and are loaded by the `src/scenes/Preloader.ts` scene. The directory structure is organized as follows:
+### 3. Animation Configurations (`animation-configs.ts`)
 
-```
-assets/
-├── maps/                  # Tilemap files
-├── spritesheets/          # Character and enemy spritesheets
-│   ├── hero/              # Player character spritesheets
-│   │   ├── idle/          # Idle animations
-│   │   ├── walk/          # Walking animations
-│   │   └── attack/        # Attack animations
-│   ├── treant/            # Treant enemy spritesheets
-│   ├── mole/              # Mole enemy spritesheets
-│   └── misc/              # Miscellaneous spritesheets
-├── environment/           # Environment assets
-└── misc files             # Other assets (logo.png, heart.png, etc.)
-```
+Contains animation definitions for each entity:
 
-During the build process, the `CopyWebpackPlugin` in `webpack.config.js` copies the entire `assets` directory to the `dist` directory, making these files available to the game at runtime.
+- `PLAYER_ANIMATIONS`: Animation configurations for the player
+- `MOLE_ANIMATIONS`: Animation configurations for mole enemies
+- `TREANT_ANIMATIONS`: Animation configurations for treant enemies
+- All configurations use `CharacterState` enum values as keys
 
-## Animation Creation Process
+### 4. Animation Behavior (`BaseEntityAnimation.ts`)
 
-### 1. Asset Loading
+Implements the animation behavior for entities:
 
-The `src/scenes/Preloader.ts` scene handles loading all game assets through several methods:
+- `BaseEntityAnimation`: Class that plays animations based on entity state and orientation
+- Simplified constructor that takes a complete animation set
+- Static factory method `forEntityType()` that creates animation behavior for any entity type
 
-- `loadAssets()`: Main method that coordinates asset loading
-  - `loadPlayerAssets()`: Loads player spritesheets
-  - `loadEnemyAssets()`: Loads enemy spritesheets
-  - `loadMiscAssets()`: Loads miscellaneous spritesheets
+## How Animations Work
 
-### 2. Animation Creation
+1. The `Preloader` scene loads all sprite sheets with dimensions from `ENTITY_DIMENSIONS`
+2. When creating an entity, the code uses `BaseEntityAnimation.forEntityType()` to get the right animations
+3. When an entity changes state, it calls `playAnimation()` with the new state and orientation
+4. The animation behavior looks up the right animation key in the entity's animation set
+5. The animation is played with the correct orientation (and flipped horizontally if needed)
 
-Animations are created in the `createAnimations()` method, which includes:
+## Adding a New Entity with Animations
 
-- `createPlayerAnimations()`: Creates player animations
-  - Movement animations
-  - Idle animations
-  - Attack animations
-  - Weapon attack animations
-- `createEnemyAnimations()`: Creates enemy animations
-  - Movement animations
-  - Idle animations
-- `createMiscAnimations()`: Creates miscellaneous animations
-  - Death effects
-  - Other special effects
+1. Add the entity type to `ENTITIES` in `entities.ts`:
+   ```typescript
+   export const ENTITIES = {
+     // Existing entities
+     NEW_ENTITY: 'new_entity',
+   } as const;
+   ```
 
-### 3. Animation Helper Method
+2. Add sprite dimensions in `ENTITY_DIMENSIONS` in `entity-animations.ts`:
+   ```typescript
+   export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: number }> = {
+     // Existing dimensions
+     [ENTITIES.NEW_ENTITY]: { width: 32, height: 32 },
+   };
+   ```
 
-The `createAnimation()` helper method standardizes animation creation:
+3. Define animation keys in `ASSETS.ANIMATIONS` in `assets.ts`:
+   ```typescript
+   ANIMATIONS: {
+     // Existing animations
+     NEW_ENTITY_IDLE: 'new-entity-idle',
+     NEW_ENTITY_WALK: 'new-entity-walk',
+   }
+   ```
 
-```typescript
-private createAnimation(
-  key: string,           // Animation key from ASSETS.ANIMATIONS
-  spriteKey: string,     // Sprite key from ASSETS.IMAGES
-  startFrame: number,    // Starting frame number
-  endFrame: number,      // Ending frame number
-  frameRate: number,     // Animation speed
-  hideOnComplete: boolean = false  // Whether to hide sprite when animation finishes
-) {
-  this.anims.create({
-    key,
-    frames: this.anims.generateFrameNumbers(spriteKey, { start: startFrame, end: endFrame }),
-    frameRate,
-    repeat: -1,
-    hideOnComplete
-  });
-}
-```
+4. Create animation configurations in `animation-configs.ts`:
+   ```typescript
+   export const NEW_ENTITY_ANIMATIONS: Record<string, CharacterAnimation> = {
+     [CharacterState.IDLE]: {
+       down: { flip: false, anim: ASSETS.ANIMATIONS.NEW_ENTITY_IDLE },
+       up: { flip: false, anim: ASSETS.ANIMATIONS.NEW_ENTITY_IDLE },
+       left: { flip: true, anim: ASSETS.ANIMATIONS.NEW_ENTITY_IDLE },
+       right: { flip: false, anim: ASSETS.ANIMATIONS.NEW_ENTITY_IDLE },
+     },
+     [CharacterState.MOVE]: {
+       down: { flip: false, anim: ASSETS.ANIMATIONS.NEW_ENTITY_WALK },
+       up: { flip: false, anim: ASSETS.ANIMATIONS.NEW_ENTITY_WALK },
+       left: { flip: true, anim: ASSETS.ANIMATIONS.NEW_ENTITY_WALK },
+       right: { flip: false, anim: ASSETS.ANIMATIONS.NEW_ENTITY_WALK },
+     },
+   };
+   ```
 
-## Usage in Game Objects
+5. Register in `ENTITY_ANIMATIONS` in `entity-animations.ts`:
+   ```typescript
+   export const ENTITY_ANIMATIONS: Record<EntityType, Record<string, CharacterAnimation>> = {
+     // Existing mappings
+     [ENTITIES.NEW_ENTITY]: NEW_ENTITY_ANIMATIONS,
+   };
+   ```
 
-### Player Animations
+6. Use in entity class:
+   ```typescript
+   export class NewEntity extends NonPlayerEntity {
+     constructor(scene, x, y) {
+       // Create animation behavior
+       const animationBehavior = BaseEntityAnimation.forEntityType(ENTITIES.NEW_ENTITY);
+       
+       // Use in constructor
+       super(scene, x, y, /* other params */, {
+         // Other behaviors
+         animation: animationBehavior,
+       });
+     }
+   }
+   ```
 
-The `src/game-objects/Player.ts` class uses animations through static animation configurations:
+## Benefits of the New System
 
-```typescript
-private static MOVE_ANIMATION = {
-  down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN },
-  up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_UP },
-  left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_LEFT },
-  right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_RIGHT },
-};
-```
+1. **Single Source of Truth**: All entity-related configurations are centralized
+2. **Standardized Approach**: All entities use the same pattern for animations
+3. **Type Safety**: Improved TypeScript typing throughout the animation system
+4. **Easier Maintenance**: Adding new entities or animation states is more straightforward
+5. **Reduced Redundancy**: No duplicate dimensions or configurations throughout the codebase
 
-### Monster Animations
+## Migration Notes
 
-Monster classes (like `src/game-objects/monsters/Treant.ts` and `src/game-objects/monsters/Mole.ts`) extend the base `src/game-objects/monsters/Monster.ts` class and define their animations:
+The system maintains backward compatibility with legacy code through:
 
-```typescript
-protected WALK_ANIMATION = {
-  down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
-  up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
-  left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-  right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-};
-```
+1. The original animation configurations (like `MOLE_ANIMATIONS.WALK`) are still available
+2. `BaseEntityAnimation` handles state normalization (e.g., 'walk' → `CharacterState.MOVE`)
 
-## Animation Types
-
-### Movement Animations
-
-- Player movement in four directions
-- Enemy movement in four directions
-- Each direction has its own animation key and sprite
-
-### Combat Animations
-
-- Player attack animations
-- Player weapon attack animations
-- Monster attack animations
-- Death animations
-
-### Idle Animations
-
-- Player idle animations for each direction
-- Monster idle animations
-
-## Best Practices
-
-1. **Centralized Management**: Always define new animation keys in `src/constants/assets.ts`
-2. **Consistent Naming**: Follow the established naming convention:
-   - `{entity}-{action}-{direction}`
-   - Example: `player-move-down`, `treant-walk-side`
-3. **Frame Configuration**: 
-   - Movement animations typically use frames 0-2 or 0-3
-   - Attack animations may use different frame ranges
-   - Frame rates vary by animation type (typically 7-10 fps)
-4. **Sprite Flipping**: Use the `flip` property for left/right animations to reuse sprites
-
-## Adding New Animations
-
-To add a new animation:
-
-1. Add the sprite key to `ASSETS.IMAGES` in `src/constants/assets.ts`
-2. Add the animation key to `ASSETS.ANIMATIONS` in `src/constants/assets.ts`
-3. Load the sprite in the appropriate `load*Assets()` method in `src/scenes/Preloader.ts`
-4. Create the animation in the appropriate `create*Animations()` method in `src/scenes/Preloader.ts`
-5. Use the animation in the relevant game object class 
+For new code, always use the `CharacterState` enum values and the `BaseEntityAnimation.forEntityType()` factory method. 

@@ -15,6 +15,47 @@ Some things are out-to-date and some patterns I hadn't the knowledge of would gr
 - A modern browser (Chrome, Firefox, Safari, or Edge)
 - [Tiled](https://www.mapeditor.org/) for map edition
 
+## Animation System
+
+The game uses a centralized animation system with the following components:
+
+### Entity-Animation Mapping
+
+The animation system provides a clear mapping between entity types and their animation configurations through:
+
+- `entity-animations.ts`: Defines a central mapping between entity types and their animation configurations
+- `ENTITY_DIMENSIONS`: Provides a single source of truth for sprite dimensions
+- `ENTITY_ANIMATIONS`: Maps entity types to their corresponding animation sets
+- Utility functions like `getAnimationsForEntity()` and `getDimensionsForEntity()`
+
+### Character States
+
+Character states (like IDLE, MOVE, ATTACK) are centralized in a single enum in `character-states.ts`. All animation configurations use these states as keys for consistency.
+
+### BaseEntityAnimation
+
+The `BaseEntityAnimation` class was refactored to use the centralized mapping system:
+
+- Added a static factory method `forEntityType()` that creates animation behavior for any entity type
+- Simplified the constructor to take a complete animation set
+- Maintains backward compatibility for legacy code
+
+### Usage
+
+To add animations for a new entity:
+
+1. Add the entity type to `ENTITIES` in `entities.ts`
+2. Add the entity dimensions to `ENTITY_DIMENSIONS` in `entity-animations.ts`
+3. Add animation configurations in `animation-configs.ts` using `CharacterState` enum values as keys
+4. Register the animations in `ENTITY_ANIMATIONS` in `entity-animations.ts`
+
+To use animations in an entity class:
+
+```typescript
+// Create animation behavior for an entity type
+const animationBehavior = BaseEntityAnimation.forEntityType(ENTITIES.MY_ENTITY);
+```
+
 ## Installation
 
 ```bash

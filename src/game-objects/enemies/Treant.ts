@@ -7,7 +7,6 @@ import { RangedCombat } from '../../behaviors/combat/RangedCombat';
 import { NoInteraction } from '../../behaviors/interaction/NoInteraction';
 import { BaseEntityAnimation } from '../../behaviors/animation/BaseEntityAnimation';
 import { AbstractScene } from '../../scenes/AbstractScene';
-import { TREANT_ANIMATIONS } from '../../constants/animation-configs';
 
 export class Treant extends NonPlayerEntity {
   public readonly entityType: EntityType = ENTITIES.TREANT;
@@ -16,10 +15,8 @@ export class Treant extends NonPlayerEntity {
     // Create behavior components that don't reference 'this'
     const movementBehavior = new ChaseMovement(100);
     const interactionBehavior = new NoInteraction();
-    const animationBehavior = new BaseEntityAnimation(
-      TREANT_ANIMATIONS.WALK, 
-      TREANT_ANIMATIONS.IDLE
-    );
+    // Use the static factory method to get animations for this entity type
+    const animationBehavior = BaseEntityAnimation.forEntityType(ENTITIES.TREANT);
     
     // Call parent constructor with behaviors
     super(scene, x, y, ASSETS.IMAGES.TREANT_IDLE_DOWN, ENTITIES.TREANT, {

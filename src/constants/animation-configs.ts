@@ -64,8 +64,24 @@ export const PLAYER_ANIMATIONS: Record<string, CharacterAnimation> = {
 
 /**
  * Mole animation configurations
+ * Standardized to use CharacterState enum for consistency
  */
-export const MOLE_ANIMATIONS = {
+export const MOLE_ANIMATIONS: Record<string, CharacterAnimation> = {
+  [CharacterState.MOVE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
+  },
+  
+  [CharacterState.IDLE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+  },
+  
+  // Legacy keys for backward compatibility
   WALK: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
@@ -83,8 +99,24 @@ export const MOLE_ANIMATIONS = {
 
 /**
  * Treant animation configurations
+ * Standardized to use CharacterState enum for consistency
  */
-export const TREANT_ANIMATIONS = {
+export const TREANT_ANIMATIONS: Record<string, CharacterAnimation> = {
+  [CharacterState.MOVE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
+  },
+  
+  [CharacterState.IDLE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+  },
+  
+  // Legacy keys for backward compatibility
   WALK: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },

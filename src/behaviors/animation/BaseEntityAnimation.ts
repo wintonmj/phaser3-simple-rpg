@@ -7,6 +7,8 @@ import { NonPlayerEntity } from '../../game-objects/entities/NonPlayerEntity';
 import { Orientation } from '../../geometry/orientation';
 import { CharacterAnimation } from '../../game-objects/Character';
 import { CharacterState } from '../../constants/character-states';
+import { getAnimationsForEntity } from '../../constants/entity-animations';
+import { EntityType } from '../../constants/entities';
 
 /**
  * BaseEntityAnimation behavior for non-player entities
@@ -16,21 +18,21 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   private animationSets: Record<string, CharacterAnimation>;
 
   /**
-   * Constructor supporting both legacy (separate animations) and new (animation sets) approaches
-   * @param walkOrAnimationSets Either walk animation or complete animation sets
-   * @param idleAnimation Idle animation (optional when using animation sets)
+   * Constructor with a simplified approach using the centralized animation mapping
+   * @param animationSets The animation sets to use, typically from getAnimationsForEntity
    */
-  constructor(walkOrAnimationSets: CharacterAnimation | Record<string, CharacterAnimation>, idleAnimation?: CharacterAnimation) {
-    if (idleAnimation) {
-      // Legacy constructor with separate animations
-      this.animationSets = {
-        [CharacterState.MOVE]: walkOrAnimationSets as CharacterAnimation,
-        [CharacterState.IDLE]: idleAnimation
-      };
-    } else {
-      // New constructor with animation sets
-      this.animationSets = walkOrAnimationSets as Record<string, CharacterAnimation>;
-    }
+  constructor(animationSets: Record<string, CharacterAnimation>) {
+    this.animationSets = animationSets;
+  }
+
+  /**
+   * Static factory method to create an animation behavior for an entity type
+   * @param entityType The type of entity to create animations for
+   * @returns A new BaseEntityAnimation instance configured for the entity type
+   */
+  static forEntityType(entityType: EntityType): BaseEntityAnimation {
+    const animations = getAnimationsForEntity(entityType);
+    return new BaseEntityAnimation(animations);
   }
 
   /**

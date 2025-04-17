@@ -6,6 +6,8 @@
 import { MAPS } from '../constants/maps';
 import { ASSETS } from '../constants/assets';
 import { SCENES } from '../constants/scenes';
+import { ENTITIES } from '../constants/entities';
+import { ENTITY_DIMENSIONS } from '../constants/entity-animations';
 
 /**
  * Preloader scene that loads all game assets and creates animations.
@@ -76,7 +78,7 @@ export class Preloader extends Phaser.Scene {
       this.loadingText.destroy();
     });
 
-    this.load.on('loaderror', (fileObj: any) => {
+    this.load.on('loaderror', (fileObj: Phaser.Loader.File) => {
       console.error('Error loading asset:', fileObj.src);
       this.loadingText.setText('Error loading assets. Please refresh.');
       this.loadingText.setColor('#ff0000');
@@ -163,8 +165,8 @@ export class Preloader extends Phaser.Scene {
    */
   private loadPlayerSpritesheet(key: string, path: string) {
     this.load.spritesheet(key, path, {
-      frameWidth: 32,
-      frameHeight: 32,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.PLAYER].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.PLAYER].height,
     });
   }
 
@@ -174,23 +176,23 @@ export class Preloader extends Phaser.Scene {
   private loadEnemyAssets() {
     // Treant assets
     this.load.spritesheet(ASSETS.IMAGES.TREANT_IDLE_DOWN, 'assets/spritesheets/treant/idle/treant-idle-front.png', 
-      { frameWidth: 31, frameHeight: 35 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.TREANT].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.TREANT].height });
     this.load.spritesheet(ASSETS.IMAGES.TREANT_WALK_SIDE, 'assets/spritesheets/treant/walk/treant-walk-side.png', 
-      { frameWidth: 31, frameHeight: 35 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.TREANT].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.TREANT].height });
     this.load.spritesheet(ASSETS.IMAGES.TREANT_WALK_UP, 'assets/spritesheets/treant/walk/treant-walk-back.png', 
-      { frameWidth: 31, frameHeight: 35 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.TREANT].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.TREANT].height });
     this.load.spritesheet(ASSETS.IMAGES.TREANT_WALK_DOWN, 'assets/spritesheets/treant/walk/treant-walk-front.png', 
-      { frameWidth: 31, frameHeight: 35 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.TREANT].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.TREANT].height });
     
     // Mole assets
     this.load.spritesheet(ASSETS.IMAGES.MOLE_IDLE_DOWN, 'assets/spritesheets/mole/idle/mole-idle-front.png', 
-      { frameWidth: 24, frameHeight: 24 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.MOLE].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.MOLE].height });
     this.load.spritesheet(ASSETS.IMAGES.MOLE_WALK_SIDE, 'assets/spritesheets/mole/walk/mole-walk-side.png', 
-      { frameWidth: 24, frameHeight: 24 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.MOLE].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.MOLE].height });
     this.load.spritesheet(ASSETS.IMAGES.MOLE_WALK_UP, 'assets/spritesheets/mole/walk/mole-walk-back.png', 
-      { frameWidth: 24, frameHeight: 24 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.MOLE].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.MOLE].height });
     this.load.spritesheet(ASSETS.IMAGES.MOLE_WALK_DOWN, 'assets/spritesheets/mole/walk/mole-walk-front.png', 
-      { frameWidth: 24, frameHeight: 24 });
+      { frameWidth: ENTITY_DIMENSIONS[ENTITIES.MOLE].width, frameHeight: ENTITY_DIMENSIONS[ENTITIES.MOLE].height });
     
     // Monster death animation
     this.load.spritesheet(ASSETS.IMAGES.MONSTER_DEATH, 'assets/spritesheets/misc/enemy-death.png', 
@@ -203,28 +205,28 @@ export class Preloader extends Phaser.Scene {
   private loadGokuNpcAssets() {
     // Goku animations
     this.load.spritesheet(ASSETS.IMAGES.GOKU_IDLE, 'assets/humanoid-spritesheets/goku/standard/idle.png', {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
     this.load.spritesheet(ASSETS.IMAGES.GOKU_WALK, 'assets/humanoid-spritesheets/goku/standard/walk.png', {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
     this.load.spritesheet(ASSETS.IMAGES.GOKU_RUN, 'assets/humanoid-spritesheets/goku/standard/run.png', {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
     this.load.spritesheet(ASSETS.IMAGES.GOKU_SIT, 'assets/humanoid-spritesheets/goku/standard/sit.png', {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
     this.load.spritesheet(ASSETS.IMAGES.GOKU_SLASH, 'assets/humanoid-spritesheets/goku/standard/slash.png', {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
     this.load.spritesheet(ASSETS.IMAGES.GOKU_COMBAT_IDLE, 'assets/humanoid-spritesheets/goku/standard/combat_idle.png', {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
   }
 

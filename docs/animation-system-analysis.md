@@ -46,7 +46,7 @@
 
 ## Proposed Improvements
 
-2. **Create Entity-Animation Mapping**:
+1. **Create Entity-Animation Mapping**:
    - Develop a clear mapping between entity types and their animation configurations
    - Example: `const ENTITY_ANIMATIONS: Record<EntityType, Record<string, CharacterAnimation>>`
    - This would make it obvious which animations apply to which entities
@@ -113,21 +113,21 @@
    }
    ```
 
-3. **Simplify Animation Configuration**:
+2. **Simplify Animation Configuration**:
    - Have `Preloader.ts` use configurations from `animation-configs.ts` when creating animations
    - Remove redundancy between asset definitions and animation configurations
    - Consider a more declarative approach to defining animations
 
-4. **Standardize Animation Behavior**:
+3. **Standardize Animation Behavior**:
    - Phase out the legacy animation approach in `BaseEntityAnimation`
    - Create entity-specific animation behaviors only when needed
    - Simplify the animation behavior interface
 
-5. **Unify Animation Constants**:
+4. **Unify Animation Constants**:
    - Consider merging or better organizing constants between `assets.ts` and animation-related files
    - Create a clear hierarchy of animation-related constants
 
-6. **Improve Type Safety**:
+5. **Improve Type Safety**:
    - Add stronger typing throughout the animation system
    - Ensure animation keys are type-safe and connected to their entity types
 
