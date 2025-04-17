@@ -77,7 +77,10 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
     this.setAnimationBehavior(options.animation as BaseEntityAnimation);
     
     // Set up entity state
-    this.hp = options.hp ?? 1;
+    if (options.hp !== undefined) {
+      this.hp = options.hp;
+      this.maxHp = options.hp;
+    }
     this.dialogKey = options.dialogKey;
     
     if (options.attackDamage !== undefined) {
@@ -88,19 +91,21 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   /**
    * Main update method called by scene
    */
-  public update(): void {
+  public override update(): void {
     if (!this.active) return;
     
     this.movementBehavior.update(this);
     this.combatBehavior.update(this);
     this.interactionBehavior.update(this);
     // Animation behavior doesn't need updating every frame
+    
+    super.update(); // Call parent update if needed
   }
   
   /**
    * Returns the entity's scene safely
    */
-  public getScene(): AbstractScene {
+  public override getScene(): AbstractScene {
     return this.scene as AbstractScene;
   }
   
@@ -141,6 +146,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   
   /**
    * Entity takes damage
+   * Override to apply combat behavior before calling parent method
    */
   public override loseHp(damage: number | Phaser.Physics.Arcade.Sprite): void {
     // Handle legacy behavior when receiving a sprite projectile
@@ -149,7 +155,8 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
       damage = 1; // Default damage amount for backward compatibility
     }
     
-    this.combatBehavior.takeDamage(this, damage);
+    // Delegate to parent class for centralized damage handling
+    super.loseHp(damage);
   }
   
   /**

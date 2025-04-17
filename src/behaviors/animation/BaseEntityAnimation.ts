@@ -8,6 +8,7 @@ import { CharacterAnimation, Character } from '../../game-objects/Character';
 import { CharacterState } from '../../constants/character-states';
 import { getAnimationsForEntity } from '../../constants/entity-animations';
 import { EntityType } from '../../constants/entities';
+import { ASSETS } from '../../constants/assets';
 
 /**
  * BaseEntityAnimation behavior for all characters
@@ -102,14 +103,64 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   /**
    * Helper method to play hit animation
    */
-  playHit(character: Character, orientation: Orientation): void {
+  playHit(character: Character, orientation: Orientation, hitDelay: number = 500): void {
     this.playAnimation(character, CharacterState.HIT, orientation);
+    
+    // Apply hit tint effect
+    character.setTint(0xff0000);
+    
+    try {
+      const scene = character.getScene();
+      scene.time.addEvent({
+        delay: hitDelay,
+        callback: () => character.clearTint(),
+        callbackScope: this,
+      });
+    } catch (e) {
+      console.error('Error accessing scene for tint animation', e);
+      // Fallback to setTimeout if scene isn't available
+      setTimeout(() => character.clearTint(), hitDelay);
+    }
   }
 
   /**
    * Helper method to play death animation
    */
   playDeath(character: Character, orientation: Orientation): void {
+    // First try to play the character's built-in death animation
     this.playAnimation(character, CharacterState.DEATH, orientation);
+    
+    try {
+      // Additionally add the death effect sprite for enhanced visuals if needed
+      const scene = character.getScene();
+      const deathAnim = scene.add.sprite(character.x, character.y, ASSETS.IMAGES.MONSTER_DEATH);
+      deathAnim.play(ASSETS.ANIMATIONS.MONSTER_DEATH, false);
+      
+      // The sprite should clean itself up after playing
+      deathAnim.on('animationcomplete', () => {
+        deathAnim.destroy();
+      });
+    } catch (e) {
+      console.error('Error playing death effect animation', e);
+    }
+  }
+  
+  /**
+   * Visual effect for attack (tinting)
+   */
+  playAttackEffect(character: Character, duration: number = 200): void {
+    character.setTint(0xffaa00);
+    
+    try {
+      const scene = character.getScene();
+      scene.time.addEvent({
+        delay: duration,
+        callback: () => character.clearTint(),
+        callbackScope: this,
+      });
+    } catch (e) {
+      console.error('Error accessing scene for attack animation', e);
+      setTimeout(() => character.clearTint(), duration);
+    }
   }
 } 

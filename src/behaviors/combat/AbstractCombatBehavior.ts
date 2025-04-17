@@ -43,6 +43,11 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
   attack(attacker: Character, target: Character): void {
     if (!this.canAttack(target)) return;
     
+    // Show attack animation effect
+    if (attacker.getAnimationBehavior()) {
+      attacker.getAnimationBehavior().playAttackEffect(attacker, 200);
+    }
+    
     // Perform the actual attack implementation
     this.doAttack(attacker, target);
     
@@ -56,29 +61,11 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
   protected abstract doAttack(attacker: Character, target: Character): void;
 
   /**
-   * Character takes damage
+   * Character takes damage - delegates to Character.loseHp
    */
   takeDamage(character: Character, amount: number): void {
-    character.hp = character.hp - amount;
-    character.setTint(0xff0000);
-    
-    try {
-      // Get scene using the character's getScene method
-      const scene = character.getScene();
-      scene.time.addEvent({
-        delay: this.hitDelay,
-        callback: () => character.clearTint(),
-        callbackScope: this,
-      });
-    } catch (e) {
-      console.error('Error accessing scene for tint animation', e);
-      // Fallback to setTimeout if scene isn't available
-      setTimeout(() => character.clearTint(), this.hitDelay);
-    }
-    
-    if (character.hp <= 0) {
-      this.die(character);
-    }
+    // Simply delegate to the centralized damage handling in Character
+    character.loseHp(amount);
   }
 
   /**

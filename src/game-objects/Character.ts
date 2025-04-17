@@ -132,7 +132,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   }
   
   /**
-   * Apply damage to the character
+   * Apply damage to the character - Centralized damage handling
    * @param {number} damage - Amount of damage to apply
    */
   public loseHp(damage: number = 1): void {
@@ -147,7 +147,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     
     // Play hit animation if animation behavior is set
     if (this.animationBehavior) {
-      this.animationBehavior.playHit(this, this.orientation);
+      this.animationBehavior.playHit(this, this.orientation, Character.HIT_DELAY);
     }
     
     if (this._hp <= 0) {
@@ -156,7 +156,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   }
   
   /**
-   * Handle character death
+   * Handle character death - Centralized death handling
    * Override in subclasses for specific death behavior
    */
   protected onDeath(): void {
@@ -165,8 +165,20 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
       this.animationBehavior.playDeath(this, this.orientation);
     }
     
-    // Default behavior after animation would be to destroy
-    this.destroy();
+    // Set character to inactive - actual destruction will be handled after animation
+    this.setActive(false);
+    this.setVisible(false);
+    
+    // Add a delay before final destruction to allow animations to complete
+    const scene = this.getScene();
+    if (scene && scene.time) {
+      scene.time.delayedCall(1000, () => {
+        this.destroy();
+      }, [], this);
+    } else {
+      // Fallback if we can't use the scene timer
+      setTimeout(() => this.destroy(), 1000);
+    }
   }
   
   /**
