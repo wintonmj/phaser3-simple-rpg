@@ -6,6 +6,7 @@ import { Orientation } from '../geometry/orientation';
 import { Player } from '../game-objects/Player';
 import { Character } from '../game-objects/Character';
 import { KeyState } from '../types/scene-types';
+import { CharacterState } from '../constants/character-states';
 
 // Forward reference to avoid circular dependency
 // The actual class will be imported by implementations
@@ -89,7 +90,7 @@ export interface IAnimationBehavior extends IBehavior {
    * @param state The animation state (idle, walk, attack, etc.)
    * @param orientation The direction the entity is facing
    */
-  playAnimation(entity: NonPlayerEntity, state: string, orientation: Orientation): void;
+  playAnimation(entity: NonPlayerEntity, state: CharacterState, orientation: Orientation): void;
   
   /**
    * Set up all animations for this entity

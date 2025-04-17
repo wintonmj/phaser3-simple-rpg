@@ -48,7 +48,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   /** Whether the character is performing an action */
   protected isPerformingAction: boolean = false;
   /** Animation sets for different character states */
-  protected animationSets: Record<string, CharacterAnimation> = null;
+  protected animationSets: Partial<Record<CharacterState, CharacterAnimation>> = null;
   /** Current action state of the character */
   protected actionState: CharacterState = CharacterState.IDLE;
 
@@ -79,18 +79,17 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Sets up animation sets for different character states
    * @param animSets Record of animation sets for different states
    */
-  protected setupAnimations(animSets: Record<string, CharacterAnimation>): void {
+  protected setupAnimations(animSets: Partial<Record<CharacterState, CharacterAnimation>>): void {
     this.animationSets = animSets;
   }
 
   /**
    * Plays the appropriate animation based on character state and orientation
-   * Maintains backward compatibility with subclasses
    * 
-   * @param {string | CharacterState} state - The character state
+   * @param {CharacterState} state - The character state
    * @param {Orientation} [orientation] - Optional orientation override
    */
-  protected playAnimation(state: string | CharacterState, orientation?: Orientation): void {
+  protected playAnimation(state: CharacterState, orientation?: Orientation): void {
     if (!this.animationSets || !this.animationSets[state]) {
       return;
     }

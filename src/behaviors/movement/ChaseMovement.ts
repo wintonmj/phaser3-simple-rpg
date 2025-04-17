@@ -5,6 +5,7 @@
 import { IMovementBehavior } from '../interfaces';
 import { NonPlayerEntity } from '../../game-objects/entities/NonPlayerEntity';
 import { Orientation } from '../../geometry/orientation';
+import { CharacterState } from '../../constants/character-states';
 
 /**
  * ChaseMovement behavior for entities that chase the player
@@ -55,7 +56,7 @@ export class ChaseMovement implements IMovementBehavior {
   stop(entity: NonPlayerEntity): void {
     if (!entity.active) return;
     entity.setVelocity(0);
-    entity.playAnimation('idle', Orientation.Down);
+    entity.playAnimation(CharacterState.IDLE, Orientation.Down);
   }
 
   /**
@@ -93,7 +94,7 @@ export class ChaseMovement implements IMovementBehavior {
     entity.setVelocityY(Math.sign(y) * speed);
 
     const orientation = this.getOrientationFromDirection(x, y);
-    entity.playAnimation('walk', orientation);
+    entity.playAnimation(CharacterState.MOVE, orientation);
   }
 
   /**

@@ -15,6 +15,7 @@ import {
   IAnimationBehavior 
 } from '../../behaviors/interfaces';
 import { AbstractScene } from '../../scenes/AbstractScene';
+import { CharacterState } from '../../constants/character-states';
 
 /**
  * NonPlayerEntity class that acts as a container for behavior components.
@@ -171,7 +172,7 @@ export class NonPlayerEntity extends Character implements INonPlayerEntity {
   /**
    * Play an animation for a given state and orientation
    */
-  public playAnimation(state: string, orientation: Orientation): void {
+  public playAnimation(state: CharacterState, orientation: Orientation): void {
     this.animationBehavior.playAnimation(this, state, orientation);
   }
   
