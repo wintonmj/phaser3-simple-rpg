@@ -3,26 +3,36 @@
  */
 
 import { AbstractCombatBehavior } from './AbstractCombatBehavior';
-import { NonPlayerEntity } from '../../game-objects/entities/NonPlayerEntity';
 import { Character } from '../../game-objects/Character';
 import { AbstractScene } from '../../scenes/AbstractScene';
+
+/**
+ * Type for a projectile factory function
+ */
+export type ProjectileFactory = (scene: AbstractScene, x: number, y: number) => Phaser.Physics.Arcade.Sprite;
 
 /**
  * RangedCombat behavior for hostile entities
  * This is a temporary placeholder implementation that mimics the previous built-in behavior
  */
 export class RangedCombat extends AbstractCombatBehavior {
-  private projectileGenerator: (scene: AbstractScene, x: number, y: number) => void;
+  private projectileFactory: ProjectileFactory;
+  private sourceEntity: Character | null = null;
 
   constructor(
-    projectileGenerator?: (scene: AbstractScene, x: number, y: number) => void, 
+    projectileFactory: ProjectileFactory,
     hitDelay = 1000
   ) {
     super(hitDelay);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    this.projectileGenerator = projectileGenerator || ((_scene, _x, _y) => {
-      console.warn('No projectile generator provided for RangedCombat');
-    });
+    this.projectileFactory = projectileFactory;
+  }
+
+  /**
+   * Sets the source entity for this combat behavior
+   * This allows the behavior to use the entity's position without keeping a closure
+   */
+  public setSourceEntity(entity: Character): void {
+    this.sourceEntity = entity;
   }
 
   /**
@@ -30,22 +40,34 @@ export class RangedCombat extends AbstractCombatBehavior {
    * @override
    */
   protected doAttack(attacker: Character, target: Character): void {
-    // Only proceed if attacker is a NonPlayerEntity
-    if (attacker instanceof NonPlayerEntity) {
-      this.generateProjectile(attacker, target);
-    }
+    this.sourceEntity = attacker; // Ensure we have the latest reference to attacker
+    this.generateProjectile(target);
   }
 
   /**
    * Generate projectile for the attack
    */
-  private generateProjectile(entity: NonPlayerEntity, target: Character): void {
+  private generateProjectile(target: Character): void {
+    if (!this.sourceEntity) return;
+    
     try {
-      const scene = entity.getScene();
-      // Generate projectile using the provided generator
-      if (this.projectileGenerator) {
-        this.projectileGenerator(scene, target.x, target.y);
-      }
+      const scene = this.sourceEntity.getScene() as AbstractScene;
+      
+      // Generate projectile using the entity's current position
+      const projectile = this.projectileFactory(
+        scene, 
+        this.sourceEntity.x, 
+        this.sourceEntity.y
+      );
+      
+      // Calculate direction from source to target
+      const dx = target.x - this.sourceEntity.x;
+      const dy = target.y - this.sourceEntity.y;
+      const angle = Math.atan2(dy, dx);
+      
+      // Set projectile velocity toward target
+      const speed = 200;
+      scene.physics.velocityFromRotation(angle, speed, projectile.body.velocity);
     } catch (e) {
       console.error('Error generating projectile', e);
     }

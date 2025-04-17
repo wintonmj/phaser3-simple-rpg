@@ -54,7 +54,9 @@ export class Player extends Character {
     const animationBehavior = new BaseEntityAnimation(PLAYER_ANIMATIONS);
     this.setAnimationBehavior(animationBehavior);
 
+    // Set up animation event handlers
     this.on('animationrepeat', this.handleAnimationRepeat, this);
+    this.on('animationcomplete', this.handleAnimationComplete, this);
   }
 
   /**
@@ -104,7 +106,13 @@ export class Player extends Character {
    * Reloads the player's weapon
    */
   public reloadWeapon(): void {
-    this.actionState = CharacterState.RELOADING;
+    // Set state to reloading
+    this.setState(CharacterState.RELOADING);
+    
+    // Start a cooldown to track reload time
+    this.startCooldown('reload');
+    
+    // Schedule transition back to IDLE
     this.scene.time.addEvent({
       delay: PLAYER_RELOAD,
       callback: this.readyToFire,
@@ -116,25 +124,41 @@ export class Player extends Character {
    * Mark player as ready to fire
    */
   private readyToFire(): void {
-    this.actionState = CharacterState.IDLE;
+    this.setState(CharacterState.IDLE);
   }
 
   /**
    * Performs a shooting action
    */
   public shootWeapon(): void {
-    this.actionState = CharacterState.SHOOTING;
-    this.isPerformingAction = true;
-    this.animationBehavior.playHit(this, this.orientation);
+    // Only allow shooting if we're not already in a shooting state or reloading
+    if (!this.isActionState(CharacterState.SHOOTING) && 
+        !this.isActionState(CharacterState.RELOADING) && 
+        this.isOffCooldown('reload', PLAYER_RELOAD)) {
+      
+      // Set state to trigger animation
+      this.setState(CharacterState.SHOOTING);
+      
+      // Spawn the arrow immediately
+      const arrow = new Arrow(this.scene, this.x, this.y, this.orientation);
+      this.scene.physics.add.collider(arrow, this.scene.monsterGroup, (a: Arrow, m: NonPlayerEntity) => {
+        m.loseHp(a);
+      });
+      
+      // Start reloading after a short delay
+      this.scene.time.addEvent({
+        delay: 100, // Short delay to allow animation to play
+        callback: this.reloadWeapon,
+        callbackScope: this
+      });
+    }
   }
 
   /**
    * Performs a punch action
    */
   public performPunch(): void {
-    this.actionState = CharacterState.PUNCHING;
-    this.isPerformingAction = true;
-    this.animationBehavior.playAttack(this, this.orientation);
+    this.setState(CharacterState.PUNCHING);
   }
 
   /**
@@ -161,19 +185,22 @@ export class Player extends Character {
     const attackAnimUp = this.getAnimationKey(CharacterState.ATTACK, Orientation.Up);
     const attackAnimDown = this.getAnimationKey(CharacterState.ATTACK, Orientation.Down);
     
+    // Check current player state to take appropriate action
     switch (event.key) {
       case hitAnimLeft:
       case hitAnimRight:
       case hitAnimUp:
       case hitAnimDown:
-        this.concludeShoot();
+        // For hit animations, just reset to IDLE
+        // We no longer handle shooting here, it's done in shootWeapon
+        this.setState(CharacterState.IDLE);
         break;
       case attackAnimLeft:
       case attackAnimRight:
       case attackAnimUp:
       case attackAnimDown:
-        this.actionState = CharacterState.IDLE;
-        this.isPerformingAction = false;
+        // After attack animation, return to IDLE
+        this.setState(CharacterState.IDLE);
         break;
       default:
         break;
@@ -181,15 +208,80 @@ export class Player extends Character {
   }
 
   /**
-   * Finalize shooting action and spawn arrow
+   * Finalize shooting action and reset to idle
    */
   private concludeShoot(): void {
-    this.actionState = CharacterState.IDLE;
-    this.isPerformingAction = false;
+    // Just reset to IDLE state
+    this.setState(CharacterState.IDLE);
+  }
+
+  /**
+   * Handle animation completion events for one-shot animations
+   */
+  private handleAnimationComplete(event: {key: string}): void {
+    // Get animation keys for combat states
+    const hitAnimLeft = this.getAnimationKey(CharacterState.HIT, Orientation.Left);
+    const hitAnimRight = this.getAnimationKey(CharacterState.HIT, Orientation.Right);
+    const hitAnimUp = this.getAnimationKey(CharacterState.HIT, Orientation.Up);
+    const hitAnimDown = this.getAnimationKey(CharacterState.HIT, Orientation.Down);
     
-    const arrow = new Arrow(this.scene, this.x, this.y, this.orientation);
-    this.scene.physics.add.collider(arrow, this.scene.monsterGroup, (a: Arrow, m: NonPlayerEntity) => {
-      m.loseHp(a);
-    });
+    const shootAnimLeft = this.getAnimationKey(CharacterState.SHOOTING, Orientation.Left);
+    const shootAnimRight = this.getAnimationKey(CharacterState.SHOOTING, Orientation.Right);
+    const shootAnimUp = this.getAnimationKey(CharacterState.SHOOTING, Orientation.Up);
+    const shootAnimDown = this.getAnimationKey(CharacterState.SHOOTING, Orientation.Down);
+    
+    const punchAnimLeft = this.getAnimationKey(CharacterState.PUNCHING, Orientation.Left);
+    const punchAnimRight = this.getAnimationKey(CharacterState.PUNCHING, Orientation.Right);
+    const punchAnimUp = this.getAnimationKey(CharacterState.PUNCHING, Orientation.Up);
+    const punchAnimDown = this.getAnimationKey(CharacterState.PUNCHING, Orientation.Down);
+    
+    // Handle animation completion
+    switch (event.key) {
+      case hitAnimLeft:
+      case hitAnimRight:
+      case hitAnimUp:
+      case hitAnimDown:
+        // If in hit state, return to idle
+        if (this.isActionState(CharacterState.HIT)) {
+          this.setState(CharacterState.IDLE);
+        }
+        break;
+      case shootAnimLeft:
+      case shootAnimRight:
+      case shootAnimUp:
+      case shootAnimDown:
+        // When shooting animation completes, reset state if needed
+        if (this.isActionState(CharacterState.SHOOTING)) {
+          this.concludeShoot();
+        }
+        break;
+      case punchAnimLeft:
+      case punchAnimRight:
+      case punchAnimUp:
+      case punchAnimDown:
+        // When punch animation completes, return to idle
+        if (this.isActionState(CharacterState.PUNCHING)) {
+          this.setState(CharacterState.IDLE);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Move the character in a specific direction
+   * Override the base implementation to handle interrupting shooting
+   * @param {Orientation} direction - The direction to move
+   * @param {number} speed - Optional custom speed
+   * @param {boolean} shouldAnimate - Whether to play the move animation
+   */
+  public override moveInDirection(direction: Orientation, speed?: number, shouldAnimate: boolean = true): void {
+    // If in shooting or punching state, cancel those actions first
+    if (this.isActionState(CharacterState.SHOOTING) || 
+        this.isActionState(CharacterState.PUNCHING)) {
+      this.setState(CharacterState.IDLE);
+    }
+    
+    // Call the parent implementation
+    super.moveInDirection(direction, speed, shouldAnimate);
   }
 }

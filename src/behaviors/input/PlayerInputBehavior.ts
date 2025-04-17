@@ -9,6 +9,9 @@ import { Player } from '../../game-objects/Player';
 import { Orientation } from '../../geometry/orientation';
 import { CharacterState } from '../../constants/character-states';
 
+/** Reload time in milliseconds */
+const PLAYER_RELOAD = 1000; // Adjust this value as needed
+
 /**
  * Handles player input and movement controls
  */
@@ -46,13 +49,8 @@ export class PlayerInputBehavior implements IInputBehavior {
     // Handle movement based on input
     this.handleMovement(player);
     
-    // Handle combat actions
-    if (this.keyState.shift) {
-      player.performPunch();
-    }
-    
     // Handle ranged attacks
-    this.handleShootKey(player);
+    this.handleActionKey(player);
     
     // Set to idle if no keys are pressed
     const noKeyPressed = Object.values(this.keyState).filter(x => x).length === 0;
@@ -110,13 +108,52 @@ export class PlayerInputBehavior implements IInputBehavior {
    * Handle shooting actions
    * @param player The player to perform shooting
    */
-  private handleShootKey(player: Player): void {
+  private handleActionKey(player: Player): void {
     if (this.keyState.space) {
       if (player.isActionState(CharacterState.RELOADING)) {
         return;
       }
-      player.reloadWeapon();
-      player.shootWeapon();
+      this.reloadAttack(player);
+      this.attack(player);
     }
+  }
+
+  /**
+   * Execute player attack
+   * @param player The player performing the attack
+   */
+  private attack(player: Player): void {
+    // Set state to shooting
+    player.setState(CharacterState.SHOOTING);
+    
+    // TODO: Implement actual projectile generation
+    // This would typically involve player's combat behavior
+    // or dispatching the attack to the scene's combat system
+  }
+
+  /**
+   * Reloads the player's weapon
+   */
+  public reloadAttack(player: Player): void {
+    // Set state to reloading
+    player.setState(CharacterState.RELOADING);
+    
+    // Start a cooldown to track reload time
+    player.startCooldown('reload');
+    
+    // Schedule transition back to IDLE - Using player's scene
+    const scene = player.getScene();
+    scene.time.addEvent({
+      delay: PLAYER_RELOAD,
+      callback: () => this.readyToFire(player),
+      callbackScope: this,
+    });
+  }
+
+  /**
+   * Mark player as ready to fire
+   */
+  private readyToFire(player: Player): void {
+    player.setState(CharacterState.IDLE);
   }
 } 

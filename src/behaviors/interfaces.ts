@@ -47,13 +47,6 @@ export interface ICombatBehavior extends IBehavior {
    * @param target The character being attacked
    */
   attack(character: Character, target: Character): void;
-  
-  /**
-   * Character takes damage
-   * @param character The character taking damage
-   * @param amount The amount of damage taken
-   */
-  takeDamage(character: Character, amount: number): void;
 }
 
 /**

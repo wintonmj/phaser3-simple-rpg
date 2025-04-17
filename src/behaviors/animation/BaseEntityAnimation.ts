@@ -55,6 +55,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
 
   /**
    * Play the appropriate animation based on state and orientation
+   * This is the single entry point for all animation logic
    */
   playAnimation(character: Character, state: CharacterState, orientation: Orientation): void {
     // Check if we have animations for this state
@@ -69,9 +70,34 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     // Get the correct animation data for the orientation
     const { flip, anim } = this.animationSets[state][orientation];
     
-    // Play the animation
+    // Set flipping
     character.setFlipX(flip);
-    character.play(anim, true);
+    
+    // Determine if this animation should repeat or play once
+    const shouldRepeat = !(
+      state === CharacterState.ATTACK || 
+      state === CharacterState.SHOOTING || 
+      state === CharacterState.PUNCHING || 
+      state === CharacterState.HIT
+    );
+    
+    // Play the animation with appropriate repeat setting
+    character.play(anim, shouldRepeat);
+    
+    // Apply additional visual effects based on state
+    switch (state) {
+      case CharacterState.HIT:
+        this.applyTint(character, 0xff0000, 500);
+        break;
+      case CharacterState.ATTACK:
+      case CharacterState.SHOOTING:
+      case CharacterState.PUNCHING:
+        this.applyTint(character, 0xffaa00, 200);
+        break;
+      case CharacterState.DEATH:
+        this.playDeathEffect(character);
+        break;
+    }
   }
 
   /**
@@ -83,42 +109,10 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   }
   
   /**
-   * Helper method to play idle animation
-   */
-  playIdle(character: Character, orientation: Orientation): void {
-    this.playAnimation(character, CharacterState.IDLE, orientation);
-  }
-  
-  /**
-   * Helper method to play movement animation
-   */
-  playMove(character: Character, orientation: Orientation): void {
-    this.playAnimation(character, CharacterState.MOVE, orientation);
-  }
-
-  /**
-   * Helper method to play attack animation
-   */
-  playAttack(character: Character, orientation: Orientation): void {
-    this.playAnimation(character, CharacterState.ATTACK, orientation);
-  }
-
-  /**
-   * Helper method to play hit animation
-   */
-  playHit(character: Character, orientation: Orientation, hitDelay: number = 500): void {
-    // Play the hit animation state if available
-    this.playAnimation(character, CharacterState.HIT, orientation);
-    
-    // Apply hit tint visual effect
-    this.applyTint(character, 0xff0000, hitDelay);
-  }
-
-  /**
-   * Helper method to play death animation
+   * Add death effect
    * This is the ONLY place death animation should be handled
    */
-  playDeath(character: Character): void {
+  private playDeathEffect(character: Character): void {
     // Make character invisible once death animation starts
     character.setVisible(false);
     
@@ -135,13 +129,6 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     } catch (e) {
       console.error('Error playing death effect animation', e);
     }
-  }
-  
-  /**
-   * Visual effect for attack (tinting)
-   */
-  playAttackEffect(character: Character, duration: number = 200): void {
-    this.applyTint(character, 0xffaa00, duration);
   }
   
   /**

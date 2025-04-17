@@ -21,6 +21,13 @@ export type CharacterAnimation = {
 };
 
 /**
+ * Type for tracking cooldowns of different actions
+ */
+export type CooldownTracker = {
+  [key: string]: number;
+};
+
+/**
  * Abstract base class for all characters in the game.
  * Provides common functionality for physics, animations, and scene integration.
  * 
@@ -29,8 +36,8 @@ export type CharacterAnimation = {
  * @extends {Phaser.Physics.Arcade.Sprite}
  */
 export abstract class Character extends Phaser.Physics.Arcade.Sprite {
-  /** Delay between hits in milliseconds */
-  protected static readonly HIT_DELAY: number = 500;
+  /** Default delay between hits in milliseconds */
+  protected static readonly DEFAULT_HIT_DELAY: number = 500;
   
   /** Reference to the scene the character belongs to */
   protected scene: AbstractScene;
@@ -40,14 +47,12 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   protected _hp: number = 1;
   /** Maximum health points */
   protected _maxHp: number = 1;
-  /** Timestamp of the last hit taken */
-  protected lastTimeHit: number = 0;
+  /** Cooldown tracking for various actions */
+  protected cooldowns: CooldownTracker = {};
   /** Current orientation of the character */
   protected orientation: Orientation = Orientation.Down;
   /** Movement speed of the character */
   protected moveSpeed: number = 80;
-  /** Whether the character is performing an action */
-  protected isPerformingAction: boolean = false;
   /** Current action state of the character */
   protected actionState: CharacterState = CharacterState.IDLE;
   /** Animation behavior component */
@@ -70,7 +75,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     const uiScene = this.scene.scene.get(SCENES.GAME_MANAGER) as GameManager;
     this.uiScene = uiScene;
     
-    this.lastTimeHit = new Date().getTime();
+    // Initialize cooldown trackers with current time
+    this.resetAllCooldowns();
     
     this.setCollideWorldBounds(true);
     this.setOrigin(0.5, 0.7);
@@ -124,11 +130,45 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   }
   
   /**
+   * Reset all cooldowns to current time
+   */
+  protected resetAllCooldowns(): void {
+    const now = Date.now();
+    this.cooldowns = {
+      hit: now,
+      attack: now,
+      ability: now,
+      // Can be expanded with other action types
+    };
+  }
+  
+  /**
+   * Start cooldown for a specific action
+   * @param actionType The type of action to set cooldown for
+   */
+  public startCooldown(actionType: string): void {
+    this.cooldowns[actionType] = Date.now();
+  }
+  
+  /**
+   * Check if an action is off cooldown
+   * @param actionType The type of action to check
+   * @param cooldownTime The cooldown duration in milliseconds
+   * @returns Whether the action is off cooldown and can be performed
+   */
+  public isOffCooldown(actionType: string, cooldownTime: number): boolean {
+    if (!this.cooldowns[actionType]) {
+      this.cooldowns[actionType] = 0;
+    }
+    return Date.now() - this.cooldowns[actionType] >= cooldownTime;
+  }
+  
+  /**
    * Check if character can be hit (based on hit delay)
    * @param {number} hitDelay - Optional custom hit delay
    */
-  public canGetHit(hitDelay: number = Character.HIT_DELAY): boolean {
-    return new Date().getTime() - this.lastTimeHit > hitDelay;
+  public canGetHit(hitDelay: number = Character.DEFAULT_HIT_DELAY): boolean {
+    return this.isOffCooldown('hit', hitDelay);
   }
   
   /**
@@ -141,14 +181,12 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     }
     
     this._hp -= damage;
-    this.lastTimeHit = new Date().getTime();
+    this.startCooldown('hit');
     
     this.onHpChanged();
     
-    // Play hit animation if animation behavior is set
-    if (this.animationBehavior) {
-      this.animationBehavior.playHit(this, this.orientation, Character.HIT_DELAY);
-    }
+    // Change state to HIT and play appropriate animation
+    this.setState(CharacterState.HIT);
     
     if (this._hp <= 0) {
       this.onDeath();
@@ -163,11 +201,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     // Set character to inactive first
     this.setActive(false);
     
-    // Play death animation through animation behavior if available
-    // The animation behavior handles all visual effects for death
-    if (this.animationBehavior) {
-      this.animationBehavior.playDeath(this);
-    }
+    // Change state to DEATH
+    this.setState(CharacterState.DEATH);
     
     // Add a delay before final destruction to allow animations to complete
     const scene = this.getScene();
@@ -209,8 +244,9 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
         break;
     }
     
-    if (shouldAnimate && !this.isPerformingAction && this.animationBehavior) {
-      this.animationBehavior.playMove(this, this.orientation);
+    // Set state to MOVE if not in a higher priority state
+    if (shouldAnimate && this.canChangeToState(CharacterState.MOVE)) {
+      this.setState(CharacterState.MOVE);
     }
   }
   
@@ -220,8 +256,9 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   public stop(): void {
     this.setVelocity(0, 0);
     
-    if (!this.isPerformingAction && this.animationBehavior) {
-      this.animationBehavior.playIdle(this, this.orientation);
+    // Only change to IDLE if in MOVE state
+    if (this.actionState === CharacterState.MOVE) {
+      this.setState(CharacterState.IDLE);
     }
   }
   
@@ -243,8 +280,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Set character to idle state with appropriate animation
    */
   public setToIdle(): void {
-    if (!this.isPerformingAction && this.animationBehavior) {
-      this.animationBehavior.playIdle(this, this.orientation);
+    if (this.canChangeToState(CharacterState.IDLE)) {
+      this.setState(CharacterState.IDLE);
     }
   }
   
@@ -278,5 +315,60 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    */
   public getAnimationBehavior(): BaseEntityAnimation {
     return this.animationBehavior;
+  }
+  
+  /**
+   * Get the current action state
+   */
+  public getState(): CharacterState {
+    return this.actionState;
+  }
+  
+  /**
+   * Set the character's state and play appropriate animation
+   * @param state The state to transition to
+   */
+  public setState(state: CharacterState): void {
+    // Only change state if allowed to
+    if (!this.canChangeToState(state)) {
+      return;
+    }
+    
+    // Update the state
+    this.actionState = state;
+    
+    // Play the appropriate animation if behavior exists
+    if (this.animationBehavior) {
+      this.animationBehavior.playAnimation(this, state, this.orientation);
+    }
+  }
+  
+  /**
+   * Check if character can change to a specific state
+   * @param state The state to check transition to
+   * @returns Whether the state transition is allowed
+   */
+  protected canChangeToState(state: CharacterState): boolean {
+    // Default state transition rules:
+    // - DEATH state can't transition to any other state
+    if (this.actionState === CharacterState.DEATH) {
+      return false;
+    }
+    
+    // - HIT state can only transition to DEATH or back to IDLE after delay
+    if (this.actionState === CharacterState.HIT && 
+        state !== CharacterState.DEATH && 
+        !this.isOffCooldown('hit', Character.DEFAULT_HIT_DELAY)) {
+      return false;
+    }
+    
+    // - Combat states (ATTACK, SHOOTING, PUNCHING) have priority over movement states
+    // BUT movement can interrupt SHOOTING and PUNCHING (but not ATTACK) 
+    if (this.actionState === CharacterState.ATTACK && 
+        (state === CharacterState.MOVE || state === CharacterState.IDLE)) {
+      return false;
+    }
+    
+    return true;
   }
 }

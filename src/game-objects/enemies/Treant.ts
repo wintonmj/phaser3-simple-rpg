@@ -18,22 +18,22 @@ export class Treant extends NonPlayerEntity {
     // Use the static factory method to get animations for this entity type
     const animationBehavior = BaseEntityAnimation.forEntityType(ENTITIES.TREANT);
     
+    // Create the combat behavior with a projectile factory that doesn't use 'this'
+    const combatBehavior = new RangedCombat((scene, x, y) => {
+      return new Log(scene, x, y);
+    });
+    
     // Call parent constructor with behaviors
     super(scene, x, y, ASSETS.IMAGES.TREANT_IDLE_DOWN, ENTITIES.TREANT, {
       movement: movementBehavior,
-      combat: null, // Set later after 'this' is available
+      combat: combatBehavior,
       interaction: interactionBehavior,
       animation: animationBehavior,
       hp: 5
     });
-
-    // Now we can use 'this' to create the combat behavior
-    const combatBehavior = new RangedCombat(() => {
-      return new Log(scene, this.x, this.y);
-    });
     
-    // Update the combat behavior
-    this.setCombatBehavior(combatBehavior);
+    // Set this instance as the source entity for the combat behavior
+    combatBehavior.setSourceEntity(this);
     
     this.setDepth(5);
     this.setCollideWorldBounds(true);
