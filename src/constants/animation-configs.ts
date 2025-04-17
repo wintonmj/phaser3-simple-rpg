@@ -8,6 +8,32 @@ import { CharacterState } from './character-states';
 import { ASSETS } from './assets';
 
 /**
+ * Creates animation configuration for multiple states that use the same animations
+ * Reduces duplication in animation configuration
+ */
+function createSharedAnimationConfig(
+  baseAnim: {
+    down: string,
+    up: string,
+    side: string
+  },
+  states: CharacterState[]
+): Partial<Record<CharacterState, CharacterAnimation>> {
+  const config: Partial<Record<CharacterState, CharacterAnimation>> = {};
+  
+  states.forEach(state => {
+    config[state] = {
+      down: { flip: false, anim: baseAnim.down },
+      up: { flip: false, anim: baseAnim.up },
+      left: { flip: true, anim: baseAnim.side },
+      right: { flip: false, anim: baseAnim.side },
+    };
+  });
+  
+  return config;
+}
+
+/**
  * Player animation configurations
  */
 export const PLAYER_ANIMATIONS: Record<CharacterState, CharacterAnimation> = {
@@ -67,18 +93,19 @@ export const PLAYER_ANIMATIONS: Record<CharacterState, CharacterAnimation> = {
  * Standardized to use CharacterState enum for consistency
  */
 export const MOLE_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
+  ...createSharedAnimationConfig(
+    {
+      down: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN,
+      up: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN, // Reusing down animation for up
+      side: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN // Reusing down animation for side
+    },
+    [CharacterState.IDLE, CharacterState.ATTACK] // States that share the same idle animation
+  ),
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
     left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
     right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
-  },
-  
-  [CharacterState.IDLE]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
   }
 };
 
@@ -87,17 +114,18 @@ export const MOLE_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>
  * Standardized to use CharacterState enum for consistency
  */
 export const TREANT_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
+  ...createSharedAnimationConfig(
+    {
+      down: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN,
+      up: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN, // Reusing down animation for up
+      side: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN // Reusing down animation for side 
+    },
+    [CharacterState.IDLE, CharacterState.ATTACK] // States that share the same idle animation
+  ),
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
     left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
     right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-  },
-  
-  [CharacterState.IDLE]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
   }
 }; 

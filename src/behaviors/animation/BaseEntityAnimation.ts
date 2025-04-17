@@ -13,6 +13,9 @@ import { ASSETS } from '../../constants/assets';
 /**
  * BaseEntityAnimation behavior for all characters
  * Provides animations for any entity based on CharacterState
+ * 
+ * This is the central class responsible for ALL visual effects and animations
+ * related to characters in the game. No other class should handle animation logic.
  */
 export class BaseEntityAnimation implements IAnimationBehavior {
   private animationSets: Partial<Record<CharacterState, CharacterAnimation>>;
@@ -104,34 +107,23 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    * Helper method to play hit animation
    */
   playHit(character: Character, orientation: Orientation, hitDelay: number = 500): void {
+    // Play the hit animation state if available
     this.playAnimation(character, CharacterState.HIT, orientation);
     
-    // Apply hit tint effect
-    character.setTint(0xff0000);
-    
-    try {
-      const scene = character.getScene();
-      scene.time.addEvent({
-        delay: hitDelay,
-        callback: () => character.clearTint(),
-        callbackScope: this,
-      });
-    } catch (e) {
-      console.error('Error accessing scene for tint animation', e);
-      // Fallback to setTimeout if scene isn't available
-      setTimeout(() => character.clearTint(), hitDelay);
-    }
+    // Apply hit tint visual effect
+    this.applyTint(character, 0xff0000, hitDelay);
   }
 
   /**
    * Helper method to play death animation
+   * This is the ONLY place death animation should be handled
    */
-  playDeath(character: Character, orientation: Orientation): void {
-    // First try to play the character's built-in death animation
-    this.playAnimation(character, CharacterState.DEATH, orientation);
+  playDeath(character: Character): void {
+    // Make character invisible once death animation starts
+    character.setVisible(false);
     
     try {
-      // Additionally add the death effect sprite for enhanced visuals if needed
+      // Add the death effect sprite for enhanced visuals
       const scene = character.getScene();
       const deathAnim = scene.add.sprite(character.x, character.y, ASSETS.IMAGES.MONSTER_DEATH);
       deathAnim.play(ASSETS.ANIMATIONS.MONSTER_DEATH, false);
@@ -149,7 +141,15 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    * Visual effect for attack (tinting)
    */
   playAttackEffect(character: Character, duration: number = 200): void {
-    character.setTint(0xffaa00);
+    this.applyTint(character, 0xffaa00, duration);
+  }
+  
+  /**
+   * Apply tint to character with automatic removal after delay
+   * Centralizes tinting logic that was duplicated
+   */
+  private applyTint(character: Character, tintColor: number, duration: number): void {
+    character.setTint(tintColor);
     
     try {
       const scene = character.getScene();
@@ -159,7 +159,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
         callbackScope: this,
       });
     } catch (e) {
-      console.error('Error accessing scene for attack animation', e);
+      console.error('Error accessing scene for tint animation', e);
       setTimeout(() => character.clearTint(), duration);
     }
   }

@@ -4,7 +4,6 @@
 
 import { ICombatBehavior } from '../interfaces';
 import { Character } from '../../game-objects/Character';
-import { ASSETS } from '../../constants/assets';
 
 /**
  * Abstract base class for combat behaviors
@@ -43,8 +42,9 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
   attack(attacker: Character, target: Character): void {
     if (!this.canAttack(target)) return;
     
-    // Show attack animation effect
+    // Delegate attack animation to animation behavior
     if (attacker.getAnimationBehavior()) {
+      attacker.getAnimationBehavior().playAttack(attacker, attacker.getOrientation());
       attacker.getAnimationBehavior().playAttackEffect(attacker, 200);
     }
     
@@ -66,42 +66,5 @@ export abstract class AbstractCombatBehavior implements ICombatBehavior {
   takeDamage(character: Character, amount: number): void {
     // Simply delegate to the centralized damage handling in Character
     character.loseHp(amount);
-  }
-
-  /**
-   * Handle character death
-   */
-  protected die(character: Character): void {
-    try {
-      // Get scene using the character's getScene method
-      const scene = character.getScene();
-      const deathAnim = scene.add.sprite(character.x, character.y, ASSETS.IMAGES.MONSTER_DEATH);
-      character.destroy();
-      deathAnim.play(ASSETS.ANIMATIONS.MONSTER_DEATH, false);
-    } catch (e) {
-      console.error('Error playing death animation', e);
-      character.destroy();
-    }
-  }
-
-  /**
-   * Play attack animation
-   */
-  protected animateAttack(character: Character): void {
-    // Simple animation for attack, can be enhanced later
-    character.setTint(0xffaa00);
-    
-    try {
-      // Get scene using the character's getScene method
-      const scene = character.getScene();
-      scene.time.addEvent({
-        delay: 200,
-        callback: () => character.clearTint(),
-        callbackScope: this,
-      });
-    } catch (e) {
-      console.error('Error accessing scene for attack animation', e);
-      setTimeout(() => character.clearTint(), 200);
-    }
   }
 } 

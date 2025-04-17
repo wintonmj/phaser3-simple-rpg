@@ -35,7 +35,5 @@ export class MeleeCombat extends AbstractCombatBehavior {
         target.loseHp(damage);
       }
     }
-
-    this.animateAttack(attacker);
   }
 } 

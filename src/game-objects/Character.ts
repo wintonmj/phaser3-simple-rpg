@@ -160,14 +160,14 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Override in subclasses for specific death behavior
    */
   protected onDeath(): void {
-    // Play death animation if animation behavior is set
-    if (this.animationBehavior) {
-      this.animationBehavior.playDeath(this, this.orientation);
-    }
-    
-    // Set character to inactive - actual destruction will be handled after animation
+    // Set character to inactive first
     this.setActive(false);
-    this.setVisible(false);
+    
+    // Play death animation through animation behavior if available
+    // The animation behavior handles all visual effects for death
+    if (this.animationBehavior) {
+      this.animationBehavior.playDeath(this);
+    }
     
     // Add a delay before final destruction to allow animations to complete
     const scene = this.getScene();
