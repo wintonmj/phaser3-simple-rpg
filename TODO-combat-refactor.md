@@ -8,15 +8,18 @@ Move combat-related functionality from Player.ts into appropriate combat behavio
 Based on codebase analysis, the following CharacterState values are actively used:
 
 ### Base states:
+
 - **IDLE** - Used extensively for default state in Character.ts and Player.ts
 - **MOVE** - Used in Character.ts for movement animations
 - **DEATH** - Defined but no direct usage found in code
 
 ### Combat states:
+
 - **ATTACK** - Used for melee attack animations in Player.ts
 - **HIT** - Used for hit/damage animations in Player.ts
 
 ### Weapon states:
+
 - **RELOADING** - Used in both Player.ts and PlayerInputBehavior.ts
 - **SHOOTING** - Used in both Player.ts and PlayerInputBehavior.ts
 - **PUNCHING** - Used in Player.ts for melee attacks
