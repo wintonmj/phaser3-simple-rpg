@@ -117,4 +117,34 @@ export const TREANT_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimatio
     left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
     right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
   }
+};
+
+/**
+ * Goku NPC animation configurations
+ */
+export const GOKU_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
+  [CharacterState.IDLE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
+  },
+  [CharacterState.MOVE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_WALK_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_WALK_UP },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_WALK_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_WALK_RIGHT },
+  },
+  [CharacterState.ATTACK]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
+  },
+  [CharacterState.SHOOTING]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
+  },
 }; 

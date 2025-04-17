@@ -5,7 +5,7 @@
 
 import { EntityType, ENTITIES } from './entities';
 import { CharacterState } from './character-states';
-import { PLAYER_ANIMATIONS, MOLE_ANIMATIONS, TREANT_ANIMATIONS } from './animation-configs';
+import { PLAYER_ANIMATIONS, MOLE_ANIMATIONS, TREANT_ANIMATIONS, GOKU_ANIMATIONS } from './animation-configs';
 import { CharacterAnimation } from '../game-objects/Character';
 
 /**
@@ -51,7 +51,7 @@ export const ENTITY_ANIMATIONS: Record<EntityType, Record<string, CharacterAnima
   [ENTITIES.MOLE]: standardizedMoleAnimations,
   [ENTITIES.TREANT]: standardizedTreantAnimations,
   // Add defaults for other entities
-  [ENTITIES.GOKU]: {}, // To be filled with Goku-specific animations
+  [ENTITIES.GOKU]: GOKU_ANIMATIONS,
   [ENTITIES.WIZARD]: {}, // To be filled with Wizard-specific animations
   [ENTITIES.FEMALE_VILLAGER]: {}, // To be filled with Villager-specific animations
 };

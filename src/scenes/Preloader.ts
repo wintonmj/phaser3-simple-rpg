@@ -228,6 +228,10 @@ export class Preloader extends Phaser.Scene {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_SHOOT, 'assets/humanoid-spritesheets/characters/goku/standard/shoot.png', {
+      frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
+      frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
+    });
   }
 
   /**
@@ -318,6 +322,9 @@ export class Preloader extends Phaser.Scene {
     
     // Goku combat idle animation
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_COMBAT_IDLE, ASSETS.IMAGES.GOKU_COMBAT_IDLE, 0, 5, 7);
+    
+    // Goku shoot animation
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SHOOT, ASSETS.IMAGES.GOKU_SHOOT, 0, 12, 15, true);
   }
 
   /**

@@ -39,6 +39,7 @@ export const ASSETS = {
     GOKU_SIT: 'goku-sit',
     GOKU_SLASH: 'goku-slash',
     GOKU_COMBAT_IDLE: 'goku-combat-idle',
+    GOKU_SHOOT: 'goku-shoot',
   },
   ANIMATIONS: {
     PLAYER_MOVE_LEFT: 'player-move-left',
@@ -74,5 +75,6 @@ export const ASSETS = {
     GOKU_SIT: 'goku-sit',
     GOKU_SLASH: 'goku-slash',
     GOKU_COMBAT_IDLE: 'goku-combat-idle',
+    GOKU_SHOOT: 'goku-shoot',
   },
 } as const;
