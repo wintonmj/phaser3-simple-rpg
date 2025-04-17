@@ -15,13 +15,13 @@ import { EntityType } from '../../constants/entities';
  * Provides animations for any entity based on CharacterState
  */
 export class BaseEntityAnimation implements IAnimationBehavior {
-  private animationSets: Record<string, CharacterAnimation>;
+  private animationSets: Partial<Record<CharacterState, CharacterAnimation>>;
 
   /**
    * Constructor with a simplified approach using the centralized animation mapping
    * @param animationSets The animation sets to use, typically from getAnimationsForEntity
    */
-  constructor(animationSets: Record<string, CharacterAnimation>) {
+  constructor(animationSets: Partial<Record<CharacterState, CharacterAnimation>>) {
     this.animationSets = animationSets;
   }
 
@@ -46,21 +46,18 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   /**
    * Play the appropriate animation based on state and orientation
    */
-  playAnimation(entity: NonPlayerEntity, state: string | CharacterState, orientation: Orientation): void {
-    // For backward compatibility with 'walk' string
-    const normalizedState = state === 'walk' ? CharacterState.MOVE : state;
-    
+  playAnimation(entity: NonPlayerEntity, state: CharacterState, orientation: Orientation): void {
     // Check if we have animations for this state
-    if (!this.animationSets || !this.animationSets[normalizedState]) {
+    if (!this.animationSets || !this.animationSets[state]) {
       // Fall back to idle if this state isn't supported
-      if (normalizedState !== CharacterState.IDLE && this.animationSets[CharacterState.IDLE]) {
+      if (state !== CharacterState.IDLE && this.animationSets[CharacterState.IDLE]) {
         this.playAnimation(entity, CharacterState.IDLE, orientation);
       }
       return;
     }
     
     // Get the correct animation data for the orientation
-    const { flip, anim } = this.animationSets[normalizedState][orientation];
+    const { flip, anim } = this.animationSets[state][orientation];
     
     // Play the animation
     entity.setFlipX(flip);

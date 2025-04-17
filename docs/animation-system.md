@@ -127,9 +127,9 @@ Implements the animation behavior for entities:
 
 ## Migration Notes
 
-The system maintains backward compatibility with legacy code through:
+The system has been fully migrated to use CharacterState enum values:
 
-1. The original animation configurations (like `MOLE_ANIMATIONS.WALK`) are still available
-2. `BaseEntityAnimation` handles state normalization (e.g., 'walk' → `CharacterState.MOVE`)
+1. All animation configurations (like MOLE_ANIMATIONS and TREANT_ANIMATIONS) exclusively use CharacterState enum values as keys
+2. `BaseEntityAnimation` handles state normalization using the standardized CharacterState enum values
 
-For new code, always use the `CharacterState` enum values and the `BaseEntityAnimation.forEntityType()` factory method. 
+For all code, always use the `CharacterState` enum values and the `BaseEntityAnimation.forEntityType()` factory method. 

@@ -10,7 +10,7 @@ import { ASSETS } from './assets';
 /**
  * Player animation configurations
  */
-export const PLAYER_ANIMATIONS: Record<string, CharacterAnimation> = {
+export const PLAYER_ANIMATIONS: Record<CharacterState, CharacterAnimation> = {
   [CharacterState.IDLE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
@@ -66,7 +66,7 @@ export const PLAYER_ANIMATIONS: Record<string, CharacterAnimation> = {
  * Mole animation configurations
  * Standardized to use CharacterState enum for consistency
  */
-export const MOLE_ANIMATIONS: Record<string, CharacterAnimation> = {
+export const MOLE_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
@@ -86,7 +86,7 @@ export const MOLE_ANIMATIONS: Record<string, CharacterAnimation> = {
  * Treant animation configurations
  * Standardized to use CharacterState enum for consistency
  */
-export const TREANT_ANIMATIONS: Record<string, CharacterAnimation> = {
+export const TREANT_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
