@@ -79,21 +79,6 @@ export const MOLE_ANIMATIONS: Record<string, CharacterAnimation> = {
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
     left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
     right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-  },
-  
-  // Legacy keys for backward compatibility
-  WALK: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
-  },
-  
-  IDLE: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
   }
 };
 
@@ -110,21 +95,6 @@ export const TREANT_ANIMATIONS: Record<string, CharacterAnimation> = {
   },
   
   [CharacterState.IDLE]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
-  },
-  
-  // Legacy keys for backward compatibility
-  WALK: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
-  },
-  
-  IDLE: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
     left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },

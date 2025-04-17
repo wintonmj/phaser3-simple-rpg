@@ -26,24 +26,24 @@ export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: numb
  * This ensures consistency between all entity animation configurations
  */
 const standardizedMoleAnimations: Record<string, CharacterAnimation> = {
-  [CharacterState.IDLE]: MOLE_ANIMATIONS.IDLE,
-  [CharacterState.MOVE]: MOLE_ANIMATIONS.WALK,
+  [CharacterState.IDLE]: MOLE_ANIMATIONS[CharacterState.IDLE],
+  [CharacterState.MOVE]: MOLE_ANIMATIONS[CharacterState.MOVE],
   // Default to IDLE for other states
-  [CharacterState.ATTACK]: MOLE_ANIMATIONS.IDLE,
-  [CharacterState.HIT]: MOLE_ANIMATIONS.IDLE,
-  [CharacterState.DEATH]: MOLE_ANIMATIONS.IDLE,
+  [CharacterState.ATTACK]: MOLE_ANIMATIONS[CharacterState.IDLE],
+  [CharacterState.HIT]: MOLE_ANIMATIONS[CharacterState.IDLE],
+  [CharacterState.DEATH]: MOLE_ANIMATIONS[CharacterState.IDLE],
 };
 
 /**
  * Standardized treant animations using CharacterState enum
  */
 const standardizedTreantAnimations: Record<string, CharacterAnimation> = {
-  [CharacterState.IDLE]: TREANT_ANIMATIONS.IDLE,
-  [CharacterState.MOVE]: TREANT_ANIMATIONS.WALK,
+  [CharacterState.IDLE]: TREANT_ANIMATIONS[CharacterState.IDLE],
+  [CharacterState.MOVE]: TREANT_ANIMATIONS[CharacterState.MOVE],
   // Default to IDLE for other states
-  [CharacterState.ATTACK]: TREANT_ANIMATIONS.IDLE,
-  [CharacterState.HIT]: TREANT_ANIMATIONS.IDLE,
-  [CharacterState.DEATH]: TREANT_ANIMATIONS.IDLE,
+  [CharacterState.ATTACK]: TREANT_ANIMATIONS[CharacterState.IDLE],
+  [CharacterState.HIT]: TREANT_ANIMATIONS[CharacterState.IDLE],
+  [CharacterState.DEATH]: TREANT_ANIMATIONS[CharacterState.IDLE],
 };
 
 /**
