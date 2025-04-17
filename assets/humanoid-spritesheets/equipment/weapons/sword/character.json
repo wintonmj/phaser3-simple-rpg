@@ -1,0 +1,137 @@
+{
+  "bodyTypeName": "male",
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=none_Body_color&head=none_Human_female&weapon=Arming_Sword_silver&ammo=none_Ammo",
+  "spritesheets": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/spritesheets/",
+  "version": 1,
+  "datetime": "18/04/2025, 05:16:29",
+  "credits": [
+    {
+      "fileName": "weapon/sword/arming/universal/fg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/universal/bg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_slash/bg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_slash/fg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_backslash/bg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_backslash/fg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_halfslash/bg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_halfslash/fg/silver.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "ElizaWy; walk and down by JaidynReiman",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword,https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+      "notes": ""
+    }
+  ],
+  "layers": [
+    {
+      "fileName": "weapon/sword/arming/attack_slash/bg/silver.png",
+      "zPos": 8,
+      "custom_animation": "slash_128",
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_backslash/bg/silver.png",
+      "zPos": 8,
+      "custom_animation": "backslash_128",
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_halfslash/bg/silver.png",
+      "zPos": 8,
+      "custom_animation": "halfslash_128",
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/universal/bg/silver.png",
+      "zPos": 9,
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/universal/fg/silver.png",
+      "zPos": 140,
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_slash/fg/silver.png",
+      "zPos": 150,
+      "custom_animation": "slash_128",
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_backslash/fg/silver.png",
+      "zPos": 150,
+      "custom_animation": "backslash_128",
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/arming/attack_halfslash/fg/silver.png",
+      "zPos": 150,
+      "custom_animation": "halfslash_128",
+      "parentName": "weapon",
+      "name": "Arming_Sword",
+      "variant": "silver",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    }
+  ]
+}

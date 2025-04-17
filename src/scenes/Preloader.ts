@@ -204,27 +204,27 @@ export class Preloader extends Phaser.Scene {
    */
   private loadGokuNpcAssets() {
     // Goku animations
-    this.load.spritesheet(ASSETS.IMAGES.GOKU_IDLE, 'assets/humanoid-spritesheets/goku/standard/idle.png', {
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_IDLE, 'assets/humanoid-spritesheets/characters/goku/standard/idle.png', {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
-    this.load.spritesheet(ASSETS.IMAGES.GOKU_WALK, 'assets/humanoid-spritesheets/goku/standard/walk.png', {
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_WALK, 'assets/humanoid-spritesheets/characters/goku/standard/walk.png', {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
-    this.load.spritesheet(ASSETS.IMAGES.GOKU_RUN, 'assets/humanoid-spritesheets/goku/standard/run.png', {
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_RUN, 'assets/humanoid-spritesheets/characters/goku/standard/run.png', {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
-    this.load.spritesheet(ASSETS.IMAGES.GOKU_SIT, 'assets/humanoid-spritesheets/goku/standard/sit.png', {
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_SIT, 'assets/humanoid-spritesheets/characters/goku/standard/sit.png', {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
-    this.load.spritesheet(ASSETS.IMAGES.GOKU_SLASH, 'assets/humanoid-spritesheets/goku/standard/slash.png', {
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_SLASH, 'assets/humanoid-spritesheets/characters/goku/standard/slash.png', {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
-    this.load.spritesheet(ASSETS.IMAGES.GOKU_COMBAT_IDLE, 'assets/humanoid-spritesheets/goku/standard/combat_idle.png', {
+    this.load.spritesheet(ASSETS.IMAGES.GOKU_COMBAT_IDLE, 'assets/humanoid-spritesheets/characters/goku/standard/combat_idle.png', {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.GOKU].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.GOKU].height,
     });
