@@ -8,41 +8,35 @@ import { CharacterState } from './character-states';
 import { ASSETS } from './assets';
 
 /**
- * Creates animation configuration for multiple states that use the same animations
- * Reduces duplication in animation configuration
+ * Creates animation sets for IDLE, DEATH, and RELOADING states
+ * All of these states share the same idle animations
  */
-function createSharedAnimationConfig(
-  baseAnim: {
-    down: string,
-    up: string,
-    side: string
-  },
-  states: CharacterState[]
-): Partial<Record<CharacterState, CharacterAnimation>> {
-  const config: Partial<Record<CharacterState, CharacterAnimation>> = {};
+function createIdleBasedAnimations(): Record<CharacterState, CharacterAnimation> {
+  // Start with partial record
+  const animations: Partial<Record<CharacterState, CharacterAnimation>> = {};
   
-  states.forEach(state => {
-    config[state] = {
-      down: { flip: false, anim: baseAnim.down },
-      up: { flip: false, anim: baseAnim.up },
-      left: { flip: true, anim: baseAnim.side },
-      right: { flip: false, anim: baseAnim.side },
-    };
-  });
+  // Common idle animation config that several states will use
+  const idleAnimConfig = {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
+  };
   
-  return config;
+  // Apply to multiple states
+  animations[CharacterState.IDLE] = idleAnimConfig;
+  animations[CharacterState.DEATH] = idleAnimConfig;
+  animations[CharacterState.RELOADING] = idleAnimConfig;
+  
+  // Return with type assertion since we know it will be completed later
+  return animations as Record<CharacterState, CharacterAnimation>;
 }
 
 /**
  * Player animation configurations
  */
 export const PLAYER_ANIMATIONS: Record<CharacterState, CharacterAnimation> = {
-  [CharacterState.IDLE]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-  },
+  ...createIdleBasedAnimations(),
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_MOVE_UP },
@@ -60,19 +54,6 @@ export const PLAYER_ANIMATIONS: Record<CharacterState, CharacterAnimation> = {
     up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP },
     left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
     right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE },
-  },
-  [CharacterState.DEATH]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-  },
-  // New weapon states - using appropriate existing animations
-  [CharacterState.RELOADING]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_DOWN },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_UP },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_IDLE_SIDE },
   },
   [CharacterState.SHOOTING]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN },
@@ -93,14 +74,18 @@ export const PLAYER_ANIMATIONS: Record<CharacterState, CharacterAnimation> = {
  * Standardized to use CharacterState enum for consistency
  */
 export const MOLE_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
-  ...createSharedAnimationConfig(
-    {
-      down: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN,
-      up: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN, // Reusing down animation for up
-      side: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN // Reusing down animation for side
-    },
-    [CharacterState.IDLE, CharacterState.ATTACK] // States that share the same idle animation
-  ),
+  [CharacterState.IDLE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_IDLE_DOWN },
+  },
+  [CharacterState.ATTACK]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_SIDE },
+  },
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.MOLE_WALK_UP },
@@ -114,14 +99,18 @@ export const MOLE_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>
  * Standardized to use CharacterState enum for consistency
  */
 export const TREANT_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
-  ...createSharedAnimationConfig(
-    {
-      down: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN,
-      up: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN, // Reusing down animation for up
-      side: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN // Reusing down animation for side 
-    },
-    [CharacterState.IDLE, CharacterState.ATTACK] // States that share the same idle animation
-  ),
+  [CharacterState.IDLE]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_IDLE_DOWN },
+  },
+  [CharacterState.ATTACK]: {
+    down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
+    left: { flip: true, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_SIDE },
+  },
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_DOWN },
     up: { flip: false, anim: ASSETS.ANIMATIONS.TREANT_WALK_UP },
