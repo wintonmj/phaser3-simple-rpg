@@ -6,6 +6,7 @@ import { Character } from '../Character';
 import { Orientation } from '../../geometry/orientation';
 import { getDimensionsForEntity } from '../../constants/entity-animations';
 import { EntityType } from '../../constants/entities';
+import { getWeaponAnimationKey } from '../../constants/weapon-animations';
 
 export abstract class Weapon {
   protected combatBehavior: AbstractCombatBehavior;
@@ -79,13 +80,53 @@ export abstract class Weapon {
   // Abstract method for weapon-specific orientation adjustments
   protected abstract updateWeaponOrientation(orientation: Orientation): void;
   
-  // Update weapon animation based on character state
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  protected updateWeaponState(_state: CharacterState, _orientation: Orientation): void {
-    // Base implementation does nothing - to be overridden by subclasses if needed
+  // Update weapon animation based on character state and centralized configuration
+  protected updateWeaponState(state: CharacterState, orientation: Orientation): void {
+    if (!this.weaponSprite) return;
+    
+    // Get animation data from centralized configuration
+    const animData = getWeaponAnimationKey(this.getWeaponType(), state, orientation);
+    
+    if (animData) {
+      // Apply flip setting
+      this.weaponSprite.setFlipX(animData.shouldFlip);
+      
+      // Only play the animation if it's different from the current one
+      if (this.weaponSprite.anims.currentAnim?.key !== animData.key) {
+        this.weaponSprite.play(animData.key, true);
+      }
+    }
   }
-  /* eslint-enable @typescript-eslint/no-unused-vars */
   
-  // Play weapon-specific attack animation
-  public abstract playAttackAnimation(orientation: Orientation): void;
+  // Play weapon-specific attack animation using the centralized configuration
+  public playAttackAnimation(orientation: Orientation): void {
+    if (!this.weaponSprite) return;
+    
+    const animData = getWeaponAnimationKey(
+      this.getWeaponType(), 
+      this.getAttackState(), 
+      orientation
+    );
+    
+    if (animData) {
+      // Apply flip setting
+      this.weaponSprite.setFlipX(animData.shouldFlip);
+      this.weaponSprite.play(animData.key);
+      
+      // Reset to idle animation when attack animation completes
+      this.weaponSprite.once('animationcomplete', () => {
+        if (this.weaponSprite) {
+          const idleAnimData = getWeaponAnimationKey(
+            this.getWeaponType(), 
+            CharacterState.IDLE, 
+            orientation
+          );
+          
+          if (idleAnimData) {
+            this.weaponSprite.play(idleAnimData.key, true);
+          }
+        }
+      });
+    }
+  }
 } 

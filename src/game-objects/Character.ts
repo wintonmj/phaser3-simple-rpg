@@ -302,10 +302,8 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Subclasses should override this
    */
   public update(): void {
-    // Update weapon sprite position if equipped
-    if (this.equippedWeapon) {
-      this.equippedWeapon.updateWeaponPosition(this);
-    }
+    // Weapon position is now handled by BaseEntityAnimation
+    // No need to update it here
   }
 
   /**

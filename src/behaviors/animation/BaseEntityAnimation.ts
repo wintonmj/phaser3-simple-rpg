@@ -125,6 +125,31 @@ export class BaseEntityAnimation implements IAnimationBehavior {
         this.playDeathEffect(character);
         break;
     }
+    
+    // Update weapon animations if the character has an equipped weapon
+    this.updateWeaponAnimation(character, state, orientation);
+  }
+
+  /**
+   * Update weapon animation to match character state and orientation
+   * @private
+   */
+  private updateWeaponAnimation(character: Character, state: CharacterState, orientation: Orientation): void {
+    const weapon = character.getEquippedWeapon();
+    
+    if (weapon) {
+      // For non-attack states, update through the normal system
+      if (state !== CharacterState.ATTACK && 
+          state !== CharacterState.SHOOTING && 
+          state !== CharacterState.PUNCHING) {
+        // Let the weapon handle animation details based on centralized configuration
+        weapon.updateWeaponPosition(character);
+      } 
+      // For attack states, play the weapon-specific attack animation
+      else {
+        weapon.playAttackAnimation(orientation);
+      }
+    }
   }
 
   /**
