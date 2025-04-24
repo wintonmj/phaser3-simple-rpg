@@ -2,7 +2,7 @@
  * @fileoverview BaseEntityAnimation behavior for characters
  */
 
-import { IAnimationBehavior, IAnimatableEntity } from '../interfaces';
+import { IAnimationBehavior, IAnimatableEntity, AnimationKey } from '../interfaces';
 import { Orientation } from '../../geometry/orientation';
 import { CharacterAnimation, Character } from '../../game-objects/Character';
 import { CharacterState } from '../../constants/character-states';
@@ -75,7 +75,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     shouldRepeat: boolean = true
   ): void {
     entity.setFlipX(animationData.flip);
-    entity.play(animationData.anim, shouldRepeat);
+    entity.play(animationData.anim as AnimationKey, shouldRepeat);
   }
 
   /**

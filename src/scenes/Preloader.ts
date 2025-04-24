@@ -342,16 +342,27 @@ export class Preloader extends Phaser.Scene {
     this.createAnimation(ASSETS.ANIMATIONS.BOW_IDLE_RIGHT, ASSETS.IMAGES.BOW_IDLE, 6, 7, 5);
         
     // Bow idle animations from walk.png
-    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_UP, ASSETS.IMAGES.BOW_WALK, 0, 8, 8, false);
-    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_LEFT, ASSETS.IMAGES.BOW_WALK, 9, 16, 8, false);
-    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_DOWN, ASSETS.IMAGES.BOW_WALK, 17, 24, 8, false);
-    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_RIGHT, ASSETS.IMAGES.BOW_WALK, 25, 32, 8, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_UP, ASSETS.IMAGES.BOW_WALK, 0, 8, 9, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_LEFT, ASSETS.IMAGES.BOW_WALK, 9, 16, 9, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_DOWN, ASSETS.IMAGES.BOW_WALK, 17, 24, 9, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_RIGHT, ASSETS.IMAGES.BOW_WALK, 25, 32, 9, false);
     
     // Bow attack animations from shoot.png
-    this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_UP, ASSETS.IMAGES.BOW_ATTACK,  0, 12, 12, false);
+    // Each row has a full animation sequence for one direction (13 frames per row)
+    // Row 1 (frames 0-12): Up direction
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_UP, ASSETS.IMAGES.BOW_ATTACK, 0, 12, 12, false);
+    // Row 2 (frames 13-25): Left direction
     this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_LEFT, ASSETS.IMAGES.BOW_ATTACK, 13, 25, 12, false);
+    // Row 3 (frames 26-38): Down direction
     this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_DOWN, ASSETS.IMAGES.BOW_ATTACK, 26, 38, 12, false);
+    // Row 4 (frames 39-51): Right direction
     this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_RIGHT, ASSETS.IMAGES.BOW_ATTACK, 39, 51, 12, false);
+    
+    // Add missing BOW_ATTACK animations - same as SHOOT animations since they use the same spritesheet
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_ATTACK_UP, ASSETS.IMAGES.BOW_ATTACK, 0, 12, 12, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_ATTACK_LEFT, ASSETS.IMAGES.BOW_ATTACK, 13, 25, 12, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_ATTACK_DOWN, ASSETS.IMAGES.BOW_ATTACK, 26, 38, 12, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_ATTACK_RIGHT, ASSETS.IMAGES.BOW_ATTACK, 39, 51, 12, false);
     
     // Bow hurt animations from hurt.png
     this.createAnimation(ASSETS.ANIMATIONS.BOW_HURT_UP, ASSETS.IMAGES.BOW_HURT, 0, 0, 1, false);

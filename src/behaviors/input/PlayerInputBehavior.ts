@@ -47,13 +47,6 @@ export class PlayerInputBehavior implements IInputBehavior {
     // Reset velocity at the start of each update
     player.setVelocity(0);
     
-    // Emergency animation reset with ESC key
-    if (this.keyState.esc) {
-      console.log('[Input] ESC pressed, emergency reset to IDLE state');
-      player.forceResetToIdle();
-      return;
-    }
-    
     // Handle movement based on input
     this.handleMovement(player);
     

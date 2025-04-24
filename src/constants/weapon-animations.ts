@@ -9,6 +9,7 @@ import { CharacterState } from './character-states';
 import { ASSETS } from './assets';
 import { BOW_ANIMATIONS } from './animation-configs';
 import { CharacterAnimation } from '../game-objects/Character';
+import { AnimationKey } from '../behaviors/interfaces';
 
 /**
  * Weapon animation configuration type
@@ -17,7 +18,7 @@ import { CharacterAnimation } from '../game-objects/Character';
 export type WeaponAnimationConfig = {
   [key in CharacterState]?: {
     [orient in Orientation]: {
-      key: string;
+      key: AnimationKey;
       shouldFlip: boolean;
     }
   }
@@ -38,10 +39,10 @@ function convertCharacterAnimToWeaponConfig(
       const stateConfig = charAnim[state as unknown as CharacterState];
       if (stateConfig) {
         result[state as unknown as CharacterState] = {
-          [Orientation.Up]: { key: stateConfig.up.anim, shouldFlip: stateConfig.up.flip },
-          [Orientation.Down]: { key: stateConfig.down.anim, shouldFlip: stateConfig.down.flip },
-          [Orientation.Left]: { key: stateConfig.left.anim, shouldFlip: stateConfig.left.flip },
-          [Orientation.Right]: { key: stateConfig.right.anim, shouldFlip: stateConfig.right.flip }
+          [Orientation.Up]: { key: stateConfig.up.anim as AnimationKey, shouldFlip: stateConfig.up.flip },
+          [Orientation.Down]: { key: stateConfig.down.anim as AnimationKey, shouldFlip: stateConfig.down.flip },
+          [Orientation.Left]: { key: stateConfig.left.anim as AnimationKey, shouldFlip: stateConfig.left.flip },
+          [Orientation.Right]: { key: stateConfig.right.anim as AnimationKey, shouldFlip: stateConfig.right.flip }
         };
       }
     }
@@ -58,10 +59,10 @@ export const BOW_ANIMATION_CONFIG = convertCharacterAnimToWeaponConfig(BOW_ANIMA
 // Add IDLE state if missing - ensuring completeness for our needs
 if (!BOW_ANIMATION_CONFIG[CharacterState.IDLE]) {
   BOW_ANIMATION_CONFIG[CharacterState.IDLE] = {
-    [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_IDLE_UP, shouldFlip: false },
-    [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_IDLE_DOWN, shouldFlip: false },
-    [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_IDLE_LEFT, shouldFlip: false },
-    [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_IDLE_RIGHT, shouldFlip: false }
+    [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_IDLE_UP as AnimationKey, shouldFlip: false },
+    [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_IDLE_DOWN as AnimationKey, shouldFlip: false },
+    [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_IDLE_LEFT as AnimationKey, shouldFlip: false },
+    [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_IDLE_RIGHT as AnimationKey, shouldFlip: false }
   };
 }
 
@@ -94,7 +95,7 @@ export function getWeaponAnimationKey(
   weaponType: WeaponType, 
   state: CharacterState, 
   orientation: Orientation
-): { key: string, shouldFlip: boolean } | undefined {
+): { key: AnimationKey, shouldFlip: boolean } | undefined {
   const config = getAnimationsForWeaponType(weaponType);
   
   // If no animation for the given state, try to fall back to IDLE

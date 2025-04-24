@@ -296,15 +296,6 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
   public isActionState(state: CharacterState): boolean {
     return this.actionState === state;
   }
-  
-  /**
-   * Update method to be called in the game loop
-   * Subclasses should override this
-   */
-  public update(): void {
-    // Weapon position is now handled by BaseEntityAnimation
-    // No need to update it here
-  }
 
   /**
    * Get the character's scene
@@ -429,22 +420,5 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     
     // Start cooldown
     this.startCooldown('attack');
-  }
-
-  /**
-   * Force reset animation state to IDLE
-   * Only use in emergency situations where animations are stuck
-   */
-  public forceResetToIdle(): void {
-    console.log(`[Character] EMERGENCY: Force resetting from ${this.actionState} to IDLE`);
-    this.actionState = CharacterState.IDLE;
-    
-    // Clear any animation flags
-    this.setData('animationPlaying', false);
-    
-    // Play idle animation directly
-    if (this.animationBehavior) {
-      this.animationBehavior.playAnimation(this, CharacterState.IDLE, this.orientation);
-    }
   }
 }

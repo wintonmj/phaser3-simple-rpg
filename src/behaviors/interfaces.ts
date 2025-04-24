@@ -7,6 +7,10 @@ import { Player } from '../game-objects/Player';
 import { Character } from '../game-objects/Character';
 import { KeyState } from '../types/scene-types';
 import { CharacterState } from '../constants/character-states';
+import { ASSETS } from '../constants/assets';
+
+// Type for animation keys
+export type AnimationKey = keyof typeof ASSETS.ANIMATIONS | string;
 
 /**
  * Base behavior interface for all entity behaviors
@@ -111,7 +115,7 @@ export interface IInputBehavior {
  */
 export interface IAnimatableEntity {
   setFlipX(flip: boolean): void;
-  play(key: string, ignoreIfPlaying?: boolean): void;
+  play(key: AnimationKey, ignoreIfPlaying?: boolean): void;
   once(event: string, fn: () => void, context?: unknown): void;
   setTint(color: number): void;
   clearTint(): void;
