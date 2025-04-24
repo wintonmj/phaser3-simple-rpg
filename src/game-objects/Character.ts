@@ -337,14 +337,18 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     if (!this.canChangeToState(state)) {
       return;
     }
-    
-    // Update the state
-    this.actionState = state;
-    
+
     // Play the appropriate animation if behavior exists
     if (this.animationBehavior) {
       this.animationBehavior.playAnimation(this, state, this.orientation);
     }
+
+    if(this.actionState !== state) {
+      console.log(`[Character] State change: ${this.actionState} → ${state}`);
+    }
+    
+    // Update the state
+    this.actionState = state;
   }
   
   /**
@@ -404,6 +408,7 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     
     // Set state based on weapon type
     this.setState(this.equippedWeapon.getAttackState());
+    console.log(`[Character] Performing attack with state: ${this.actionState}`);
     
     // Create attack context with all necessary information
     const attackContext: AttackContext = {
@@ -418,5 +423,22 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
     
     // Start cooldown
     this.startCooldown('attack');
+  }
+
+  /**
+   * Force reset animation state to IDLE
+   * Only use in emergency situations where animations are stuck
+   */
+  public forceResetToIdle(): void {
+    console.log(`[Character] EMERGENCY: Force resetting from ${this.actionState} to IDLE`);
+    this.actionState = CharacterState.IDLE;
+    
+    // Clear any animation flags
+    this.setData('animationPlaying', false);
+    
+    // Play idle animation directly
+    if (this.animationBehavior) {
+      this.animationBehavior.playAnimation(this, CharacterState.IDLE, this.orientation);
+    }
   }
 }

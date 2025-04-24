@@ -23,7 +23,8 @@ export class PlayerInputBehavior implements IInputBehavior {
     up: false,
     down: false,
     space: false,
-    shift: false
+    shift: false,
+    esc: false
   };
 
   /**
@@ -46,6 +47,13 @@ export class PlayerInputBehavior implements IInputBehavior {
     // Reset velocity at the start of each update
     player.setVelocity(0);
     
+    // Emergency animation reset with ESC key
+    if (this.keyState.esc) {
+      console.log('[Input] ESC pressed, emergency reset to IDLE state');
+      player.forceResetToIdle();
+      return;
+    }
+    
     // Handle movement based on input
     this.handleMovement(player);
     
@@ -54,7 +62,14 @@ export class PlayerInputBehavior implements IInputBehavior {
     
     // Set to idle if no keys are pressed
     const noKeyPressed = Object.values(this.keyState).filter(x => x).length === 0;
-    if (noKeyPressed && !player.isActionState(CharacterState.RELOADING)) {
+    
+    // Only set to IDLE if no keys are pressed and not in a special state that should complete its animation
+    if (noKeyPressed && 
+        !player.isActionState(CharacterState.RELOADING) && 
+        !player.isActionState(CharacterState.SHOOTING) &&
+        !player.isActionState(CharacterState.ATTACK) &&
+        !player.isActionState(CharacterState.PUNCHING) &&
+        !player.isActionState(CharacterState.HIT)) {
       player.setToIdle();
     }
   }
@@ -110,26 +125,15 @@ export class PlayerInputBehavior implements IInputBehavior {
    */
   private handleActionKey(player: Player): void {
     if (this.keyState.space) {
+      
       if (player.isActionState(CharacterState.RELOADING) || 
           player.isActionState(CharacterState.SHOOTING)) {
+        console.log('[Input] Ignoring spacebar, player is already in SHOOTING or RELOADING state');
         return;
       }
       
       // Call attack first to set the proper shooting state/animation
       this.attack(player);
-      
-      // Calculate approximate shooting animation duration
-      // The direction-specific shooting animations have 12-13 frames at 15fps
-      const animDuration = 800; // ~13 frames at 15fps ≈ 800ms
-      
-      // After attack, start the reload process with delay to let animation complete
-      const scene = player.getScene();
-      scene.time.delayedCall(animDuration, () => {
-        // Only proceed to reloading if player is still in shooting state
-        if (player.isActionState(CharacterState.SHOOTING)) {
-          this.startReloadProcess(player);
-        }
-      }, [], this);
     }
   }
 
@@ -139,24 +143,9 @@ export class PlayerInputBehavior implements IInputBehavior {
    */
   private attack(player: Player): void {
     // Delegate attack logic to the player's weapon system
+    console.log('[Input] Executing performAttack()');
     player.performAttack();
-  }
-
-  /**
-   * Start the reload process after attack
-   */
-  private startReloadProcess(player: Player): void {
-    // Start a cooldown to track reload time
-    player.startCooldown('reload');
-    
-    // Schedule transition back to IDLE - Using player's scene
-    const scene = player.getScene();
-    scene.time.addEvent({
-      delay: PLAYER_RELOAD,
-      callback: () => this.readyToFire(player),
-      callbackScope: this,
-    });
-  }
+  } 
 
   /**
    * Reloads the player's weapon (legacy method, now split into parts)

@@ -319,7 +319,7 @@ export class Preloader extends Phaser.Scene {
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_RUN_RIGHT, ASSETS.IMAGES.GOKU_RUN, 0, 7, 12);
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_RUN_LEFT, ASSETS.IMAGES.GOKU_RUN, 8, 15, 12);
     
-    // Goku sit animation
+    // Goku sit animation 
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_SIT, ASSETS.IMAGES.GOKU_SIT, 0, 3, 5);
     
     // Goku slash animation

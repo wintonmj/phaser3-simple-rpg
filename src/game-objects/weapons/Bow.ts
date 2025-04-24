@@ -19,7 +19,6 @@ export class Bow extends Weapon {
   
   attack(context: AttackContext): void {
     const { source, direction, scene } = context;
-    
     // Create arrow projectile in the specified direction
     new Arrow(scene, source.x, source.y, direction);
     
@@ -28,7 +27,7 @@ export class Bow extends Weapon {
   }
   
   getAttackState(): CharacterState {
-    return CharacterState.SHOOTING;
+     return CharacterState.SHOOTING;
   }
   
   getWeaponType(): WeaponType {

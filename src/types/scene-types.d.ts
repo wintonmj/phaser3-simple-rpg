@@ -55,4 +55,5 @@ export interface KeyState {
   down: boolean;
   space: boolean;
   shift: boolean;
+  esc: boolean;
 } 

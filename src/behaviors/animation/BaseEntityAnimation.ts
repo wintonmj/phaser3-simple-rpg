@@ -7,9 +7,7 @@ import { Orientation } from '../../geometry/orientation';
 import { CharacterAnimation, Character } from '../../game-objects/Character';
 import { CharacterState } from '../../constants/character-states';
 import { getAnimationsForEntity } from '../../constants/entity-animations';
-import { EntityType, ENTITIES } from '../../constants/entities';
-import { GOKU_ANIMATIONS } from '../../constants/animation-configs';
-
+import { EntityType } from '../../constants/entities';
 /**
  * BaseEntityAnimation behavior for all characters
  * Provides animations for any entity based on CharacterState
@@ -19,16 +17,14 @@ import { GOKU_ANIMATIONS } from '../../constants/animation-configs';
  */
 export class BaseEntityAnimation implements IAnimationBehavior {
   private animationSets: Partial<Record<CharacterState, CharacterAnimation>>;
-  private entityType?: EntityType;
 
   /**
    * Constructor with a simplified approach using the centralized animation mapping
    * @param animationSets The animation sets to use, typically from getAnimationsForEntity
    * @param entityType Optional entity type to apply special rendering settings
    */
-  constructor(animationSets: Partial<Record<CharacterState, CharacterAnimation>>, entityType?: EntityType) {
+  constructor(animationSets: Partial<Record<CharacterState, CharacterAnimation>>) {
     this.animationSets = animationSets;
-    this.entityType = entityType;
   }
 
   /**
@@ -38,7 +34,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    */
   static forEntityType(entityType: EntityType): BaseEntityAnimation {
     const animations = getAnimationsForEntity(entityType);
-    return new BaseEntityAnimation(animations, entityType);
+    return new BaseEntityAnimation(animations);
   }
 
   /**
@@ -63,7 +59,6 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   playAnimation(character: Character, state: CharacterState, orientation: Orientation): void {
     // Check if we have animations for this state
     if (!this.animationSets || !this.animationSets[state]) {
-      // Fall back to idle if this state isn't supported
       if (state !== CharacterState.IDLE && this.animationSets[CharacterState.IDLE]) {
         this.playAnimation(character, CharacterState.IDLE, orientation);
       }
@@ -72,6 +67,13 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     
     // Get the correct animation data for the orientation
     const { flip, anim } = this.animationSets[state][orientation];
+    
+    if(state === CharacterState.ATTACK || 
+      state === CharacterState.SHOOTING || 
+      state === CharacterState.PUNCHING || 
+      state === CharacterState.HIT) {
+        console.log(`[Animation] Playing ${anim} for state ${state}`);
+      }
     
     // Set flipping
     character.setFlipX(flip);
@@ -83,9 +85,31 @@ export class BaseEntityAnimation implements IAnimationBehavior {
       state === CharacterState.PUNCHING || 
       state === CharacterState.HIT
     );
+
+    // For one-time animations, ensure we track completion
+    if (!shouldRepeat) {
+      // Make sure the animation completes by setting a flag
+      character.setData('animationPlaying', true);
+      
+      // Set a timer as a backup to return to IDLE after animation should be done
+      const scene = character.getScene();
+      if (scene) {
+        // Typical one-time animations take ~800ms
+        scene.time.delayedCall(800, () => {
+          if (character.active && character.getState() === state) {
+            console.log(`[Animation] Timer completed for ${anim}, transitioning to IDLE`);
+            character.setState(CharacterState.IDLE);
+          }
+        }, [], this);
+      }
+    }
     
-    // Play the animation with appropriate repeat setting
-    character.play(anim, shouldRepeat);
+    // Play the animation
+    if (shouldRepeat) {
+      character.play(anim, true);
+    } else {
+      character.play(anim, false);  
+    }
     
     // Apply additional visual effects based on state
     switch (state) {
@@ -109,27 +133,6 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   setupAnimations(character: Character): void {
     // Store animation sets on the character for reference
     character.setData('animationSets', this.animationSets);
-    
-    // Apply specific texture filtering to improve scaling quality for certain entities
-    if (this.entityType === ENTITIES.GOKU || 
-        character.getData('usingGokuAnimations') || 
-        this.animationSets === GOKU_ANIMATIONS) {
-      
-      // Special sprite rendering improvement for Goku animations
-      try {
-        // Set linear texture filtering for smoother scaling
-        if (character.texture && character.texture.setFilter) {
-          character.texture.setFilter(Phaser.Textures.LINEAR);
-        }
-        
-        // Store flag that we've applied Goku-specific optimizations
-        character.setData('optimizedForScaling', true);
-        
-        console.log('Applied Goku-specific texture optimizations');
-      } catch (err) {
-        console.warn('Could not apply texture filtering optimizations', err);
-      }
-    }
   }
 
   /**

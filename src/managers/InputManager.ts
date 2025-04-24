@@ -13,6 +13,7 @@ import { BaseManager } from './BaseManager';
 export class InputManager extends BaseManager implements IInputManager {
   private cursors: CursorKeys;
   private keyboardHandler: (event: KeyboardEvent) => void;
+  private escKey: Phaser.Input.Keyboard.Key;
   private keyState: KeyState = {
     left: false,
     right: false,
@@ -20,6 +21,7 @@ export class InputManager extends BaseManager implements IInputManager {
     down: false,
     space: false,
     shift: false,
+    esc: false
   };
 
   /**
@@ -30,6 +32,7 @@ export class InputManager extends BaseManager implements IInputManager {
     super(scene);
     this.keyboardHandler = () => {};
     this.cursors = {} as CursorKeys; // Will be initialized in initialize()
+    this.escKey = null;
   }
 
   /**
@@ -37,6 +40,7 @@ export class InputManager extends BaseManager implements IInputManager {
    */
   public initialize(): void {
     this.cursors = this.scene.input.keyboard.createCursorKeys();
+    this.escKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.setupKeyboardShortcuts(this.scene);
   }
 
@@ -87,6 +91,7 @@ export class InputManager extends BaseManager implements IInputManager {
     this.keyState.down = this.cursors.down.isDown;
     this.keyState.space = this.cursors.space.isDown;
     this.keyState.shift = this.cursors.shift.isDown;
+    this.keyState.esc = this.escKey ? this.escKey.isDown : false;
   }
 
   /**
