@@ -125,6 +125,64 @@ Implements the animation behavior for entities:
 4. **Easier Maintenance**: Adding new entities or animation states is more straightforward
 5. **Reduced Redundancy**: No duplicate dimensions or configurations throughout the codebase
 
+## One-Time Animation Handling
+
+The animation system properly handles both repeating animations (like walking) and one-time animations (like attacking or shooting).
+
+### How One-Time Animations Work
+
+When a character performs an action like shooting (triggered by spacebar), the animation system:
+
+1. **Identifies One-Time Animations**: Special states like ATTACK, SHOOTING, PUNCHING, and HIT are recognized as one-time animations that should not loop.
+
+2. **Configures Non-Repeating Playback**: The system uses Phaser's animation API correctly to ensure the animation only plays once:
+   ```typescript
+   // For repeating animations
+   character.play(anim, true);
+   
+   // For one-time animations
+   character.play(anim, false);
+   ```
+
+3. **Ensures Animation Completion**: A timer is set to ensure the character returns to IDLE after animation completion:
+   ```typescript
+   scene.time.delayedCall(800, () => {
+     if (character.active && character.getState() === state) {
+       character.setState(CharacterState.IDLE);
+     }
+   }, [], this);
+   ```
+
+4. **Prevents Premature Interruption**: The input system is configured to not interrupt special animations:
+   ```typescript
+   // Only set to IDLE if not in a special state
+   if (noKeyPressed && 
+       !player.isActionState(CharacterState.SHOOTING) && 
+       !player.isActionState(CharacterState.ATTACK) /* etc */) {
+     player.setToIdle();
+   }
+   ```
+
+5. **Provides Emergency Reset**: If an animation gets stuck, pressing ESC will force reset to IDLE state.
+
+### Phaser Animation System Details
+
+Phaser's animation system has several important components used in this implementation:
+
+- **play(key, ignoreIfPlaying, startFrame)**: Plays an animation. The second parameter controls whether the animation repeats.
+  
+- **on('animationcomplete', callback)**: Event fired when an animation completes. Our implementation uses this as a backup.
+  
+- **delayedCall**: Used to create timers that manage animation state.
+
+### Implementation Considerations
+
+- **Animation Duration**: The timer duration (800ms) is set to accommodate most attack animations.
+  
+- **State Management**: The system tracks both animation state and character state to ensure they stay in sync.
+  
+- **Error Recovery**: Multiple mechanisms ensure animations don't get stuck.
+
 ## Migration Notes
 
 The system has been fully migrated to use CharacterState enum values:
