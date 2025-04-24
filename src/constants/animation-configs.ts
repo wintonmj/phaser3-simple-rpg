@@ -142,9 +142,9 @@ export const GOKU_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>
     right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
   },
   [CharacterState.SHOOTING]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
-    left: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
+    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT_UP },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT_RIGHT },
   },
 }; 

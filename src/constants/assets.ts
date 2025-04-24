@@ -81,5 +81,10 @@ export const ASSETS = {
     GOKU_SLASH: 'goku-slash',
     GOKU_COMBAT_IDLE: 'goku-combat-idle',
     GOKU_SHOOT: 'goku-shoot',
+    // Direction-specific Goku shoot animations
+    GOKU_SHOOT_DOWN: 'goku-shoot-down',
+    GOKU_SHOOT_UP: 'goku-shoot-up',
+    GOKU_SHOOT_LEFT: 'goku-shoot-left',
+    GOKU_SHOOT_RIGHT: 'goku-shoot-right',
   },
 } as const;

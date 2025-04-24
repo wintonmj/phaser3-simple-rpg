@@ -110,11 +110,26 @@ export class PlayerInputBehavior implements IInputBehavior {
    */
   private handleActionKey(player: Player): void {
     if (this.keyState.space) {
-      if (player.isActionState(CharacterState.RELOADING)) {
+      if (player.isActionState(CharacterState.RELOADING) || 
+          player.isActionState(CharacterState.SHOOTING)) {
         return;
       }
-      this.reloadAttack(player);
+      
+      // Call attack first to set the proper shooting state/animation
       this.attack(player);
+      
+      // Calculate approximate shooting animation duration
+      // The direction-specific shooting animations have 12-13 frames at 15fps
+      const animDuration = 800; // ~13 frames at 15fps ≈ 800ms
+      
+      // After attack, start the reload process with delay to let animation complete
+      const scene = player.getScene();
+      scene.time.delayedCall(animDuration, () => {
+        // Only proceed to reloading if player is still in shooting state
+        if (player.isActionState(CharacterState.SHOOTING)) {
+          this.startReloadProcess(player);
+        }
+      }, [], this);
     }
   }
 
@@ -128,7 +143,23 @@ export class PlayerInputBehavior implements IInputBehavior {
   }
 
   /**
-   * Reloads the player's weapon
+   * Start the reload process after attack
+   */
+  private startReloadProcess(player: Player): void {
+    // Start a cooldown to track reload time
+    player.startCooldown('reload');
+    
+    // Schedule transition back to IDLE - Using player's scene
+    const scene = player.getScene();
+    scene.time.addEvent({
+      delay: PLAYER_RELOAD,
+      callback: () => this.readyToFire(player),
+      callbackScope: this,
+    });
+  }
+
+  /**
+   * Reloads the player's weapon (legacy method, now split into parts)
    */
   public reloadAttack(player: Player): void {
     // Set state to reloading

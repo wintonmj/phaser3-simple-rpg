@@ -104,7 +104,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   }
 
   /**
-   * Set up animations for this character
+   * Set up animations for this character 
    */
   setupAnimations(character: Character): void {
     // Store animation sets on the character for reference

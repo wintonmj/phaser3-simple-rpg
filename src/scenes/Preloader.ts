@@ -309,7 +309,7 @@ export class Preloader extends Phaser.Scene {
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE_DOWN, ASSETS.IMAGES.GOKU_IDLE, 4, 5, 5);
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE_RIGHT, ASSETS.IMAGES.GOKU_IDLE, 6, 7, 5);
     
-    // Goku walk animations - swap up/down with left/right
+    // Goku walk animations - Frame order: UP, LEFT, DOWN, RIGHT
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_UP, ASSETS.IMAGES.GOKU_WALK, 0, 8, 10);   // UP
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_LEFT, ASSETS.IMAGES.GOKU_WALK, 9, 17, 10); // LEFT
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_DOWN, ASSETS.IMAGES.GOKU_WALK, 18, 26, 10);   // DOWN
@@ -328,8 +328,11 @@ export class Preloader extends Phaser.Scene {
     // Goku combat idle animation
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_COMBAT_IDLE, ASSETS.IMAGES.GOKU_COMBAT_IDLE, 0, 5, 7);
     
-    // Goku shoot animation
-    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SHOOT, ASSETS.IMAGES.GOKU_SHOOT, 0, 12, 15, true);
+    // Goku shoot animations - Frame order: UP, LEFT, DOWN, RIGHT
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SHOOT_UP, ASSETS.IMAGES.GOKU_SHOOT, 0, 12, 15, true);   // UP
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SHOOT_LEFT, ASSETS.IMAGES.GOKU_SHOOT, 13, 25, 15, true); // LEFT
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SHOOT_DOWN, ASSETS.IMAGES.GOKU_SHOOT, 26, 38, 15, true);   // DOWN
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_SHOOT_RIGHT, ASSETS.IMAGES.GOKU_SHOOT, 39, 51, 15, true); // RIGHT
   }
 
   /**
