@@ -7,6 +7,8 @@ import { WeaponType } from './weapon-types';
 import { Orientation } from '../geometry/orientation';
 import { CharacterState } from './character-states';
 import { ASSETS } from './assets';
+import { BOW_ANIMATIONS } from './animation-configs';
+import { CharacterAnimation } from '../game-objects/Character';
 
 /**
  * Weapon animation configuration type
@@ -22,40 +24,46 @@ export type WeaponAnimationConfig = {
 };
 
 /**
- * Animation configuration for the bow weapon
+ * Function to convert from the CharacterAnimation format to WeaponAnimationConfig format
+ * This allows reuse of existing animation configs
  */
-export const BOW_ANIMATION_CONFIG: WeaponAnimationConfig = {
-  [CharacterState.IDLE]: {
+function convertCharacterAnimToWeaponConfig(
+  charAnim: Partial<Record<CharacterState, CharacterAnimation>>
+): WeaponAnimationConfig {
+  const result: WeaponAnimationConfig = {};
+  
+  // Map each state from the character animation
+  for (const state in charAnim) {
+    if (Object.prototype.hasOwnProperty.call(charAnim, state)) {
+      const stateConfig = charAnim[state as unknown as CharacterState];
+      if (stateConfig) {
+        result[state as unknown as CharacterState] = {
+          [Orientation.Up]: { key: stateConfig.up.anim, shouldFlip: stateConfig.up.flip },
+          [Orientation.Down]: { key: stateConfig.down.anim, shouldFlip: stateConfig.down.flip },
+          [Orientation.Left]: { key: stateConfig.left.anim, shouldFlip: stateConfig.left.flip },
+          [Orientation.Right]: { key: stateConfig.right.anim, shouldFlip: stateConfig.right.flip }
+        };
+      }
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Animation configuration for the bow weapon - reusing BOW_ANIMATIONS from animation-configs.ts
+ */
+export const BOW_ANIMATION_CONFIG = convertCharacterAnimToWeaponConfig(BOW_ANIMATIONS);
+
+// Add IDLE state if missing - ensuring completeness for our needs
+if (!BOW_ANIMATION_CONFIG[CharacterState.IDLE]) {
+  BOW_ANIMATION_CONFIG[CharacterState.IDLE] = {
     [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_IDLE_UP, shouldFlip: false },
     [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_IDLE_DOWN, shouldFlip: false },
     [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_IDLE_LEFT, shouldFlip: false },
     [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_IDLE_RIGHT, shouldFlip: false }
-  },
-  [CharacterState.MOVE]: {
-    [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_WALK_UP, shouldFlip: false },
-    [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_WALK_DOWN, shouldFlip: false },
-    [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_WALK_LEFT, shouldFlip: false },
-    [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_WALK_RIGHT, shouldFlip: false }
-  },
-  [CharacterState.ATTACK]: {
-    [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_ATTACK_UP, shouldFlip: false },
-    [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_ATTACK_DOWN, shouldFlip: false },
-    [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_ATTACK_LEFT, shouldFlip: false },
-    [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_ATTACK_RIGHT, shouldFlip: false }
-  },
-  [CharacterState.SHOOTING]: {
-    [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_SHOOT_UP, shouldFlip: false },
-    [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_SHOOT_DOWN, shouldFlip: false },
-    [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_SHOOT_LEFT, shouldFlip: false },
-    [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_SHOOT_RIGHT, shouldFlip: false }
-  },
-  [CharacterState.HIT]: {
-    [Orientation.Up]: { key: ASSETS.ANIMATIONS.BOW_HURT_UP, shouldFlip: false },
-    [Orientation.Down]: { key: ASSETS.ANIMATIONS.BOW_HURT_DOWN, shouldFlip: false },
-    [Orientation.Left]: { key: ASSETS.ANIMATIONS.BOW_HURT_LEFT, shouldFlip: false },
-    [Orientation.Right]: { key: ASSETS.ANIMATIONS.BOW_HURT_RIGHT, shouldFlip: false }
-  }
-};
+  };
+}
 
 /**
  * Map of weapon types to their animation configurations
