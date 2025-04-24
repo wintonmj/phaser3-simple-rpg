@@ -58,14 +58,10 @@ export abstract class Weapon {
       
       // Update orientation based on character facing
       const orientation = character.getOrientation();
-      this.updateWeaponOrientation(orientation);
       
       // Update animation based on character state
       const state = character.getState();
       this.updateWeaponState(state, orientation);
-      
-      // Update visibility based on character visibility
-      this.weaponSprite.setVisible(character.visible);
     }
   }
   
@@ -76,9 +72,6 @@ export abstract class Weapon {
       this.weaponSprite = null;
     }
   }
-  
-  // Abstract method for weapon-specific orientation adjustments
-  protected abstract updateWeaponOrientation(orientation: Orientation): void;
   
   // Update weapon animation based on character state and centralized configuration
   protected updateWeaponState(state: CharacterState, orientation: Orientation): void {

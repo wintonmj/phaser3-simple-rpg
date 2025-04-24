@@ -43,19 +43,4 @@ export class Bow extends Weapon {
   getWeaponType(): WeaponType {
     return WeaponType.RANGED;
   }
-  
-  protected updateWeaponOrientation(orientation: Orientation): void {
-    // Only apply position offsets based on orientation if needed
-    // For now, bow doesn't need special positioning adjustments
-    if (this.weaponSprite) {
-      switch (orientation) {
-        case Orientation.Up:
-        case Orientation.Down:
-        case Orientation.Left:
-        case Orientation.Right:
-          // No special position adjustments needed
-          break;
-      }
-    }
-  }
 } 
