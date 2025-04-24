@@ -27,9 +27,6 @@ export class Bow extends Weapon {
   attack(context: AttackContext): void {
     const { source, direction, scene } = context;
     
-    // Play the appropriate attack animation
-    this.playAttackAnimation(direction);
-    
     // Create arrow projectile after a slight delay to match animation
     scene.time.delayedCall(200, () => {
       new Arrow(scene as AbstractScene, source.x, source.y, direction);

@@ -2,12 +2,14 @@
  * @fileoverview BaseEntityAnimation behavior for characters
  */
 
-import { IAnimationBehavior } from '../interfaces';
+import { IAnimationBehavior, IAnimatableEntity } from '../interfaces';
 import { Orientation } from '../../geometry/orientation';
 import { CharacterAnimation, Character } from '../../game-objects/Character';
 import { CharacterState } from '../../constants/character-states';
 import { getAnimationsForEntity } from '../../constants/entity-animations';
 import { EntityType } from '../../constants/entities';
+import { getWeaponAnimationKey } from '../../constants/weapon-animations';
+
 /**
  * BaseEntityAnimation behavior for all characters
  * Provides animations for any entity based on CharacterState
@@ -53,6 +55,60 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   }
 
   /**
+   * Play the appropriate animation for any animatable entity based on state and orientation
+   * This generic method can be used for both characters and weapon sprites
+   */
+  playAnimationForEntity(
+    entity: IAnimatableEntity,
+    animationData: { flip: boolean, anim: string },
+    shouldRepeat: boolean = true
+  ): void {
+    // Set flipping
+    entity.setFlipX(animationData.flip);
+    
+    // Play the animation
+    if (shouldRepeat) {
+      entity.play(animationData.anim, true);
+    } else {
+      entity.play(animationData.anim, false);
+    }
+  }
+
+  /**
+   * Determines if an animation should repeat based on character state
+   */
+  private shouldAnimationRepeat(state: CharacterState): boolean {
+    return !(
+      state === CharacterState.ATTACK || 
+      state === CharacterState.SHOOTING || 
+      state === CharacterState.PUNCHING || 
+      state === CharacterState.HIT
+    );
+  }
+
+  /**
+   * Handles one-time animation completion logic
+   */
+  private handleOneTimeAnimation(entity: IAnimatableEntity, state: CharacterState, anim: string): void {
+    // Make sure the animation completes by setting a flag
+    if (entity instanceof Character) {
+      entity.setData('animationPlaying', true);
+      
+      // Set a timer as a backup to return to IDLE after animation should be done
+      const scene = entity.getScene();
+      if (scene) {
+        // Typical one-time animations take ~800ms
+        scene.time.delayedCall(800, () => {
+          if (entity.active && entity.getState() === state) {
+            console.log(`[Animation] Timer completed for ${anim}, transitioning to IDLE`);
+            entity.setState(CharacterState.IDLE);
+          }
+        }, [], this);
+      }
+    }
+  }
+
+  /**
    * Play the appropriate animation based on state and orientation
    * This is the single entry point for all animation logic
    */
@@ -75,41 +131,16 @@ export class BaseEntityAnimation implements IAnimationBehavior {
         console.log(`[Animation] Playing ${anim} for state ${state}`);
       }
     
-    // Set flipping
-    character.setFlipX(flip);
-    
     // Determine if this animation should repeat or play once
-    const shouldRepeat = !(
-      state === CharacterState.ATTACK || 
-      state === CharacterState.SHOOTING || 
-      state === CharacterState.PUNCHING || 
-      state === CharacterState.HIT
-    );
+    const shouldRepeat = this.shouldAnimationRepeat(state);
 
     // For one-time animations, ensure we track completion
     if (!shouldRepeat) {
-      // Make sure the animation completes by setting a flag
-      character.setData('animationPlaying', true);
-      
-      // Set a timer as a backup to return to IDLE after animation should be done
-      const scene = character.getScene();
-      if (scene) {
-        // Typical one-time animations take ~800ms
-        scene.time.delayedCall(800, () => {
-          if (character.active && character.getState() === state) {
-            console.log(`[Animation] Timer completed for ${anim}, transitioning to IDLE`);
-            character.setState(CharacterState.IDLE);
-          }
-        }, [], this);
-      }
+      this.handleOneTimeAnimation(character, state, anim);
     }
     
-    // Play the animation
-    if (shouldRepeat) {
-      character.play(anim, true);
-    } else {
-      character.play(anim, false);  
-    }
+    // Use the generic method to play the animation
+    this.playAnimationForEntity(character, { flip, anim }, shouldRepeat);
     
     // Apply additional visual effects based on state
     switch (state) {
@@ -132,23 +163,53 @@ export class BaseEntityAnimation implements IAnimationBehavior {
 
   /**
    * Update weapon animation to match character state and orientation
+   * This centralized method handles all weapon animations
    * @private
    */
   private updateWeaponAnimation(character: Character, state: CharacterState, orientation: Orientation): void {
     const weapon = character.getEquippedWeapon();
     
-    if (weapon) {
-      // For non-attack states, update through the normal system
-      if (state !== CharacterState.ATTACK && 
-          state !== CharacterState.SHOOTING && 
-          state !== CharacterState.PUNCHING) {
-        // Let the weapon handle animation details based on centralized configuration
-        weapon.updateWeaponPosition(character);
-      } 
-      // For attack states, play the weapon-specific attack animation
-      else {
-        weapon.playAttackAnimation(orientation);
-      }
+    if (!weapon) return;
+    
+    const weaponSprite = weapon.getSprite();
+    if (!weaponSprite) return;
+    
+    const weaponType = weapon.getWeaponType();
+    
+    // Position the weapon sprite relative to the character
+    weaponSprite.setPosition(character.x, character.y);
+    
+    // Get animation data from centralized configuration
+    const animData = getWeaponAnimationKey(weaponType, state, orientation);
+    if (!animData) return;
+    
+    // Determine if we should repeat based on state
+    const shouldRepeat = this.shouldAnimationRepeat(state);
+    
+    // Play the animation using our generic method
+    this.playAnimationForEntity(
+      weaponSprite, 
+      { flip: animData.shouldFlip, anim: animData.key },
+      shouldRepeat
+    );
+    
+    // For attack states, set up the transition back to idle
+    if (!shouldRepeat) {
+      weaponSprite.once('animationcomplete', () => {
+        const idleAnimData = getWeaponAnimationKey(
+          weaponType, 
+          CharacterState.IDLE, 
+          orientation
+        );
+        
+        if (idleAnimData) {
+          this.playAnimationForEntity(
+            weaponSprite,
+            { flip: idleAnimData.shouldFlip, anim: idleAnimData.key },
+            true
+          );
+        }
+      });
     }
   }
 

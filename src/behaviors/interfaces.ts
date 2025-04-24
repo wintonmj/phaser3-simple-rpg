@@ -103,4 +103,18 @@ export interface IInputBehavior {
    * @param keyState The current keyboard input state
    */
   setKeyState(keyState: KeyState): void;
+}
+
+/**
+ * Interface for any game entity that can be animated
+ * This allows the animation system to work with both characters and weapons
+ */
+export interface IAnimatableEntity {
+  setFlipX(flip: boolean): void;
+  play(key: string, ignoreIfPlaying?: boolean): void;
+  once(event: string, fn: () => void, context?: unknown): void;
+  setTint(color: number): void;
+  clearTint(): void;
+  setAlpha(alpha: number): void;
+  getScene?(): Phaser.Scene;
 } 
