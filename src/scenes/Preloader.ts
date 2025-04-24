@@ -301,14 +301,19 @@ export class Preloader extends Phaser.Scene {
    * Creates all Goku NPC-related animations
    */
   private createGokuNpcAnimations() {
-    // Goku idle animation
+    // Goku idle animations - create specific ones for each direction to prevent alternating
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE, ASSETS.IMAGES.GOKU_IDLE, 0, 3, 5);
+    // Create direction-specific idle animations
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE_UP, ASSETS.IMAGES.GOKU_IDLE, 0, 1, 5);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE_LEFT, ASSETS.IMAGES.GOKU_IDLE, 2, 3, 5);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE_DOWN, ASSETS.IMAGES.GOKU_IDLE, 4, 5, 5);
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_IDLE_RIGHT, ASSETS.IMAGES.GOKU_IDLE, 6, 7, 5);
     
-    // Goku walk animations
-    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_DOWN, ASSETS.IMAGES.GOKU_WALK, 0, 8, 10);
-    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_UP, ASSETS.IMAGES.GOKU_WALK, 9, 17, 10);
-    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_RIGHT, ASSETS.IMAGES.GOKU_WALK, 18, 26, 10);
-    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_LEFT, ASSETS.IMAGES.GOKU_WALK, 27, 35, 10);
+    // Goku walk animations - swap up/down with left/right
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_UP, ASSETS.IMAGES.GOKU_WALK, 0, 8, 10);   // UP
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_LEFT, ASSETS.IMAGES.GOKU_WALK, 9, 17, 10); // LEFT
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_DOWN, ASSETS.IMAGES.GOKU_WALK, 18, 26, 10);   // DOWN
+    this.createAnimation(ASSETS.ANIMATIONS.GOKU_WALK_RIGHT, ASSETS.IMAGES.GOKU_WALK, 27, 35, 10); // RIGHT
     
     // Goku run animations
     this.createAnimation(ASSETS.ANIMATIONS.GOKU_RUN_RIGHT, ASSETS.IMAGES.GOKU_RUN, 0, 7, 12);

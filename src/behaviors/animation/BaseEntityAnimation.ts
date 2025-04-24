@@ -7,8 +7,8 @@ import { Orientation } from '../../geometry/orientation';
 import { CharacterAnimation, Character } from '../../game-objects/Character';
 import { CharacterState } from '../../constants/character-states';
 import { getAnimationsForEntity } from '../../constants/entity-animations';
-import { EntityType } from '../../constants/entities';
-import { ASSETS } from '../../constants/assets';
+import { EntityType, ENTITIES } from '../../constants/entities';
+import { GOKU_ANIMATIONS } from '../../constants/animation-configs';
 
 /**
  * BaseEntityAnimation behavior for all characters
@@ -19,13 +19,16 @@ import { ASSETS } from '../../constants/assets';
  */
 export class BaseEntityAnimation implements IAnimationBehavior {
   private animationSets: Partial<Record<CharacterState, CharacterAnimation>>;
+  private entityType?: EntityType;
 
   /**
    * Constructor with a simplified approach using the centralized animation mapping
    * @param animationSets The animation sets to use, typically from getAnimationsForEntity
+   * @param entityType Optional entity type to apply special rendering settings
    */
-  constructor(animationSets: Partial<Record<CharacterState, CharacterAnimation>>) {
+  constructor(animationSets: Partial<Record<CharacterState, CharacterAnimation>>, entityType?: EntityType) {
     this.animationSets = animationSets;
+    this.entityType = entityType;
   }
 
   /**
@@ -35,7 +38,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    */
   static forEntityType(entityType: EntityType): BaseEntityAnimation {
     const animations = getAnimationsForEntity(entityType);
-    return new BaseEntityAnimation(animations);
+    return new BaseEntityAnimation(animations, entityType);
   }
 
   /**
@@ -106,48 +109,54 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   setupAnimations(character: Character): void {
     // Store animation sets on the character for reference
     character.setData('animationSets', this.animationSets);
+    
+    // Apply specific texture filtering to improve scaling quality for certain entities
+    if (this.entityType === ENTITIES.GOKU || 
+        character.getData('usingGokuAnimations') || 
+        this.animationSets === GOKU_ANIMATIONS) {
+      
+      // Special sprite rendering improvement for Goku animations
+      try {
+        // Set linear texture filtering for smoother scaling
+        if (character.texture && character.texture.setFilter) {
+          character.texture.setFilter(Phaser.Textures.LINEAR);
+        }
+        
+        // Store flag that we've applied Goku-specific optimizations
+        character.setData('optimizedForScaling', true);
+        
+        console.log('Applied Goku-specific texture optimizations');
+      } catch (err) {
+        console.warn('Could not apply texture filtering optimizations', err);
+      }
+    }
+  }
+
+  /**
+   * Apply a tint to the character for a duration
+   * @private
+   */
+  private applyTint(character: Character, color: number, duration: number): void {
+    character.setTint(color);
+    
+    // Reset tint after duration
+    const scene = character.getScene();
+    if (scene && scene.time) {
+      scene.time.delayedCall(duration, () => {
+        if (character.active) {
+          character.clearTint();
+        }
+      }, [], this);
+    }
   }
   
   /**
-   * Add death effect
-   * This is the ONLY place death animation should be handled
+   * Play death effect for the character
+   * @private
    */
   private playDeathEffect(character: Character): void {
-    // Make character invisible once death animation starts
-    character.setVisible(false);
-    
-    try {
-      // Add the death effect sprite for enhanced visuals
-      const scene = character.getScene();
-      const deathAnim = scene.add.sprite(character.x, character.y, ASSETS.IMAGES.MONSTER_DEATH);
-      deathAnim.play(ASSETS.ANIMATIONS.MONSTER_DEATH, false);
-      
-      // The sprite should clean itself up after playing
-      deathAnim.on('animationcomplete', () => {
-        deathAnim.destroy();
-      });
-    } catch (e) {
-      console.error('Error playing death effect animation', e);
-    }
-  }
-  
-  /**
-   * Apply tint to character with automatic removal after delay
-   * Centralizes tinting logic that was duplicated
-   */
-  private applyTint(character: Character, tintColor: number, duration: number): void {
-    character.setTint(tintColor);
-    
-    try {
-      const scene = character.getScene();
-      scene.time.addEvent({
-        delay: duration,
-        callback: () => character.clearTint(),
-        callbackScope: this,
-      });
-    } catch (e) {
-      console.error('Error accessing scene for tint animation', e);
-      setTimeout(() => character.clearTint(), duration);
-    }
+    // Could be enhanced with particle effects or special animations
+    character.setAlpha(0.7);
+    character.setTint(0x555555);
   }
 } 

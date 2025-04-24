@@ -154,12 +154,14 @@ export class EntityManager extends BaseManager implements IEntityManager {
       // For now, just using default position
     }
     
-    // Create player at the appropriate position using the factory
+    // Ensure that we have an entity factory
+    if (!this.entityFactory && this.scene instanceof AbstractScene) {
+      this.entityFactory = new EntityFactory(this.scene);
+    }
+    
+    // Create the player using the factory to ensure scaling is applied
     if (this.entityFactory) {
       this.player = this.entityFactory.createPlayer(playerX, playerY);
-    } else if (this.scene instanceof AbstractScene) {
-      // Fallback if factory isn't available
-      this.player = new Player(this.scene, playerX, playerY);
     } else {
       console.error('EntityManager: Cannot create player without AbstractScene');
       return null;

@@ -3,11 +3,15 @@
  */
 
 import { AbstractScene } from '../scenes/AbstractScene';
-import { ENTITIES } from '../constants/entities';
+import { ENTITIES, EntityType } from '../constants/entities';
 import { Player } from '../game-objects/Player';
 import { Treant } from '../game-objects/enemies/Treant';
 import { Mole } from '../game-objects/enemies/Mole';
 import { INonPlayerEntity } from '../types/entities/entity-interfaces';
+import { getDimensionsForEntity } from '../constants/entity-animations';
+import { Character } from '../game-objects/Character';
+import { NonPlayerEntity } from '../game-objects/entities/NonPlayerEntity';
+import { GokuNPC } from '../game-objects/npcs/GokuNPC';
 
 /**
  * Factory for creating game entities
@@ -33,7 +37,9 @@ export class EntityFactory {
    * @returns Newly created player
    */
   public createPlayer(x: number, y: number): Player {
-    return new Player(this.scene, x, y);
+    const player = new Player(this.scene, x, y);
+    this.applyEntityScale(player, ENTITIES.PLAYER);
+    return player;
   }
 
   /**
@@ -44,33 +50,40 @@ export class EntityFactory {
    * @returns The created entity or null if invalid type
    */
   public createEntity(type: string, x: number, y: number): INonPlayerEntity | null {
+    let entity: INonPlayerEntity | null = null;
+    
     // Hostile entity types
     if (type === ENTITIES.TREANT) {
-      return this.createTreant(x, y);
+      entity = this.createTreant(x, y);
     }
-    if (type === ENTITIES.MOLE) {
-      return this.createMole(x, y);
+    else if (type === ENTITIES.MOLE) {
+      entity = this.createMole(x, y);
     }
-    
     // Friendly entity types
-    if (type === ENTITIES.GOKU) {
-      // This would be implemented when Goku NPC is added
-      console.warn('Goku entity creation not yet implemented');
-      return null;
+    else if (type === ENTITIES.GOKU) {
+      entity = this.createGoku(x, y);
     }
-    if (type === ENTITIES.WIZARD) {
+    else if (type === ENTITIES.WIZARD) {
       // This would be implemented when Wizard NPC is added
       console.warn('Wizard entity creation not yet implemented');
       return null;
     }
-    if (type === ENTITIES.FEMALE_VILLAGER) {
+    else if (type === ENTITIES.FEMALE_VILLAGER) {
       // This would be implemented when FemaleVillager NPC is added
       console.warn('Female Villager entity creation not yet implemented');
       return null;
     }
+    else {
+      console.warn(`EntityFactory: Unknown entity type "${type}"`);
+      return null;
+    }
     
-    console.warn(`EntityFactory: Unknown entity type "${type}"`);
-    return null;
+    // Apply scale if entity was created
+    if (entity) {
+      this.applyEntityScale(entity as NonPlayerEntity, type as EntityType);
+    }
+    
+    return entity;
   }
 
   /**
@@ -91,5 +104,27 @@ export class EntityFactory {
    */
   private createMole(x: number, y: number): Mole {
     return new Mole(this.scene, x, y);
+  }
+  
+  /**
+   * Create a Goku NPC entity
+   * @param x - X position
+   * @param y - Y position
+   * @returns Goku NPC entity
+   */
+  private createGoku(x: number, y: number): GokuNPC {
+    return new GokuNPC(this.scene, x, y);
+  }
+  
+  /**
+   * Apply the appropriate scale from ENTITY_DIMENSIONS to an entity
+   * @param entity - The entity to apply scale to
+   * @param entityType - The type of entity
+   */
+  private applyEntityScale(entity: Character, entityType: EntityType): void {
+    const dimensions = getDimensionsForEntity(entityType);
+    if (dimensions.scale !== undefined) {
+      entity.setScale(dimensions.scale);
+    }
   }
 } 

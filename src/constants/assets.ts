@@ -66,6 +66,11 @@ export const ASSETS = {
     MONSTER_DEATH: 'monster-death',
     // Goku NPC animations
     GOKU_IDLE: 'goku-idle',
+    // Direction-specific Goku idle animations
+    GOKU_IDLE_DOWN: 'goku-idle-down',
+    GOKU_IDLE_UP: 'goku-idle-up',
+    GOKU_IDLE_LEFT: 'goku-idle-left',
+    GOKU_IDLE_RIGHT: 'goku-idle-right',
     GOKU_WALK_LEFT: 'goku-walk-left',
     GOKU_WALK_RIGHT: 'goku-walk-right',
     GOKU_WALK_UP: 'goku-walk-up',

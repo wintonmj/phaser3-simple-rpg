@@ -7,10 +7,12 @@ import { Character } from './Character';
 import { AbstractScene } from '../scenes/AbstractScene';
 import { ASSETS } from '../constants/assets';
 import { IInputBehavior } from '../behaviors/interfaces';
-import { PLAYER_ANIMATIONS } from '../constants/animation-configs';
+import { GOKU_ANIMATIONS } from '../constants/animation-configs';
 import { BaseEntityAnimation } from '../behaviors/animation/BaseEntityAnimation';
 import { WeaponFactory } from './weapons/WeaponFactory';
 import { WeaponType } from '../constants/weapon-types';
+import { ENTITIES } from '../constants/entities';
+import { getDimensionsForEntity } from '../constants/entity-animations';
 
 /**
  * Player character class that extends the base Character class.
@@ -45,8 +47,17 @@ export class Player extends Character {
     this.setDepth(10);
     this.moveSpeed = 120;
 
-    // Set up animation behavior using the player animations
-    const animationBehavior = new BaseEntityAnimation(PLAYER_ANIMATIONS);
+    // Apply scaling from entity dimensions if defined
+    const dimensions = getDimensionsForEntity(ENTITIES.PLAYER);
+    if (dimensions.scale !== undefined) {
+      this.setScale(dimensions.scale);
+    }
+
+    // Set flag to indicate we're using Goku animations for texture filtering optimization
+    this.setData('usingGokuAnimations', true);
+
+    // Set up animation behavior using Goku animations
+    const animationBehavior = new BaseEntityAnimation(GOKU_ANIMATIONS);
     this.setAnimationBehavior(animationBehavior);
     
     // Equip a default weapon (bow)

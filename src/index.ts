@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Main entry point for the Phaser 3 Simple RPG game.
  * This file initializes the game with the appropriate configuration and scenes.
@@ -26,8 +27,9 @@ class PhaserGame extends Phaser.Game {
    */
   constructor() {
     const config = {
-      type: Phaser.AUTO,
+      type: Phaser.CANVAS,
       parent: 'game-container',
+      resolution: 2, 
       width: 400,
       height: 250,
       zoom: 2.5,
@@ -39,6 +41,9 @@ class PhaserGame extends Phaser.Game {
         // },
       },
       scene: [Preloader, FirstLevel, SecondLevel, GameManager, HUD],
+      scale: {
+        autoCenter: 'center-both', // Center horizontally and vertically
+      },
     };
     super(config);
   }

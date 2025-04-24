@@ -124,10 +124,10 @@ export const TREANT_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimatio
  */
 export const GOKU_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
   [CharacterState.IDLE]: {
-    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
-    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
-    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE },
+    down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE_DOWN },
+    up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE_UP },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_IDLE_RIGHT },
   },
   [CharacterState.MOVE]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_WALK_DOWN },
@@ -138,13 +138,13 @@ export const GOKU_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>
   [CharacterState.ATTACK]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
     up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
     right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SLASH },
   },
   [CharacterState.SHOOTING]: {
     down: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
     up: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
-    left: { flip: true, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
     right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT },
   },
 }; 

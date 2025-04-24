@@ -9,14 +9,14 @@ import { PLAYER_ANIMATIONS, MOLE_ANIMATIONS, TREANT_ANIMATIONS, GOKU_ANIMATIONS 
 import { CharacterAnimation } from '../game-objects/Character';
 
 /**
- * Centralized definition of entity sprite dimensions
+ * Centralized definition of entity sprite dimensions and scaling
  * This provides consistent dimensions for loading sprites
  */
-export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: number }> = {
-  [ENTITIES.PLAYER]: { width: 32, height: 32 },
+export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: number, scale?: number }> = {
+  [ENTITIES.PLAYER]: { width: 32, height: 32, scale: 0.5 },
   [ENTITIES.MOLE]: { width: 24, height: 24 },
   [ENTITIES.TREANT]: { width: 31, height: 35 },
-  [ENTITIES.GOKU]: { width: 64, height: 64 },
+  [ENTITIES.GOKU]: { width: 64, height: 64, scale: 0.5 },
   [ENTITIES.WIZARD]: { width: 32, height: 32 },
   [ENTITIES.FEMALE_VILLAGER]: { width: 32, height: 32 },
 };
@@ -70,6 +70,6 @@ export function getAnimationsForEntity(entityType: EntityType): Record<string, C
  * @param entityType The type of entity to get dimensions for
  * @returns Dimensions for the entity type or default dimensions
  */
-export function getDimensionsForEntity(entityType: EntityType): { width: number, height: number } {
+export function getDimensionsForEntity(entityType: EntityType): { width: number, height: number, scale?: number } {
   return ENTITY_DIMENSIONS[entityType] || { width: 32, height: 32 }; // Default fallback
 } 
