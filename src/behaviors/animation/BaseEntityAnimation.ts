@@ -10,6 +10,14 @@ import { getAnimationsForEntity } from '../../constants/entity-animations';
 import { EntityType } from '../../constants/entities';
 import { getWeaponAnimationKey } from '../../constants/weapon-animations';
 
+// Cache commonly checked one-time animation states for performance
+const ONE_TIME_ANIMATION_STATES = new Set([
+  CharacterState.ATTACK,
+  CharacterState.SHOOTING,
+  CharacterState.PUNCHING,
+  CharacterState.HIT
+]);
+
 /**
  * BaseEntityAnimation behavior for all characters
  * Provides animations for any entity based on CharacterState
@@ -19,11 +27,15 @@ import { getWeaponAnimationKey } from '../../constants/weapon-animations';
  */
 export class BaseEntityAnimation implements IAnimationBehavior {
   private animationSets: Partial<Record<CharacterState, CharacterAnimation>>;
+  private static ANIMATION_TIMEOUT = 800; // ms for one-time animations
+  private static TINT_COLOR_HIT = 0xff0000;
+  private static TINT_COLOR_ATTACK = 0xffaa00;
+  private static TINT_DURATION_HIT = 500; 
+  private static TINT_DURATION_ATTACK = 200;
 
   /**
    * Constructor with a simplified approach using the centralized animation mapping
    * @param animationSets The animation sets to use, typically from getAnimationsForEntity
-   * @param entityType Optional entity type to apply special rendering settings
    */
   constructor(animationSets: Partial<Record<CharacterState, CharacterAnimation>>) {
     this.animationSets = animationSets;
@@ -35,8 +47,7 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    * @returns A new BaseEntityAnimation instance configured for the entity type
    */
   static forEntityType(entityType: EntityType): BaseEntityAnimation {
-    const animations = getAnimationsForEntity(entityType);
-    return new BaseEntityAnimation(animations);
+    return new BaseEntityAnimation(getAnimationsForEntity(entityType));
   }
 
   /**
@@ -63,49 +74,34 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     animationData: { flip: boolean, anim: string },
     shouldRepeat: boolean = true
   ): void {
-    // Set flipping
     entity.setFlipX(animationData.flip);
-    
-    // Play the animation
-    if (shouldRepeat) {
-      entity.play(animationData.anim, true);
-    } else {
-      entity.play(animationData.anim, false);
-    }
+    entity.play(animationData.anim, shouldRepeat);
   }
 
   /**
    * Determines if an animation should repeat based on character state
    */
   private shouldAnimationRepeat(state: CharacterState): boolean {
-    return !(
-      state === CharacterState.ATTACK || 
-      state === CharacterState.SHOOTING || 
-      state === CharacterState.PUNCHING || 
-      state === CharacterState.HIT
-    );
+    return !ONE_TIME_ANIMATION_STATES.has(state);
   }
 
   /**
    * Handles one-time animation completion logic
    */
-  private handleOneTimeAnimation(entity: IAnimatableEntity, state: CharacterState, anim: string): void {
-    // Make sure the animation completes by setting a flag
-    if (entity instanceof Character) {
-      entity.setData('animationPlaying', true);
-      
-      // Set a timer as a backup to return to IDLE after animation should be done
-      const scene = entity.getScene();
-      if (scene) {
-        // Typical one-time animations take ~800ms
-        scene.time.delayedCall(800, () => {
-          if (entity.active && entity.getState() === state) {
-            console.log(`[Animation] Timer completed for ${anim}, transitioning to IDLE`);
-            entity.setState(CharacterState.IDLE);
-          }
-        }, [], this);
+  private handleOneTimeAnimation(entity: IAnimatableEntity, state: CharacterState): void {
+    if (!(entity instanceof Character)) return;
+    
+    entity.setData('animationPlaying', true);
+    
+    // Set a timer as a backup to return to IDLE after animation should be done
+    const scene = entity.getScene();
+    if (!scene) return;
+    
+    scene.time.delayedCall(BaseEntityAnimation.ANIMATION_TIMEOUT, () => {
+      if (entity.active && entity.getState() === state) {
+        entity.setState(CharacterState.IDLE);
       }
-    }
+    }, [], this);
   }
 
   /**
@@ -124,19 +120,12 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     // Get the correct animation data for the orientation
     const { flip, anim } = this.animationSets[state][orientation];
     
-    if(state === CharacterState.ATTACK || 
-      state === CharacterState.SHOOTING || 
-      state === CharacterState.PUNCHING || 
-      state === CharacterState.HIT) {
-        console.log(`[Animation] Playing ${anim} for state ${state}`);
-      }
-    
     // Determine if this animation should repeat or play once
     const shouldRepeat = this.shouldAnimationRepeat(state);
 
     // For one-time animations, ensure we track completion
     if (!shouldRepeat) {
-      this.handleOneTimeAnimation(character, state, anim);
+      this.handleOneTimeAnimation(character, state);
     }
     
     // Use the generic method to play the animation
@@ -145,12 +134,12 @@ export class BaseEntityAnimation implements IAnimationBehavior {
     // Apply additional visual effects based on state
     switch (state) {
       case CharacterState.HIT:
-        this.applyTint(character, 0xff0000, 500);
+        this.applyTint(character, BaseEntityAnimation.TINT_COLOR_HIT, BaseEntityAnimation.TINT_DURATION_HIT);
         break;
       case CharacterState.ATTACK:
       case CharacterState.SHOOTING:
       case CharacterState.PUNCHING:
-        this.applyTint(character, 0xffaa00, 200);
+        this.applyTint(character, BaseEntityAnimation.TINT_COLOR_ATTACK, BaseEntityAnimation.TINT_DURATION_ATTACK);
         break;
       case CharacterState.DEATH:
         this.playDeathEffect(character);
@@ -168,7 +157,6 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    */
   private updateWeaponAnimation(character: Character, state: CharacterState, orientation: Orientation): void {
     const weapon = character.getEquippedWeapon();
-    
     if (!weapon) return;
     
     const weaponSprite = weapon.getSprite();
@@ -217,7 +205,6 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    * Set up animations for this character 
    */
   setupAnimations(character: Character): void {
-    // Store animation sets on the character for reference
     character.setData('animationSets', this.animationSets);
   }
 
@@ -228,15 +215,14 @@ export class BaseEntityAnimation implements IAnimationBehavior {
   private applyTint(character: Character, color: number, duration: number): void {
     character.setTint(color);
     
-    // Reset tint after duration
     const scene = character.getScene();
-    if (scene && scene.time) {
-      scene.time.delayedCall(duration, () => {
-        if (character.active) {
-          character.clearTint();
-        }
-      }, [], this);
-    }
+    if (!scene || !scene.time) return;
+    
+    scene.time.delayedCall(duration, () => {
+      if (character.active) {
+        character.clearTint();
+      }
+    }, [], this);
   }
   
   /**
@@ -244,7 +230,6 @@ export class BaseEntityAnimation implements IAnimationBehavior {
    * @private
    */
   private playDeathEffect(character: Character): void {
-    // Could be enhanced with particle effects or special animations
     character.setAlpha(0.7);
     character.setTint(0x555555);
   }
