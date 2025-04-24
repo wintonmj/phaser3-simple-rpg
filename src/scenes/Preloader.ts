@@ -105,6 +105,9 @@ export class Preloader extends Phaser.Scene {
     // Load Goku NPC assets
     this.loadGokuNpcAssets();
     
+    // Load weapon assets
+    this.loadWeaponAssets();
+    
     // Load misc assets
     this.loadMiscAssets();
   }
@@ -168,6 +171,53 @@ export class Preloader extends Phaser.Scene {
       frameWidth: ENTITY_DIMENSIONS[ENTITIES.PLAYER].width,
       frameHeight: ENTITY_DIMENSIONS[ENTITIES.PLAYER].height,
     });
+  }
+
+  /**
+   * Loads all weapon-related assets
+   */
+  private loadWeaponAssets() {
+    // Load bow sprite sheets from the correct location
+    this.load.spritesheet(
+      ASSETS.IMAGES.BOW_WALK,
+      'assets/humanoid-spritesheets/equipment/weapons/bow/standard/walk.png',
+      { 
+        frameWidth: ENTITY_DIMENSIONS[ENTITIES.BOW].width, 
+        frameHeight: ENTITY_DIMENSIONS[ENTITIES.BOW].height 
+      }
+    );
+    
+    this.load.spritesheet(
+      ASSETS.IMAGES.BOW_ATTACK,
+      'assets/humanoid-spritesheets/equipment/weapons/bow/standard/shoot.png',
+      { 
+        frameWidth: ENTITY_DIMENSIONS[ENTITIES.BOW].width, 
+        frameHeight: ENTITY_DIMENSIONS[ENTITIES.BOW].height 
+      }
+    );
+    
+    this.load.spritesheet(
+      ASSETS.IMAGES.BOW_HURT,
+      'assets/humanoid-spritesheets/equipment/weapons/bow/standard/hurt.png',
+      { 
+        frameWidth: ENTITY_DIMENSIONS[ENTITIES.BOW].width, 
+        frameHeight: ENTITY_DIMENSIONS[ENTITIES.BOW].height 
+      }
+    );
+    this.load.spritesheet(
+      ASSETS.IMAGES.BOW_IDLE,
+      'assets/humanoid-spritesheets/equipment/weapons/bow/standard/idle.png',
+      { 
+        frameWidth: ENTITY_DIMENSIONS[ENTITIES.BOW].width, 
+        frameHeight: ENTITY_DIMENSIONS[ENTITIES.BOW].height 
+      }
+    );
+    
+    // Optionally load the character.json file if it contains frame data
+    this.load.json(
+      'bow-data',
+      'assets/humanoid-spritesheets/equipment/weapons/bow/character.json'
+    );
   }
 
   /**
@@ -251,6 +301,7 @@ export class Preloader extends Phaser.Scene {
     this.createPlayerAnimations();
     this.createEnemyAnimations();
     this.createGokuNpcAnimations();
+    this.createWeaponAnimations();
     this.createMiscAnimations();
   }
 
@@ -278,6 +329,35 @@ export class Preloader extends Phaser.Scene {
     this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_DOWN, ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_DOWN, 0, 2, 7);
     this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_UP, ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_UP, 0, 2, 7);
     this.createAnimation(ASSETS.ANIMATIONS.PLAYER_ATTACK_WEAPON_SIDE, ASSETS.IMAGES.PLAYER_ATTACK_WEAPON_SIDE, 0, 2, 7);
+  }
+
+  /**
+   * Creates weapon-related animations
+   */
+  private createWeaponAnimations() {
+    // Create direction-specific idle animations
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_IDLE_UP, ASSETS.IMAGES.BOW_IDLE, 0, 1, 5);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_IDLE_LEFT, ASSETS.IMAGES.BOW_IDLE, 2, 3, 5);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_IDLE_DOWN, ASSETS.IMAGES.BOW_IDLE, 4, 5, 5);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_IDLE_RIGHT, ASSETS.IMAGES.BOW_IDLE, 6, 7, 5);
+        
+    // Bow idle animations from walk.png
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_UP, ASSETS.IMAGES.BOW_WALK, 0, 8, 8, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_LEFT, ASSETS.IMAGES.BOW_WALK, 9, 16, 8, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_DOWN, ASSETS.IMAGES.BOW_WALK, 17, 24, 8, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_WALK_RIGHT, ASSETS.IMAGES.BOW_WALK, 25, 32, 8, false);
+    
+    // Bow attack animations from shoot.png
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_UP, ASSETS.IMAGES.BOW_ATTACK,  0, 12, 12, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_LEFT, ASSETS.IMAGES.BOW_ATTACK, 13, 25, 12, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_DOWN, ASSETS.IMAGES.BOW_ATTACK, 26, 38, 12, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_SHOOT_RIGHT, ASSETS.IMAGES.BOW_ATTACK, 39, 51, 12, false);
+    
+    // Bow hurt animations from hurt.png
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_HURT_UP, ASSETS.IMAGES.BOW_HURT, 0, 0, 1, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_HURT_DOWN, ASSETS.IMAGES.BOW_HURT, 1, 1, 1, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_HURT_LEFT, ASSETS.IMAGES.BOW_HURT, 2, 2, 1, false);
+    this.createAnimation(ASSETS.ANIMATIONS.BOW_HURT_RIGHT, ASSETS.IMAGES.BOW_HURT, 2, 2, 1, false);
   }
 
   /**

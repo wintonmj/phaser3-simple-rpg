@@ -51,7 +51,8 @@ Implements the animation behavior for entities:
 ## Adding a New Entity with Animations
 
 1. Add the entity type to `ENTITIES` in `entities.ts`:
-   ```typescript
+
+   ```typesc ipt
    export const ENTITIES = {
      // Existing entities
      NEW_ENTITY: 'new_entity',
@@ -59,6 +60,7 @@ Implements the animation behavior for entities:
    ```
 
 2. Add sprite dimensions in `ENTITY_DIMENSIONS` in `entity-animations.ts`:
+
    ```typescript
    export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: number }> = {
      // Existing dimensions
@@ -67,6 +69,7 @@ Implements the animation behavior for entities:
    ```
 
 3. Define animation keys in `ASSETS.ANIMATIONS` in `assets.ts`:
+
    ```typescript
    ANIMATIONS: {
      // Existing animations
@@ -76,6 +79,7 @@ Implements the animation behavior for entities:
    ```
 
 4. Create animation configurations in `animation-configs.ts`:
+
    ```typescript
    export const NEW_ENTITY_ANIMATIONS: Record<string, CharacterAnimation> = {
      [CharacterState.IDLE]: {
@@ -94,6 +98,7 @@ Implements the animation behavior for entities:
    ```
 
 5. Register in `ENTITY_ANIMATIONS` in `entity-animations.ts`:
+
    ```typescript
    export const ENTITY_ANIMATIONS: Record<EntityType, Record<string, CharacterAnimation>> = {
      // Existing mappings
@@ -102,6 +107,7 @@ Implements the animation behavior for entities:
    ```
 
 6. Use in entity class:
+
    ```typescript
    export class NewEntity extends NonPlayerEntity {
      constructor(scene, x, y) {
@@ -136,6 +142,7 @@ When a character performs an action like shooting (triggered by spacebar), the a
 1. **Identifies One-Time Animations**: Special states like ATTACK, SHOOTING, PUNCHING, and HIT are recognized as one-time animations that should not loop.
 
 2. **Configures Non-Repeating Playback**: The system uses Phaser's animation API correctly to ensure the animation only plays once:
+
    ```typescript
    // For repeating animations
    character.play(anim, true);
@@ -145,6 +152,7 @@ When a character performs an action like shooting (triggered by spacebar), the a
    ```
 
 3. **Ensures Animation Completion**: A timer is set to ensure the character returns to IDLE after animation completion:
+
    ```typescript
    scene.time.delayedCall(800, () => {
      if (character.active && character.getState() === state) {
@@ -154,6 +162,7 @@ When a character performs an action like shooting (triggered by spacebar), the a
    ```
 
 4. **Prevents Premature Interruption**: The input system is configured to not interrupt special animations:
+
    ```typescript
    // Only set to IDLE if not in a special state
    if (noKeyPressed && 

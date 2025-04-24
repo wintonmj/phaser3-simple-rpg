@@ -6,12 +6,14 @@ import { CharacterState } from '../../constants/character-states';
 import { Orientation } from '../../geometry/orientation';
 
 export class Fists extends Weapon {
-  constructor() {
+  constructor(_scene?: Phaser.Scene, _x?: number, _y?: number) {
     super(new MeleeCombat());
     
     this.damage = 1;
     this.range = 10;
     this.attackCooldown = 500;
+    
+    // Fists don't have a visual representation, so we don't create a sprite
   }
   
   attack(context: AttackContext): void {
@@ -42,6 +44,15 @@ export class Fists extends Weapon {
   
   getWeaponType(): WeaponType {
     return WeaponType.MELEE;
+  }
+  
+  // Implement abstract methods from Weapon class
+  protected updateWeaponOrientation(_orientation: Orientation): void {
+    // Fists don't have a sprite, so no orientation updates needed
+  }
+  
+  public playAttackAnimation(_orientation: Orientation): void {
+    // Fists don't have a sprite, so no animation to play
   }
   
   private createHitbox(character: { x: number, y: number }, direction: Orientation): Phaser.Geom.Rectangle {

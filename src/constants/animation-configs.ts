@@ -148,3 +148,33 @@ export const GOKU_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>
     right: { flip: false, anim: ASSETS.ANIMATIONS.GOKU_SHOOT_RIGHT },
   },
 }; 
+
+/**
+ * Bow weapon animation configurations
+ */
+export const BOW_ANIMATIONS: Partial<Record<CharacterState, CharacterAnimation>> = {
+  [CharacterState.MOVE]: {
+    up: { flip: false, anim: ASSETS.ANIMATIONS.BOW_WALK_UP },
+    down: { flip: false, anim: ASSETS.ANIMATIONS.BOW_WALK_DOWN },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.BOW_WALK_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.BOW_WALK_RIGHT },
+  },
+  [CharacterState.ATTACK]: {
+    up: { flip: false, anim: ASSETS.ANIMATIONS.BOW_ATTACK_UP },
+    down: { flip: false, anim: ASSETS.ANIMATIONS.BOW_ATTACK_DOWN },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.BOW_ATTACK_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.BOW_ATTACK_RIGHT },
+  }, 
+  [CharacterState.SHOOTING]: {
+    up: { flip: false, anim: ASSETS.ANIMATIONS.BOW_SHOOT_UP },
+    down: { flip: false, anim: ASSETS.ANIMATIONS.BOW_SHOOT_DOWN },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.BOW_SHOOT_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.BOW_SHOOT_RIGHT },
+  },
+  [CharacterState.HIT]: {
+    up: { flip: false, anim: ASSETS.ANIMATIONS.BOW_HURT_UP },
+    down: { flip: false, anim: ASSETS.ANIMATIONS.BOW_HURT_DOWN },
+    left: { flip: false, anim: ASSETS.ANIMATIONS.BOW_HURT_LEFT },
+    right: { flip: false, anim: ASSETS.ANIMATIONS.BOW_HURT_RIGHT },
+  },
+}; 

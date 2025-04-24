@@ -14,18 +14,21 @@ import { WeaponType } from '../../constants/weapon-types';
 export class WeaponFactory {
   /**
    * Create a weapon by type
+   * @param scene The scene the weapon belongs to
    * @param type Type of weapon to create
+   * @param x Initial x position
+   * @param y Initial y position
    * @returns A new weapon instance
    */
-  public static createWeapon(type: WeaponType): Weapon {
+  public static createWeapon(scene: Phaser.Scene, type: WeaponType, x: number, y: number): Weapon {
     switch (type) {
       case WeaponType.MELEE:
-        return new Fists();
+        return new Fists(scene, x, y);
       case WeaponType.RANGED:
-        return new Bow();
+        return new Bow(scene, x, y);
       default:
         // Default to fists if type is not recognized
-        return new Fists();
+        return new Fists(scene, x, y);
     }
   }
 
@@ -36,7 +39,8 @@ export class WeaponFactory {
    * @returns The equipped weapon
    */
   public static equipCharacterWithWeapon(character: Character, type: WeaponType): Weapon {
-    const weapon = this.createWeapon(type);
+    const scene = character.getScene();
+    const weapon = this.createWeapon(scene, type, character.x, character.y);
     character.equipWeapon(weapon);
     return weapon;
   }

@@ -302,7 +302,10 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * Subclasses should override this
    */
   public update(): void {
-    // Base implementation - to be overridden
+    // Update weapon sprite position if equipped
+    if (this.equippedWeapon) {
+      this.equippedWeapon.updateWeaponPosition(this);
+    }
   }
 
   /**
@@ -385,6 +388,11 @@ export abstract class Character extends Phaser.Physics.Arcade.Sprite {
    * @param weapon The weapon to equip
    */
   public equipWeapon(weapon: Weapon): void {
+    // Clean up previous weapon sprite if one exists
+    if (this.equippedWeapon) {
+      this.equippedWeapon.destroySprite();
+    }
+    
     this.equippedWeapon = weapon;
   }
   

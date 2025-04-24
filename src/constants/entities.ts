@@ -5,6 +5,7 @@ export const ENTITIES = {
   GOKU: 'goku',
   WIZARD: 'wizard',
   FEMALE_VILLAGER: 'female_villager',
+  BOW: 'bow',
 } as const;
 
 // Define the entity type as a union of all possible entity values

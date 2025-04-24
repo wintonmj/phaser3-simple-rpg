@@ -5,20 +5,21 @@
 
 import { EntityType, ENTITIES } from './entities';
 import { CharacterState } from './character-states';
-import { PLAYER_ANIMATIONS, MOLE_ANIMATIONS, TREANT_ANIMATIONS, GOKU_ANIMATIONS } from './animation-configs';
+import { PLAYER_ANIMATIONS, MOLE_ANIMATIONS, TREANT_ANIMATIONS, GOKU_ANIMATIONS, BOW_ANIMATIONS } from './animation-configs';
 import { CharacterAnimation } from '../game-objects/Character';
 
 /**
  * Centralized definition of entity sprite dimensions and scaling
  * This provides consistent dimensions for loading sprites
  */
-export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: number, scale?: number }> = {
+export const ENTITY_DIMENSIONS: Record<EntityType, { width: number, height: number, scale: number }> = {
   [ENTITIES.PLAYER]: { width: 32, height: 32, scale: 0.5 },
-  [ENTITIES.MOLE]: { width: 24, height: 24 },
-  [ENTITIES.TREANT]: { width: 31, height: 35 },
+  [ENTITIES.MOLE]: { width: 24, height: 24, scale: 1 },
+  [ENTITIES.TREANT]: { width: 31, height: 35, scale: 1 },
   [ENTITIES.GOKU]: { width: 64, height: 64, scale: 0.5 },
-  [ENTITIES.WIZARD]: { width: 32, height: 32 },
-  [ENTITIES.FEMALE_VILLAGER]: { width: 32, height: 32 },
+  [ENTITIES.WIZARD]: { width: 32, height: 32, scale: 1 },
+  [ENTITIES.FEMALE_VILLAGER]: { width: 32, height: 32, scale: 0.5 },
+  [ENTITIES.BOW]: { width: 64, height: 64, scale: 0.5 },
 };
 
 /**
@@ -54,6 +55,7 @@ export const ENTITY_ANIMATIONS: Record<EntityType, Record<string, CharacterAnima
   [ENTITIES.GOKU]: GOKU_ANIMATIONS,
   [ENTITIES.WIZARD]: {}, // To be filled with Wizard-specific animations
   [ENTITIES.FEMALE_VILLAGER]: {}, // To be filled with Villager-specific animations
+  [ENTITIES.BOW]: BOW_ANIMATIONS,
 };
 
 /**
@@ -70,6 +72,6 @@ export function getAnimationsForEntity(entityType: EntityType): Record<string, C
  * @param entityType The type of entity to get dimensions for
  * @returns Dimensions for the entity type or default dimensions
  */
-export function getDimensionsForEntity(entityType: EntityType): { width: number, height: number, scale?: number } {
-  return ENTITY_DIMENSIONS[entityType] || { width: 32, height: 32 }; // Default fallback
+export function getDimensionsForEntity(entityType: EntityType): { width: number, height: number, scale: number } {
+  return ENTITY_DIMENSIONS[entityType] || { width: 32, height: 32, scale: 1 }; // Default fallback with scale
 } 
